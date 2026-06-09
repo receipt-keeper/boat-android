@@ -33,7 +33,7 @@ object ApiClient {
     }
 
     /** TokenDataStore를 외부(Repository 등)에서도 접근할 수 있도록 lazy로 노출 */
-    private val tokenDataStore: TokenDataStore by lazy { TokenDataStore(appContext) }
+    val tokenDataStore: TokenDataStore by lazy { TokenDataStore(appContext) }
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

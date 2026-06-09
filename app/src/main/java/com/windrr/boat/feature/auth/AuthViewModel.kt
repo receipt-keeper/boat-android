@@ -2,12 +2,17 @@ package com.windrr.boat.feature.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import com.windrr.boat.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 /**
  * [MVI - ViewModel]
@@ -66,6 +71,40 @@ class AuthViewModel(
                     }.onFailure { e ->
                         _state.update { it.copy(error = e.message) }
                     }
+                }
+
+                is AuthIntent.SignInWithGoogle -> {
+                    _state.update { it.copy(isLoading = true, error = null) }
+                    try {
+                        val credential = GoogleAuthProvider.getCredential(intent.idToken, null)
+                        val result = suspendCancellableCoroutine { cont ->
+                            FirebaseAuth.getInstance()
+                                .signInWithCredential(credential)
+                                .addOnSuccessListener { cont.resume(it) }
+                                .addOnFailureListener { cont.resumeWithException(it) }
+                        }
+                        val user = result.user
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                isLoggedIn = true,
+                                displayName = user?.displayName,
+                                email = user?.email,
+                                photoUrl = user?.photoUrl?.toString()
+                            )
+                        }
+                        // TODO: 서버에 Firebase idToken 전달 → JWT 발급
+                        // val firebaseIdToken = user?.getIdToken(false)?.result?.token
+                        // handleIntent(AuthIntent.SaveTokens(jwtAccess, jwtRefresh))
+                    } catch (e: Exception) {
+                        _state.update { it.copy(isLoading = false, error = e.message) }
+                    }
+                }
+
+                is AuthIntent.SignOut -> {
+                    FirebaseAuth.getInstance().signOut()
+                    authRepository.clearTokens()
+                    _state.update { AuthState() }
                 }
 
                 is AuthIntent.Logout -> {
