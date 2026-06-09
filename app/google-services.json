@@ -12,7 +12,20 @@
           "package_name": "com.windrr.boat"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "925770804748-ck7t3dmbcs2u5753a6d3lf9hl2op1s8k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.windrr.boat",
+            "certificate_hash": "5a317fd42881794aa983cac301f3bf9a29e40322"
+          }
+        },
+        {
+          "client_id": "925770804748-qcf9f1juj4jsv4snkeg3k943n8ii0rvu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBDIMR_bhJIlVugv9aLyOG6WQACRpyGmbA"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "925770804748-qcf9f1juj4jsv4snkeg3k943n8ii0rvu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "925770804748-rdiej9mn3loeufoais4t8lda2i89io5u.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.receipt-keeper.BOAT"
+              }
+            }
+          ]
         }
       }
     }

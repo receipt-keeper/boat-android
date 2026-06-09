@@ -26,6 +26,16 @@ sealed class AuthIntent {
         val newAccessToken: String
     ) : AuthIntent()
 
-    /** 로그아웃 — 저장된 토큰 전체 삭제 */
+    /**
+     * Google 로그인 성공 후 Firebase 인증 처리
+     *
+     * @property idToken Google Sign-In으로 발급받은 idToken
+     */
+    data class SignInWithGoogle(val idToken: String) : AuthIntent()
+
+    /** 로그아웃 — Firebase 세션 + DataStore 토큰 전체 삭제 */
+    data object SignOut : AuthIntent()
+
+    /** 로그아웃 — 저장된 토큰 전체 삭제 (서버 JWT 연동 후 사용) */
     data object Logout : AuthIntent()
 }
