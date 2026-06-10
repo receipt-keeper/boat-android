@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.OAuthProvider
 import com.windrr.boat.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -96,6 +97,34 @@ class AuthViewModel(
                         // TODO: 서버에 Firebase idToken 전달 → JWT 발급
                         // val firebaseIdToken = user?.getIdToken(false)?.result?.token
                         // handleIntent(AuthIntent.SaveTokens(jwtAccess, jwtRefresh))
+                    } catch (e: Exception) {
+                        _state.update { it.copy(isLoading = false, error = e.message) }
+                    }
+                }
+
+                is AuthIntent.SignInWithApple -> {
+                    _state.update { it.copy(isLoading = true, error = null) }
+                    try {
+                        val credential = OAuthProvider.newCredentialBuilder("apple.com")
+                            .setIdToken(intent.idToken)
+                            .build()
+                        val result = suspendCancellableCoroutine { cont ->
+                            FirebaseAuth.getInstance()
+                                .signInWithCredential(credential)
+                                .addOnSuccessListener { cont.resume(it) }
+                                .addOnFailureListener { cont.resumeWithException(it) }
+                        }
+                        val user = result.user
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                isLoggedIn = true,
+                                displayName = intent.displayName ?: user?.displayName,
+                                email = user?.email,
+                                photoUrl = user?.photoUrl?.toString()
+                            )
+                        }
+                        // TODO: 서버에 Firebase idToken 전달 → JWT 발급
                     } catch (e: Exception) {
                         _state.update { it.copy(isLoading = false, error = e.message) }
                     }
