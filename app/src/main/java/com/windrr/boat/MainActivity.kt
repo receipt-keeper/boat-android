@@ -2,6 +2,7 @@ package com.windrr.boat
 
 import android.app.Activity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -27,7 +28,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,7 +43,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import android.widget.Toast
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -49,6 +52,7 @@ import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.repository.AuthRepositoryImpl
 import com.windrr.boat.feature.auth.AuthIntent
 import com.windrr.boat.feature.auth.AuthViewModel
+import com.windrr.boat.feature.gallery.GalleryScreen
 import com.windrr.boat.ui.theme.BoatTheme
 
 class MainActivity : ComponentActivity() {
@@ -58,20 +62,29 @@ class MainActivity : ComponentActivity() {
         setContent {
             BoatTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    val authViewModel: AuthViewModel = viewModel(
-                        factory = object : ViewModelProvider.Factory {
-                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                                @Suppress("UNCHECKED_CAST")
-                                return AuthViewModel(
-                                    AuthRepositoryImpl(ApiClient.tokenDataStore)
-                                ) as T
+                    var showGallery by rememberSaveable { mutableStateOf(false) }
+
+                    if (showGallery) {
+                        GalleryScreen(
+                            onBack = { showGallery = false }
+                        )
+                    } else {
+                        val authViewModel: AuthViewModel = viewModel(
+                            factory = object : ViewModelProvider.Factory {
+                                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                    @Suppress("UNCHECKED_CAST")
+                                    return AuthViewModel(
+                                        AuthRepositoryImpl(ApiClient.tokenDataStore)
+                                    ) as T
+                                }
                             }
-                        }
-                    )
-                    LoginTestScreen(
-                        authViewModel = authViewModel,
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                        )
+                        LoginTestScreen(
+                            authViewModel = authViewModel,
+                            onOpenGallery = { showGallery = true },
+                            modifier = Modifier.padding(innerPadding)
+                        )
+                    }
                 }
             }
         }
@@ -81,6 +94,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun LoginTestScreen(
     authViewModel: AuthViewModel,
+    onOpenGallery: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val state by authViewModel.state.collectAsState()
@@ -179,6 +193,17 @@ fun LoginTestScreen(
                     error = state.error
                 )
             }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 갤러리 테스트 버튼 — 로그인 여부와 무관하게 항상 표시
+        OutlinedButton(
+            onClick = onOpenGallery,
+            shape = RoundedCornerShape(8.dp),
+            border = BorderStroke(1.dp, Color.LightGray)
+        ) {
+            Text("갤러리 열기 (테스트)", color = Color.Black)
         }
     }
 }

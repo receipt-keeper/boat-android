@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- 카메라 촬영 임시 이미지 저장 위치 (cacheDir/images) -->
+    <cache-path
+        name="images"
+        path="images/" />
+</paths>

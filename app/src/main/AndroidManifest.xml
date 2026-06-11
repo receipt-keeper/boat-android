@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- 카메라 (영수증 촬영) -->
+    <!-- 갤러리 선택은 Photo Picker를 사용하므로 미디어 읽기 권한이 필요 없음 -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
     <application
         android:name=".AppCore"
         android:allowBackup="true"
@@ -23,6 +27,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 카메라 촬영 임시 파일 공유용 FileProvider -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>
