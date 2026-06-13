@@ -5,6 +5,10 @@
     <!-- 카메라 (영수증 촬영) -->
     <!-- 갤러리 선택은 Photo Picker를 사용하므로 미디어 읽기 권한이 필요 없음 -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- 알림 표시 권한 (Android 13+, 런타임 다이얼로그) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 정확한 시각 알람 권한 (Android 12+, "알람 및 리마인더" 설정 화면) -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <application
         android:name=".AppCore"
