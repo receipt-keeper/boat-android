@@ -2,6 +2,7 @@ package com.windrr.boat
 
 import android.app.Activity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -42,7 +43,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import android.widget.Toast
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -52,6 +52,7 @@ import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.repository.AuthRepositoryImpl
 import com.windrr.boat.feature.auth.AuthIntent
 import com.windrr.boat.feature.auth.AuthViewModel
+import com.windrr.boat.feature.gallery.GalleryScreen
 import com.windrr.boat.feature.notification.AlarmPermissionTestScreen
 import com.windrr.boat.ui.theme.BoatTheme
 
@@ -62,28 +63,40 @@ class MainActivity : ComponentActivity() {
         setContent {
             BoatTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    var showGallery by rememberSaveable { mutableStateOf(false) }
                     var showAlarmTest by rememberSaveable { mutableStateOf(false) }
 
-                    if (showAlarmTest) {
-                        AlarmPermissionTestScreen(
-                            onBack = { showAlarmTest = false }
-                        )
-                    } else {
-                        val authViewModel: AuthViewModel = viewModel(
-                            factory = object : ViewModelProvider.Factory {
-                                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                                    @Suppress("UNCHECKED_CAST")
-                                    return AuthViewModel(
-                                        AuthRepositoryImpl(ApiClient.tokenDataStore)
-                                    ) as T
+                    when {
+                        showGallery -> {
+                            GalleryScreen(
+                                onBack = { showGallery = false }
+                            )
+                        }
+
+                        showAlarmTest -> {
+                            AlarmPermissionTestScreen(
+                                onBack = { showAlarmTest = false }
+                            )
+                        }
+
+                        else -> {
+                            val authViewModel: AuthViewModel = viewModel(
+                                factory = object : ViewModelProvider.Factory {
+                                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                        @Suppress("UNCHECKED_CAST")
+                                        return AuthViewModel(
+                                            AuthRepositoryImpl(ApiClient.tokenDataStore)
+                                        ) as T
+                                    }
                                 }
-                            }
-                        )
-                        LoginTestScreen(
-                            authViewModel = authViewModel,
-                            onOpenAlarmTest = { showAlarmTest = true },
-                            modifier = Modifier.padding(innerPadding)
-                        )
+                            )
+                            LoginTestScreen(
+                                authViewModel = authViewModel,
+                                onOpenGallery = { showGallery = true },
+                                onOpenAlarmTest = { showAlarmTest = true },
+                                modifier = Modifier.padding(innerPadding)
+                            )
+                        }
                     }
                 }
             }
@@ -94,6 +107,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun LoginTestScreen(
     authViewModel: AuthViewModel,
+    onOpenGallery: () -> Unit,
     onOpenAlarmTest: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -196,6 +210,17 @@ fun LoginTestScreen(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        // 갤러리 테스트 버튼 — 로그인 여부와 무관하게 항상 표시
+        OutlinedButton(
+            onClick = onOpenGallery,
+            shape = RoundedCornerShape(8.dp),
+            border = BorderStroke(1.dp, Color.LightGray)
+        ) {
+            Text("갤러리 열기 (테스트)", color = Color.Black)
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         // 알람 권한 테스트 진입 버튼
         OutlinedButton(
