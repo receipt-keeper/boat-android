@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "925770804748-ca4otvu16u1k65srk5csmhsp9q52crk1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.windrr.boat",
+            "certificate_hash": "8a15c8e9b02bf781c9a622ed4b8eeaa86a6c138c"
+          }
+        },
+        {
           "client_id": "925770804748-ck7t3dmbcs2u5753a6d3lf9hl2op1s8k.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
