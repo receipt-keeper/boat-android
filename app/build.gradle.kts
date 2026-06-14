@@ -4,6 +4,15 @@ val localProps = Properties().apply {
     load(rootProject.file("local.properties").inputStream())
 }
 
+// 공유 release 서명 설정 — keystore.properties가 있을 때만 로드(git 미포함).
+// 키가 없는 팀원은 release 서명만 생략되고 debug 빌드는 정상 동작.
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties().apply {
+    if (keystorePropsFile.exists()) {
+        load(keystorePropsFile.inputStream())
+    }
+}
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -28,6 +37,18 @@ android {
         buildConfigField("String", "VISION_API_KEY", "\"${localProps["VISION_API_KEY"]}\"")
     }
 
+    signingConfigs {
+        // keystore.properties가 존재할 때만 release 서명 구성
+        if (keystorePropsFile.exists()) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProps["storeFile"] as String)
+                storePassword = keystoreProps["storePassword"] as String
+                keyAlias = keystoreProps["keyAlias"] as String
+                keyPassword = keystoreProps["keyPassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -35,6 +56,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // 공유 키가 있으면 release 서명 적용 (App Distribution 배포용)
+            if (keystorePropsFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     compileOptions {
