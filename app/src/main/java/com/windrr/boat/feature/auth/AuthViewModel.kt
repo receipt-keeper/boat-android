@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.OAuthProvider
+import com.windrr.boat.core.log.BoatLog
 import com.windrr.boat.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -60,6 +61,7 @@ class AuthViewModel(
                     runCatching {
                         authRepository.saveTokens(intent.accessToken, intent.refreshToken)
                     }.onFailure { e ->
+                        BoatLog.e("토큰 저장 실패", e)
                         _state.update { it.copy(isLoading = false, error = e.message) }
                         return@launch
                     }
@@ -70,6 +72,7 @@ class AuthViewModel(
                     runCatching {
                         authRepository.updateAccessToken(intent.newAccessToken)
                     }.onFailure { e ->
+                        BoatLog.e("토큰 갱신 실패", e)
                         _state.update { it.copy(error = e.message) }
                     }
                 }
@@ -85,6 +88,8 @@ class AuthViewModel(
                                 .addOnFailureListener { cont.resumeWithException(it) }
                         }
                         val user = result.user
+                        user?.uid?.let { BoatLog.setUser(it) }
+                        BoatLog.i("Google 로그인 성공")
                         _state.update {
                             it.copy(
                                 isLoading = false,
@@ -98,6 +103,7 @@ class AuthViewModel(
                         // val firebaseIdToken = user?.getIdToken(false)?.result?.token
                         // handleIntent(AuthIntent.SaveTokens(jwtAccess, jwtRefresh))
                     } catch (e: Exception) {
+                        BoatLog.e("Google 로그인 실패", e)
                         _state.update { it.copy(isLoading = false, error = e.message) }
                     }
                 }
@@ -115,6 +121,8 @@ class AuthViewModel(
                                 .addOnFailureListener { cont.resumeWithException(it) }
                         }
                         val user = result.user
+                        user?.uid?.let { BoatLog.setUser(it) }
+                        BoatLog.i("Apple 로그인 성공")
                         _state.update {
                             it.copy(
                                 isLoading = false,
@@ -126,6 +134,7 @@ class AuthViewModel(
                         }
                         // TODO: 서버에 Firebase idToken 전달 → JWT 발급
                     } catch (e: Exception) {
+                        BoatLog.e("Apple 로그인 실패", e)
                         _state.update { it.copy(isLoading = false, error = e.message) }
                     }
                 }
@@ -133,6 +142,8 @@ class AuthViewModel(
                 is AuthIntent.SignOut -> {
                     FirebaseAuth.getInstance().signOut()
                     authRepository.clearTokens()
+                    BoatLog.clearUser()
+                    BoatLog.i("로그아웃")
                     _state.update { AuthState() }
                 }
 
