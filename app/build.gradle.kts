@@ -1,3 +1,4 @@
+import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
 import java.util.Properties
 
 val localProps = Properties().apply {
@@ -20,6 +21,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics.plugin)
+    alias(libs.plugins.firebase.appdistribution.plugin)
 }
 
 android {
@@ -59,6 +61,15 @@ android {
             // 공유 키가 있으면 release 서명 적용 (App Distribution 배포용)
             if (keystorePropsFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
+            }
+
+            // Firebase App Distribution 배포 설정
+            // 업로드: ./gradlew assembleRelease appDistributionUploadRelease
+            // 릴리스 노트는 CLI로 덮어쓰기 가능: --releaseNotes "내용"
+            firebaseAppDistribution {
+                appId = "1:925770804748:android:2b734719054e3afa37c829"
+                artifactType = "APK"
+                groups = "boat-team" // Firebase Console에서 만든 테스터 그룹 별칭
             }
         }
     }
