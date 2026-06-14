@@ -49,6 +49,7 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.OAuthProvider
 import com.windrr.boat.core.crash.CrashReporter
+import com.windrr.boat.core.log.BoatLog
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.repository.AuthRepositoryImpl
 import com.windrr.boat.feature.auth.AuthIntent
@@ -139,6 +140,7 @@ fun LoginTestScreen(
                 }
             } catch (e: ApiException) {
                 if (e.statusCode != 12501) { //사용자가 직접 취소한 경우 제외
+                    BoatLog.e("Google 계정 선택 실패 (code=${e.statusCode})", e)
                     Toast.makeText(
                         context,
                         "Google 로그인에 실패했습니다 (${e.statusCode})",
@@ -178,6 +180,7 @@ fun LoginTestScreen(
                     else -> "Apple 로그인에 실패했습니다"
                 }
                 message?.let {
+                    BoatLog.e("Apple OAuth 인증 실패", e)
                     Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 }
             }
