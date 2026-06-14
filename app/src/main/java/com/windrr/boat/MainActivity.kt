@@ -48,6 +48,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.OAuthProvider
+import com.windrr.boat.core.crash.CrashReporter
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.repository.AuthRepositoryImpl
 import com.windrr.boat.feature.auth.AuthIntent
@@ -229,6 +230,17 @@ fun LoginTestScreen(
             border = BorderStroke(1.dp, Color.LightGray)
         ) {
             Text("알람 권한 테스트", color = Color.Black)
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Crashlytics 검증용 강제 크래시 버튼 (테스트 전용)
+        OutlinedButton(
+            onClick = { CrashReporter.forceTestCrash() },
+            shape = RoundedCornerShape(8.dp),
+            border = BorderStroke(1.dp, Color(0xFFE57373))
+        ) {
+            Text("테스트 크래시 발생 (Crashlytics)", color = Color(0xFFC62828))
         }
     }
 }
