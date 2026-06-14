@@ -2,7 +2,11 @@ import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
 import java.util.Properties
 
 val localProps = Properties().apply {
-    load(rootProject.file("local.properties").inputStream())
+    // CI 등 local.properties가 없는 환경에서도 빌드 설정이 깨지지 않도록 가드
+    val localPropsFile = rootProject.file("local.properties")
+    if (localPropsFile.exists()) {
+        load(localPropsFile.inputStream())
+    }
 }
 
 // 공유 release 서명 설정 — keystore.properties가 있을 때만 로드(git 미포함).
