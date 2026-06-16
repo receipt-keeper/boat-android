@@ -18,9 +18,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.windrr.boat.core.notification.WarrantyAlarm
+import com.windrr.boat.core.notification.WarrantyAlarmScheduler
 import com.windrr.boat.core.permission.ExactAlarmRationaleDialog
 import com.windrr.boat.core.permission.rememberAlarmPermissionState
 
@@ -45,6 +48,8 @@ fun AlarmPermissionTestScreen(
     LaunchedEffect(Unit) {
         alarmPermission.requestAllPermissions()
     }
+
+    val context = LocalContext.current
 
     Column(modifier = Modifier.fillMaxSize()) {
         // 상단 바
@@ -134,6 +139,30 @@ fun AlarmPermissionTestScreen(
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
                 )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 실제 알람 스케줄러 E2E 테스트 — 5초 후 알림 발송
+                OutlinedButton(
+                    onClick = {
+                        WarrantyAlarmScheduler.scheduleAfterDelay(
+                            context = context,
+                            alarm = WarrantyAlarm(
+                                receiptId = 9999L,
+                                productName = "테스트 제품 (갤럭시 S24)",
+                                expiryDateMillis = 0L,
+                                daysBeforeExpiry = 0
+                            ),
+                            delayMillis = 5_000L
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("5초 후 테스트 알람 발송", color = Color(0xFF1565C0))
+                }
             } else {
                 Text(
                     text = "두 권한을 모두 허용해야 알림 예약이 가능합니다",

@@ -2,6 +2,7 @@ package com.windrr.boat
 
 import android.app.Application
 import com.windrr.boat.core.crash.CrashReporter
+import com.windrr.boat.core.notification.NotificationHelper
 import com.windrr.boat.data.remote.ApiClient
 
 class AppCore : Application() {
@@ -23,5 +24,7 @@ class AppCore : Application() {
         // 현재는 검증을 위해 모든 빌드에서 수집.
         // 운영 단계에서 디버그 크래시를 제외하려면 아래를 !BuildConfig.DEBUG 로 변경.
         CrashReporter.setCollectionEnabled(true)
+
+        NotificationHelper.createChannels(this)
     }
 }
