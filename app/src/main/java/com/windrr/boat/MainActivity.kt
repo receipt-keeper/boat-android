@@ -56,6 +56,7 @@ import com.windrr.boat.feature.auth.AuthIntent
 import com.windrr.boat.feature.auth.AuthViewModel
 import com.windrr.boat.feature.gallery.GalleryScreen
 import com.windrr.boat.feature.notification.AlarmPermissionTestScreen
+import com.windrr.boat.feature.ocr.OcrTestScreen
 import com.windrr.boat.ui.theme.BoatTheme
 
 class MainActivity : ComponentActivity() {
@@ -67,20 +68,18 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     var showGallery by rememberSaveable { mutableStateOf(false) }
                     var showAlarmTest by rememberSaveable { mutableStateOf(false) }
+                    var showOcrTest by rememberSaveable { mutableStateOf(false) }
 
                     when {
                         showGallery -> {
-                            GalleryScreen(
-                                onBack = { showGallery = false }
-                            )
+                            GalleryScreen(onBack = { showGallery = false })
                         }
-
                         showAlarmTest -> {
-                            AlarmPermissionTestScreen(
-                                onBack = { showAlarmTest = false }
-                            )
+                            AlarmPermissionTestScreen(onBack = { showAlarmTest = false })
                         }
-
+                        showOcrTest -> {
+                            OcrTestScreen(onBack = { showOcrTest = false })
+                        }
                         else -> {
                             val authViewModel: AuthViewModel = viewModel(
                                 factory = object : ViewModelProvider.Factory {
@@ -96,6 +95,7 @@ class MainActivity : ComponentActivity() {
                                 authViewModel = authViewModel,
                                 onOpenGallery = { showGallery = true },
                                 onOpenAlarmTest = { showAlarmTest = true },
+                                onOpenOcrTest = { showOcrTest = true },
                                 modifier = Modifier.padding(innerPadding)
                             )
                         }
@@ -111,6 +111,7 @@ fun LoginTestScreen(
     authViewModel: AuthViewModel,
     onOpenGallery: () -> Unit,
     onOpenAlarmTest: () -> Unit,
+    onOpenOcrTest: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val state by authViewModel.state.collectAsState()
@@ -218,10 +219,9 @@ fun LoginTestScreen(
         // 갤러리 테스트 버튼 — 로그인 여부와 무관하게 항상 표시
         OutlinedButton(
             onClick = onOpenGallery,
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, Color.LightGray)
+            shape = RoundedCornerShape(8.dp)
         ) {
-            Text("갤러리 열기 (테스트)", color = Color.Black)
+            Text("갤러리 열기 (테스트)")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -229,10 +229,19 @@ fun LoginTestScreen(
         // 알람 권한 테스트 진입 버튼
         OutlinedButton(
             onClick = onOpenAlarmTest,
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, Color.LightGray)
+            shape = RoundedCornerShape(8.dp)
         ) {
-            Text("알람 권한 테스트", color = Color.Black)
+            Text("알람 권한 테스트")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // OCR 테스트 진입 버튼
+        OutlinedButton(
+            onClick = onOpenOcrTest,
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text("OCR 테스트 (Vision API)")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -262,10 +271,9 @@ private fun LoggedInSection(
     Spacer(modifier = Modifier.height(32.dp))
     OutlinedButton(
         onClick = onSignOut,
-        shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(1.dp, Color.LightGray)
+        shape = RoundedCornerShape(8.dp)
     ) {
-        Text("로그아웃", color = Color.Black)
+        Text("로그아웃")
     }
 }
 
@@ -279,8 +287,7 @@ private fun LoginSection(
     Text(
         text = "BOAT",
         fontSize = 32.sp,
-        fontWeight = FontWeight.Bold,
-        color = Color.Black
+        fontWeight = FontWeight.Bold
     )
     Spacer(modifier = Modifier.height(8.dp))
     Text(

@@ -60,7 +60,7 @@ fun AlarmPermissionTestScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextButton(onClick = onBack) {
-                Text(text = "← 뒤로", color = Color.Black)
+                Text(text = "← 뒤로")
             }
             Text(
                 text = "알람 권한 테스트",
@@ -112,7 +112,7 @@ fun AlarmPermissionTestScreen(
                     .height(52.dp),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("① 알림 권한 요청", color = Color.Black)
+                Text("① 알림 권한 요청")
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -126,7 +126,7 @@ fun AlarmPermissionTestScreen(
                     .height(52.dp),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("② 알람 및 리마인더 권한 요청", color = Color.Black)
+                Text("② 알람 및 리마인더 권한 요청")
             }
 
             Spacer(modifier = Modifier.height(24.dp))
