@@ -120,6 +120,8 @@ fun OcrTestScreen(onBack: () -> Unit) {
                 OcrResultRow("가격", ocr.price?.let { "${String.format("%,d", it)}원" })
                 OcrResultRow("구매일", ocr.purchaseDateIso)
                 OcrResultRow("보증기간", ocr.warrantyMonths?.let { "${it}개월" })
+                OcrResultRow("시리얼 넘버", ocr.serialNumber)
+                OcrResultRow("대분류", ocr.category.displayName, alwaysShow = true)
 
                 if (ocr.isEmpty) {
                     Spacer(modifier = Modifier.height(8.dp))
@@ -135,7 +137,8 @@ fun OcrTestScreen(onBack: () -> Unit) {
 }
 
 @Composable
-private fun OcrResultRow(label: String, value: String?) {
+private fun OcrResultRow(label: String, value: String?, alwaysShow: Boolean = false) {
+    val displayValue = value ?: if (alwaysShow) value else null
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -144,7 +147,7 @@ private fun OcrResultRow(label: String, value: String?) {
     ) {
         Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
         Text(
-            text = value ?: "인식 실패",
+            text = value ?: if (alwaysShow) "-" else "인식 실패",
             fontWeight = if (value != null) FontWeight.Medium else FontWeight.Normal,
             color = if (value != null) MaterialTheme.colorScheme.onSurface
                     else MaterialTheme.colorScheme.onSurfaceVariant,
