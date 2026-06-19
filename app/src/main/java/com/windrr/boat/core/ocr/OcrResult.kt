@@ -18,11 +18,13 @@ data class OcrResult(
     val purchaseDateIso: String? = null,
     val warrantyMonths: Int? = null,
     val serialNumber: String? = null,
-    val category: DeviceCategory = DeviceCategory.OTHER
+    val category: DeviceCategory = DeviceCategory.OTHER,
+    val items: List<String> = emptyList()
 ) {
     val isEmpty: Boolean
         get() = productName == null && brand == null && price == null
                 && purchaseDateIso == null && warrantyMonths == null && serialNumber == null
+                && items.isEmpty()
 }
 
 enum class DeviceCategory(val displayName: String) {

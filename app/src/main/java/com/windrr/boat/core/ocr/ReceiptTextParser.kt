@@ -1,16 +1,17 @@
 package com.windrr.boat.core.ocr
 
 /**
- * Vision API가 반환한 영수증 전문(fullText)에서 7개 필드를 추출하는 파서.
+ * Vision API가 반환한 영수증 전문(fullText)에서 필드를 추출하는 파서.
  *
  * 추출 방식:
  * - 제품명: 키워드("제품명:", "모델명:" 등) 또는 모델번호 패턴(SM-S928B 등)
- * - 구매일: 날짜 정규식 (2024.06.18 / 24/06/18 등)
+ * - 구매일/거래일시: 날짜 정규식 (2024.06.18 / 24/06/18 등)
  * - 무상 AS 기간: "보증기간 1년", "warranty 12months" 패턴
  * - 브랜드명: 제조사명 키워드 매칭
- * - 가격: 숫자 + 원/₩ 패턴
+ * - 가격: 숫자 + 원/₩ 패턴 (공백 정규화 후 키워드 매칭)
  * - 시리얼 넘버: S/N, 일련번호 패턴
  * - 대분류: 제품명 기준 카테고리 매핑 (PRD 14종 기준)
+ * - 상품명 목록: 상품명 테이블 헤더 이후 순수 텍스트 행 추출 (카드 영수증 대응)
  *
  * Gemini 백엔드 연동 후 대체 예정.
  */
@@ -26,19 +27,19 @@ internal object ReceiptTextParser {
             purchaseDateIso = extractDate(lines),
             warrantyMonths = extractWarrantyMonths(lines),
             serialNumber = extractSerialNumber(lines),
-            category = mapCategory(productName)
+            category = mapCategory(productName),
+            items = extractItems(lines)
         )
     }
 
     // ── 제품명 ────────────────────────────────────────────────────────────────
     // 1순위: 키워드 뒤 값, 2순위: 모델번호 패턴 (영문+숫자 조합 8자 이상)
 
-    private val PRODUCT_KEYWORDS = listOf("제품명", "품명", "모델명", "상품명", "품목", "모델번호")
+    private val PRODUCT_KEYWORDS = listOf("제품명", "품명", "모델명", "품목", "모델번호")
     private val MODEL_NUMBER_REGEX = Regex("""[A-Z]{1,4}[-_]?[A-Z0-9]{4,}""")  // SM-S928B, WF19T6000KW 등
 
     private fun extractProductName(lines: List<String>): String? {
         extractByKeyword(lines, PRODUCT_KEYWORDS)?.let { return it }
-        // 모델번호 패턴 fallback
         for (line in lines) {
             MODEL_NUMBER_REGEX.find(line)?.let { return it.value }
         }
@@ -53,29 +54,43 @@ internal object ReceiptTextParser {
         extractByKeyword(lines, BRAND_KEYWORDS)
 
     // ── 가격 ──────────────────────────────────────────────────────────────────
+    // 공백 정규화(remove spaces) 후 키워드 매칭 → 열감지 프린터 출력의 "결제 금 액" 등 대응
 
     private val PRICE_KEYWORDS = listOf(
-        "결제금액", "판매가", "판매금액", "합계", "합 계", "구매가", "소비자가", "실결제", "금액"
+        "결제금액", "판매가", "판매금액", "합계", "구매가", "소비자가", "실결제"
     )
     private val AMOUNT_REGEX = Regex("""[₩￦]?\s*([\d,]{4,})\s*원?""")
+    // fallback 전용: "원" 필수 → 가맹점번호·승인번호 등 순수 숫자열 제외
+    private val AMOUNT_WITH_WON = Regex("""[₩￦]?\s*([\d,]{4,})\s*원""")
 
     private fun extractPrice(lines: List<String>): Long? {
-        for (line in lines) {
-            if (PRICE_KEYWORDS.any { line.contains(it) }) {
+        for ((idx, line) in lines.withIndex()) {
+            val normalized = line.replace(" ", "")
+            if (PRICE_KEYWORDS.any { normalized.contains(it) }) {
                 parseAmount(line)?.let { return it }
+                // 레이블과 금액이 다른 줄에 분리된 경우
+                if (idx + 1 < lines.size) parseAmount(lines[idx + 1])?.let { return it }
             }
         }
-        return lines.mapNotNull { parseAmount(it) }.filter { it >= 1_000 }.maxOrNull()
+        // fallback: "원" 이 명시된 금액 중 가장 큰 값 (단위: 1천~5천만원)
+        return lines
+            .mapNotNull { AMOUNT_WITH_WON.find(it)?.groupValues?.get(1)?.replace(",", "")?.toLongOrNull() }
+            .filter { it in 1_000L..50_000_000L }
+            .maxOrNull()
     }
 
     private fun parseAmount(line: String): Long? =
         AMOUNT_REGEX.find(line)?.groupValues?.get(1)?.replace(",", "")?.toLongOrNull()
 
     // ── 날짜 ──────────────────────────────────────────────────────────────────
+    // "거래 일시", "거래일시" 등 카드 영수증 패턴 추가
 
-    private val DATE_KEYWORDS = listOf("구매일", "구입일", "판매일", "거래일", "발행일", "영수증일")
-    private val DATE_4Y = Regex("""(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})""")
-    private val DATE_2Y = Regex("""(\d{2})[.\-/](\d{1,2})[.\-/](\d{1,2})""")
+    private val DATE_KEYWORDS = listOf(
+        "구매일", "구입일", "판매일", "거래일시", "거래 일시", "거래일", "발행일", "영수증일", "승인일시"
+    )
+    // (?<!\d) lookbehind: 앞에 숫자가 붙은 경우(사업자번호 등) 매칭 방지
+    private val DATE_4Y = Regex("""(?<!\d)(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})""")
+    private val DATE_2Y = Regex("""(?<!\d)(\d{2})[.\-/](\d{1,2})[.\-/](\d{1,2})""")
 
     private fun extractDate(lines: List<String>): String? {
         for (line in lines) {
@@ -88,10 +103,16 @@ internal object ReceiptTextParser {
     private fun parseDate(line: String): String? {
         DATE_4Y.find(line)?.let { m ->
             val year = m.groupValues[1].toInt()
-            if (year in 2000..2035) return toIso(m.groupValues[1], m.groupValues[2], m.groupValues[3])
+            val month = m.groupValues[2].toInt()
+            val day = m.groupValues[3].toInt()
+            if (year in 2000..2035 && month in 1..12 && day in 1..31)
+                return toIso(m.groupValues[1], m.groupValues[2], m.groupValues[3])
         }
         DATE_2Y.find(line)?.let { m ->
-            return toIso("20${m.groupValues[1]}", m.groupValues[2], m.groupValues[3])
+            val month = m.groupValues[2].toInt()
+            val day = m.groupValues[3].toInt()
+            if (month in 1..12 && day in 1..31)
+                return toIso("20${m.groupValues[1]}", m.groupValues[2], m.groupValues[3])
         }
         return null
     }
@@ -137,7 +158,6 @@ internal object ReceiptTextParser {
                 val afterKeyword = line.substring(lower.indexOf(keyword) + keyword.length)
                     .trimStart(':', '：', ' ', '\t')
                 SERIAL_VALUE_REGEX.find(afterKeyword)?.let { return it.value }
-                // 다음 줄에 값이 있는 경우
                 val idx = lines.indexOf(line)
                 if (idx + 1 < lines.size) {
                     SERIAL_VALUE_REGEX.find(lines[idx + 1])?.let { return it.value }
@@ -145,6 +165,30 @@ internal object ReceiptTextParser {
             }
         }
         return null
+    }
+
+    // ── 상품명 목록 (카드 영수증 테이블 파싱) ────────────────────────────────
+    // "상품명  단가  수량  금액" 헤더 이후 순수 텍스트 행을 수집
+    // "[결제", "공급가액", "부가세" 등 결제 섹션 시작 시 중단
+
+    private val ITEMS_TABLE_HEADER = Regex("""상품명.{0,20}(단가|수량|금액)""")
+    private val ITEMS_SECTION_END = Regex("""^\[?결제|공급가액|부가세|^\[승인""")
+    private val PRICE_DIGITS = Regex("""[\d,]{4,}""")
+
+    private fun extractItems(lines: List<String>): List<String> {
+        val headerIdx = lines.indexOfFirst { ITEMS_TABLE_HEADER.containsMatchIn(it) }
+        if (headerIdx < 0) return emptyList()
+
+        val items = mutableListOf<String>()
+        for (i in (headerIdx + 1) until lines.size) {
+            val line = lines[i]
+            if (ITEMS_SECTION_END.containsMatchIn(line)) break
+            // 숫자(단가/수량/금액) 행은 건너뜀, 텍스트 행만 수집
+            if (!PRICE_DIGITS.containsMatchIn(line) && line.isNotBlank()) {
+                items.add(line.trim())
+            }
+        }
+        return items
     }
 
     // ── 대분류 카테고리 매핑 (PRD 기준) ─────────────────────────────────────
@@ -170,10 +214,16 @@ internal object ReceiptTextParser {
     }
 
     // ── 공통: 키워드 뒤 값 추출 ──────────────────────────────────────────────
+    // 한글 음절(가-힣) 뒤에 붙은 키워드는 무시 ("품명"이 "상품명" 안에 매칭되는 오탐 방지)
 
     private fun extractByKeyword(lines: List<String>, keywords: List<String>): String? {
         for ((idx, line) in lines.withIndex()) {
-            val keyword = keywords.firstOrNull { line.contains(it, ignoreCase = true) } ?: continue
+            val keyword = keywords.firstOrNull { kw ->
+                val i = line.indexOf(kw, ignoreCase = true)
+                if (i < 0) return@firstOrNull false
+                // 직전 문자가 한글 음절이면 단어 내부 매칭이므로 제외
+                i == 0 || line[i - 1] !in '가'..'힣'
+            } ?: continue
             val afterKeyword = line.substringAfter(keyword, "").trimStart(':', '：', ' ', '\t')
             if (afterKeyword.isNotBlank()) return afterKeyword.trim()
             if (idx + 1 < lines.size) return lines[idx + 1].trim()
