@@ -88,6 +88,7 @@ fun BoatTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = BoatShapes,
         content = content
     )
 }
