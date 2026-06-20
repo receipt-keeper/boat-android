@@ -89,19 +89,20 @@ class AuthViewModel(
                         }
                         val user = result.user
                         user?.uid?.let { BoatLog.setUser(it) }
-                        BoatLog.i("Google 로그인 성공")
+                        // Google Account에서 직접 가져온 값 우선, 없으면 Firebase user fallback
+                        val email = intent.email ?: user?.email
+                        val displayName = intent.displayName ?: user?.displayName
+                        BoatLog.i("Google 로그인 성공 — email=$email, name=$displayName")
                         _state.update {
                             it.copy(
                                 isLoading = false,
                                 isLoggedIn = true,
-                                displayName = user?.displayName,
-                                email = user?.email,
+                                displayName = displayName,
+                                email = email,
                                 photoUrl = user?.photoUrl?.toString()
                             )
                         }
                         // TODO: 서버에 Firebase idToken 전달 → JWT 발급
-                        // val firebaseIdToken = user?.getIdToken(false)?.result?.token
-                        // handleIntent(AuthIntent.SaveTokens(jwtAccess, jwtRefresh))
                     } catch (e: Exception) {
                         BoatLog.e("Google 로그인 실패", e)
                         _state.update { it.copy(isLoading = false, error = e.message) }
@@ -122,13 +123,16 @@ class AuthViewModel(
                         }
                         val user = result.user
                         user?.uid?.let { BoatLog.setUser(it) }
-                        BoatLog.i("Apple 로그인 성공")
+                        // 최초 로그인 시 Apple이 제공한 값 우선, 이후엔 Firebase user fallback
+                        val email = intent.email ?: user?.email
+                        val displayName = intent.displayName ?: user?.displayName
+                        BoatLog.i("Apple 로그인 성공 — email=$email, name=$displayName")
                         _state.update {
                             it.copy(
                                 isLoading = false,
                                 isLoggedIn = true,
-                                displayName = intent.displayName ?: user?.displayName,
-                                email = user?.email,
+                                displayName = displayName,
+                                email = email,
                                 photoUrl = user?.photoUrl?.toString()
                             )
                         }
