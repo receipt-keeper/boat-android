@@ -1,6 +1,7 @@
 package com.windrr.boat.data.remote
 
 import android.content.Context
+import com.windrr.boat.BuildConfig
 import com.windrr.boat.data.local.TokenDataStore
 import com.windrr.boat.data.remote.interceptor.TokenAuthenticator
 import com.windrr.boat.data.remote.interceptor.TokenInterceptor
@@ -36,7 +37,8 @@ object ApiClient {
     val tokenDataStore: TokenDataStore by lazy { TokenDataStore(appContext) }
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
+        level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+                else HttpLoggingInterceptor.Level.NONE
     }
 
     private val okHttpClient: OkHttpClient by lazy {
