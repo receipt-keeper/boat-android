@@ -102,7 +102,7 @@ fun TermsScreen(
                 .padding(innerPadding)
                 .padding(horizontal = Margin20),
         ) {
-            Spacer(Modifier.height(Margin20))
+            Spacer(Modifier.height(Margin12))
 
             Text(
                 text = stringResource(R.string.terms_headline),
