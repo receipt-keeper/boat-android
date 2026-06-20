@@ -62,14 +62,7 @@ class AuthViewModel(
                         val displayName = intent.displayName ?: user?.displayName
                         _state.update { it.copy(displayName = displayName, email = email, photoUrl = user?.photoUrl?.toString()) }
 
-                        if (result.additionalUserInfo?.isNewUser == true) {
-                            // 신규 가입 → 백엔드 호출 없이 바로 약관 동의 화면으로
-                            val firebaseIdToken = getFirebaseIdToken(user)
-                            BoatLog.i("신규 가입 — 약관 동의 필요, email=$email")
-                            _state.update { it.copy(isLoading = false, requiresTerms = true, pendingFirebaseToken = firebaseIdToken) }
-                        } else {
-                            callBackendLogin(user = user, email = email, displayName = displayName)
-                        }
+                        callBackendLogin(user = user, email = email, displayName = displayName)
                     } catch (e: Exception) {
                         BoatLog.e("Google Firebase 인증 실패", e)
                         _state.update { it.copy(isLoading = false, error = e.message) }
@@ -94,13 +87,7 @@ class AuthViewModel(
                         val displayName = intent.displayName ?: user?.displayName
                         _state.update { it.copy(displayName = displayName, email = email, photoUrl = user?.photoUrl?.toString()) }
 
-                        if (result.additionalUserInfo?.isNewUser == true) {
-                            val firebaseIdToken = getFirebaseIdToken(user)
-                            BoatLog.i("신규 가입 — 약관 동의 필요, email=$email")
-                            _state.update { it.copy(isLoading = false, requiresTerms = true, pendingFirebaseToken = firebaseIdToken) }
-                        } else {
-                            callBackendLogin(user = user, email = email, displayName = displayName)
-                        }
+                        callBackendLogin(user = user, email = email, displayName = displayName)
                     } catch (e: Exception) {
                         BoatLog.e("Apple Firebase 인증 실패", e)
                         _state.update { it.copy(isLoading = false, error = e.message) }
