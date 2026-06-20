@@ -57,6 +57,9 @@ import com.windrr.boat.feature.auth.AuthViewModel
 import com.windrr.boat.feature.gallery.GalleryScreen
 import com.windrr.boat.feature.notification.AlarmPermissionTestScreen
 import com.windrr.boat.feature.ocr.OcrTestScreen
+import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.BoatToastType
+import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.BoatTheme
 
 class MainActivity : ComponentActivity() {
@@ -114,6 +117,9 @@ fun LoginTestScreen(
     onOpenOcrTest: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val toastState = rememberBoatToastState()
+    BoatToastHost(state = toastState)
+
     val state by authViewModel.state.collectAsState()
     val context = LocalContext.current
     val activity = context as Activity
@@ -254,6 +260,31 @@ fun LoginTestScreen(
         ) {
             Text("테스트 크래시 발생 (Crashlytics)", color = Color(0xFFC62828))
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text("── Toast 테스트 ──", fontSize = 12.sp, color = Color.Gray)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedButton(
+            onClick = { toastState.show("무료 횟수 3회가 충전되었습니다.", BoatToastType.INFO) },
+            shape = RoundedCornerShape(8.dp)
+        ) { Text("INFO 토스트") }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedButton(
+            onClick = { toastState.showSuccess("저장되었습니다.") },
+            shape = RoundedCornerShape(8.dp)
+        ) { Text("SUCCESS 토스트") }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedButton(
+            onClick = { toastState.showError("오류가 발생했습니다.") },
+            shape = RoundedCornerShape(8.dp)
+        ) { Text("ERROR 토스트") }
     }
 }
 
