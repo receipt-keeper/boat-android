@@ -33,6 +33,8 @@ import com.windrr.boat.feature.auth.AuthIntent
 import com.windrr.boat.feature.auth.AuthViewModel
 import com.windrr.boat.feature.auth.LoginScreen
 import com.windrr.boat.feature.terms.TermsScreen
+import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.BoatTheme
 
 class MainActivity : ComponentActivity() {
@@ -54,6 +56,10 @@ class MainActivity : ComponentActivity() {
                     )
                     val state by authViewModel.state.collectAsState()
                     var termsAgreed by remember { mutableStateOf(false) }
+                    val toastState = rememberBoatToastState()
+                    val msgTermsCancelled = stringResource(R.string.login_error_cancelled)
+
+                    BoatToastHost(state = toastState)
 
                     when {
                         !state.isLoggedIn -> LoginScreen(
@@ -61,7 +67,10 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.padding(innerPadding),
                         )
                         !termsAgreed -> TermsScreen(
-                            onBack = { authViewModel.handleIntent(AuthIntent.SignOut) },
+                            onBack = {
+                                toastState.showError(msgTermsCancelled)
+                                authViewModel.handleIntent(AuthIntent.SignOut)
+                            },
                             onComplete = { termsAgreed = true },
                             modifier = Modifier.padding(innerPadding),
                         )

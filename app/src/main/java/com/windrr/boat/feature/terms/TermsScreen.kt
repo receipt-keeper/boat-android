@@ -1,5 +1,6 @@
 package com.windrr.boat.feature.terms
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,7 @@ import com.windrr.boat.ui.theme.Margin12
 import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
 import com.windrr.boat.ui.theme.Margin32
+import com.windrr.boat.ui.theme.Margin4
 import com.windrr.boat.ui.theme.Margin56
 import com.windrr.boat.ui.theme.Margin8
 import com.windrr.boat.ui.theme.RoundedLg
@@ -68,6 +70,8 @@ fun TermsScreen(
 
     val allAgreed   = ageConsent && serviceTerms && privacyPolicy && marketing
     val allRequired = ageConsent && serviceTerms && privacyPolicy
+
+    BackHandler(onBack = onBack)
 
     Scaffold(
         topBar = {
