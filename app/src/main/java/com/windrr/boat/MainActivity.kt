@@ -1,34 +1,27 @@
 package com.windrr.boat
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.windrr.boat.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.repository.AuthRepositoryImpl
 import com.windrr.boat.feature.auth.AuthIntent
 import com.windrr.boat.feature.auth.AuthViewModel
 import com.windrr.boat.feature.auth.LoginScreen
+import com.windrr.boat.feature.home.HomeActivity
 import com.windrr.boat.feature.terms.TermsScreen
 import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.rememberBoatToastState
@@ -57,6 +50,14 @@ class MainActivity : ComponentActivity() {
 
                     BoatToastHost(state = toastState)
 
+                    // 로그인 완료 시 HomeActivity로 전환
+                    LaunchedEffect(state.isLoggedIn, state.requiresTerms) {
+                        if (state.isLoggedIn && !state.requiresTerms) {
+                            startActivity(Intent(this@MainActivity, HomeActivity::class.java))
+                            finish()
+                        }
+                    }
+
                     when {
                         state.requiresTerms -> TermsScreen(
                             onBack = {
@@ -70,11 +71,6 @@ class MainActivity : ComponentActivity() {
                             },
                             modifier = Modifier.padding(innerPadding),
                         )
-                        state.isLoggedIn -> HomeStub(
-                            displayName = state.displayName,
-                            onSignOut = { authViewModel.handleIntent(AuthIntent.SignOut) },
-                            modifier = Modifier.padding(innerPadding),
-                        )
                         else -> LoginScreen(
                             viewModel = authViewModel,
                             modifier = Modifier.padding(innerPadding),
@@ -83,26 +79,5 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun HomeStub(
-    displayName: String?,
-    onSignOut: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(stringResource(R.string.home_stub_login_success))
-        displayName?.let {
-            Spacer(Modifier.height(8.dp))
-            Text(it)
-        }
-        Spacer(Modifier.height(24.dp))
-        OutlinedButton(onClick = onSignOut) { Text(stringResource(R.string.common_logout)) }
     }
 }
