@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">Boat</string>
+
+    <!-- Login -->
+    <string name="login_subtitle">사진 한 장으로 관리하는 무상 AS 케어</string>
+    <string name="login_btn_google">Google 계정으로 시작하기</string>
+    <string name="login_btn_apple">Apple 계정으로 시작하기</string>
+    <string name="login_error_cancelled">회원가입이 취소되었습니다.</string>
+    <string name="login_error_google">Google 로그인에 실패했습니다.</string>
+    <string name="login_error_apple">Apple 로그인에 실패했습니다.</string>
+
+    <!-- Common -->
+    <string name="common_confirm">확인</string>
+    <string name="common_cancel">취소</string>
+    <string name="common_logout">로그아웃</string>
+
+    <!-- Temp stub (HomeStub → 실제 홈 화면으로 교체 시 제거) -->
+    <string name="home_stub_login_success">로그인 성공</string>
+
 </resources>

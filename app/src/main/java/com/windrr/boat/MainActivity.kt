@@ -18,9 +18,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.windrr.boat.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.repository.AuthRepositoryImpl
@@ -81,12 +83,12 @@ private fun HomeStub(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text("로그인 성공")
+        Text(stringResource(R.string.home_stub_login_success))
         displayName?.let {
             Spacer(Modifier.height(8.dp))
             Text(it)
         }
         Spacer(Modifier.height(24.dp))
-        OutlinedButton(onClick = onSignOut) { Text("로그아웃") }
+        OutlinedButton(onClick = onSignOut) { Text(stringResource(R.string.common_logout)) }
     }
 }
