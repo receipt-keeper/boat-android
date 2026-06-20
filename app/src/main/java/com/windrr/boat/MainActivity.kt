@@ -16,6 +16,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -29,6 +32,7 @@ import com.windrr.boat.data.repository.AuthRepositoryImpl
 import com.windrr.boat.feature.auth.AuthIntent
 import com.windrr.boat.feature.auth.AuthViewModel
 import com.windrr.boat.feature.auth.LoginScreen
+import com.windrr.boat.feature.terms.TermsScreen
 import com.windrr.boat.ui.theme.BoatTheme
 
 class MainActivity : ComponentActivity() {
@@ -49,22 +53,23 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                     val state by authViewModel.state.collectAsState()
+                    var termsAgreed by remember { mutableStateOf(false) }
 
                     when {
-                        state.isLoggedIn -> {
-                            // TODO: 메인 화면으로 전환
-                            HomeStub(
-                                displayName = state.displayName,
-                                onSignOut = { authViewModel.handleIntent(AuthIntent.SignOut) },
-                                modifier = Modifier.padding(innerPadding),
-                            )
-                        }
-                        else -> {
-                            LoginScreen(
-                                viewModel = authViewModel,
-                                modifier = Modifier.padding(innerPadding),
-                            )
-                        }
+                        !state.isLoggedIn -> LoginScreen(
+                            viewModel = authViewModel,
+                            modifier = Modifier.padding(innerPadding),
+                        )
+                        !termsAgreed -> TermsScreen(
+                            onBack = { authViewModel.handleIntent(AuthIntent.SignOut) },
+                            onComplete = { termsAgreed = true },
+                            modifier = Modifier.padding(innerPadding),
+                        )
+                        else -> HomeStub(
+                            displayName = state.displayName,
+                            onSignOut = { authViewModel.handleIntent(AuthIntent.SignOut) },
+                            modifier = Modifier.padding(innerPadding),
+                        )
                     }
                 }
             }
