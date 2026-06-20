@@ -65,6 +65,10 @@ fun LoginScreen(
 
     BoatToastHost(state = toastState)
 
+    val msgCancelled  = stringResource(R.string.login_error_cancelled)
+    val msgGoogleFail = stringResource(R.string.login_error_google)
+    val msgAppleFail  = stringResource(R.string.login_error_apple)
+
     val googleSignInClient = remember {
         GoogleSignIn.getClient(
             context,
@@ -95,15 +99,15 @@ fun LoginScreen(
                 }
             } catch (e: ApiException) {
                 when (e.statusCode) {
-                    12501 -> toastState.showError("회원가입이 취소되었습니다.")
+                    12501 -> toastState.showError(msgCancelled)
                     else  -> {
                         BoatLog.e("Google 로그인 실패 (code=${e.statusCode})", e)
-                        toastState.showError("Google 로그인에 실패했습니다.")
+                        toastState.showError(msgGoogleFail)
                     }
                 }
             }
         } else {
-            toastState.showError("회원가입이 취소되었습니다.")
+            toastState.showError(msgCancelled)
         }
     }
 
@@ -133,10 +137,10 @@ fun LoginScreen(
             }
             .addOnFailureListener { e ->
                 if (e.message?.contains("canceled", ignoreCase = true) == true) {
-                    toastState.showError("회원가입이 취소되었습니다.")
+                    toastState.showError(msgCancelled)
                 } else {
                     BoatLog.e("Apple 로그인 실패", e)
-                    toastState.showError("Apple 로그인에 실패했습니다.")
+                    toastState.showError(msgAppleFail)
                 }
             }
     }
@@ -168,7 +172,7 @@ fun LoginScreen(
         Spacer(Modifier.height(Margin16))
 
         Text(
-            text = "사진 한 장으로 관리하는 무상 AS 케어",
+            text = stringResource(R.string.login_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = ColorGray500,
         )
@@ -204,7 +208,7 @@ fun LoginScreen(
                         .align(Alignment.CenterStart),
                 )
                 Text(
-                    text = "Google 계정으로 시작하기",
+                    text = stringResource(R.string.login_btn_google),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color(0xFF3C3C3C),
@@ -234,7 +238,7 @@ fun LoginScreen(
                         .align(Alignment.CenterStart),
                 )
                 Text(
-                    text = "Apple 계정으로 시작하기",
+                    text = stringResource(R.string.login_btn_apple),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
                     color = ColorWhite,

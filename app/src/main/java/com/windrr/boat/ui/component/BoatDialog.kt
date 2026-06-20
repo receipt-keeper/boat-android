@@ -6,8 +6,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import com.windrr.boat.R
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorGray600
 import com.windrr.boat.ui.theme.ColorGray900
@@ -21,17 +23,20 @@ fun BoatDialog(
     // 제목 (없으면 숨김)
     title: String? = null,
     // 확인 버튼
-    confirmText: String = "확인",
+    confirmText: String? = null,
     confirmTextColor: Color = ColorBrandPrimary,
     onConfirm: () -> Unit = onDismiss,
     // 취소 버튼 (없으면 숨김)
-    dismissText: String = "취소",
+    dismissText: String? = null,
     dismissTextColor: Color = ColorGray600,
     showDismissButton: Boolean = true,
     // 스타일
     messageStyle: TextStyle? = null,
     dismissOnClickOutside: Boolean = true,
 ) {
+    val resolvedConfirmText = confirmText ?: stringResource(R.string.common_confirm)
+    val resolvedDismissText = dismissText ?: stringResource(R.string.common_cancel)
+
     AlertDialog(
         onDismissRequest = { if (dismissOnClickOutside) onDismiss() },
         containerColor = ColorWhite,
@@ -56,7 +61,7 @@ fun BoatDialog(
         confirmButton = {
             TextButton(onClick = onConfirm) {
                 Text(
-                    text = confirmText,
+                    text = resolvedConfirmText,
                     color = confirmTextColor,
                     fontWeight = FontWeight.Medium,
                 )
@@ -66,7 +71,7 @@ fun BoatDialog(
             {
                 TextButton(onClick = onDismiss) {
                     Text(
-                        text = dismissText,
+                        text = resolvedDismissText,
                         color = dismissTextColor,
                         fontWeight = FontWeight.Medium,
                     )
