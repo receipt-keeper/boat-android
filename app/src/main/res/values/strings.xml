@@ -17,4 +17,15 @@
     <!-- Temp stub (HomeStub → 실제 홈 화면으로 교체 시 제거) -->
     <string name="home_stub_login_success">로그인 성공</string>
 
+    <!-- Terms (약관동의) -->
+    <string name="terms_title_bar">회원가입</string>
+    <string name="terms_headline">더 나은 서비스 사용을 위해\n이용약관에 동의 해주세요.</string>
+    <string name="terms_agree_all">전체 동의 (선택 포함)</string>
+    <string name="terms_age">(필수) 만 14세 이상입니다.</string>
+    <string name="terms_service">(필수) 서비스 이용약관에 동의</string>
+    <string name="terms_privacy">(필수) 개인정보 수집 이용에 동의</string>
+    <string name="terms_marketing">(선택) 홍보 및 마케팅 이용에 동의</string>
+    <string name="terms_view">보기</string>
+    <string name="terms_complete">선택 완료</string>
+
 </resources>
