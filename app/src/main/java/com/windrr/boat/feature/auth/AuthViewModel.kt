@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import retrofit2.HttpException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -58,11 +57,17 @@ class AuthViewModel(
                         }
                         val user = result.user
                         user?.uid?.let { BoatLog.setUser(it) }
-                        val email       = intent.email       ?: user?.email
-                        val displayName = intent.displayName ?: user?.displayName
-                        _state.update { it.copy(displayName = displayName, email = email, photoUrl = user?.photoUrl?.toString()) }
-
-                        callBackendLogin(user = user, email = email, displayName = displayName)
+                        val firebaseIdToken = getFirebaseIdToken(user)
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                displayName = intent.displayName ?: user?.displayName,
+                                email = intent.email ?: user?.email,
+                                photoUrl = user?.photoUrl?.toString(),
+                                requiresTerms = true,
+                                pendingFirebaseToken = firebaseIdToken,
+                            )
+                        }
                     } catch (e: Exception) {
                         BoatLog.e("Google Firebase 인증 실패", e)
                         _state.update { it.copy(isLoading = false, error = e.message) }
@@ -83,11 +88,17 @@ class AuthViewModel(
                         }
                         val user = result.user
                         user?.uid?.let { BoatLog.setUser(it) }
-                        val email       = intent.email       ?: user?.email
-                        val displayName = intent.displayName ?: user?.displayName
-                        _state.update { it.copy(displayName = displayName, email = email, photoUrl = user?.photoUrl?.toString()) }
-
-                        callBackendLogin(user = user, email = email, displayName = displayName)
+                        val firebaseIdToken = getFirebaseIdToken(user)
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                displayName = intent.displayName ?: user?.displayName,
+                                email = intent.email ?: user?.email,
+                                photoUrl = user?.photoUrl?.toString(),
+                                requiresTerms = true,
+                                pendingFirebaseToken = firebaseIdToken,
+                            )
+                        }
                     } catch (e: Exception) {
                         BoatLog.e("Apple Firebase 인증 실패", e)
                         _state.update { it.copy(isLoading = false, error = e.message) }
@@ -112,7 +123,7 @@ class AuthViewModel(
                             )
                         )
                         authRepository.saveTokens(response.data.accessToken, response.data.refreshToken)
-                        BoatLog.i("신규 가입 완료 — termsAccepted=${intent.termsAccepted}, marketing=${intent.marketingConsent}")
+                        BoatLog.i("로그인 완료 — termsAccepted=${intent.termsAccepted}, marketing=${intent.marketingConsent}")
                         _state.update { it.copy(isLoading = false, requiresTerms = false, pendingFirebaseToken = null) }
                     } catch (e: Exception) {
                         BoatLog.e("약관 동의 후 로그인 실패", e)
@@ -166,30 +177,4 @@ class AuthViewModel(
                 ?: cont.resume(null)
         } ?: throw Exception("Firebase ID 토큰 획득 실패")
 
-    /** Firebase user로부터 Firebase ID 토큰을 얻어 백엔드 로그인 호출 */
-    private suspend fun callBackendLogin(
-        user: FirebaseUser?,
-        email: String?,
-        displayName: String?,
-    ) {
-        val firebaseIdToken = getFirebaseIdToken(user)
-
-        try {
-            val response = ApiClient.authApiService.login(LoginRequest(idToken = firebaseIdToken))
-            authRepository.saveTokens(response.data.accessToken, response.data.refreshToken)
-            BoatLog.i("로그인 성공 (기존 유저) — email=$email, name=$displayName")
-            _state.update { it.copy(isLoading = false) }
-        } catch (e: HttpException) {
-            when (e.code()) {
-                422 -> {
-                    BoatLog.i("신규 가입 — 약관 동의 필요, email=$email")
-                    _state.update { it.copy(isLoading = false, requiresTerms = true, pendingFirebaseToken = firebaseIdToken) }
-                }
-                else -> {
-                    BoatLog.e("백엔드 로그인 실패 (code=${e.code()})", e)
-                    _state.update { it.copy(isLoading = false, error = e.message) }
-                }
-            }
-        }
-    }
 }
