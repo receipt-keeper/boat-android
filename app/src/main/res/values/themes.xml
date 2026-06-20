@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Boat" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Boat" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- 상태바 배경 투명 (Compose가 뒤에서 흰색으로 채움) -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <!-- 상태바 아이콘 검은색 (light status bar) -->
+        <item name="android:windowLightStatusBar">true</item>
+        <!-- Compose 렌더링 전 초기 윈도우 배경 흰색 -->
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
+
 </resources>
