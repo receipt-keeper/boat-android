@@ -68,6 +68,9 @@ sealed class AuthIntent {
     /** 로그아웃 — Firebase 세션 + DataStore 토큰 전체 삭제 */
     data object SignOut : AuthIntent()
 
+    /** 회원 탈퇴 — 서버 계정 삭제(204) 성공 시에만 로컬 세션/토큰 정리 */
+    data object DeleteAccount : AuthIntent()
+
     /** 로그아웃 — 저장된 토큰 전체 삭제 (서버 JWT 연동 후 사용) */
     data object Logout : AuthIntent()
 }

@@ -176,6 +176,24 @@ class AuthViewModel(
                     _state.update { AuthState() }
                 }
 
+                is AuthIntent.DeleteAccount -> {
+                    _state.update { it.copy(isLoading = true, error = null) }
+                    val result = runCatching { ApiClient.authApiService.deleteAccount() }
+                    val response = result.getOrNull()
+                    if (response != null && response.isSuccessful) {
+                        // 서버 계정 삭제 성공(204) → 로컬 세션/토큰 정리 → 로그인 화면 복귀
+                        FirebaseAuth.getInstance().signOut()
+                        authRepository.clearTokens()
+                        BoatLog.clearUser()
+                        BoatLog.i("회원 탈퇴 완료")
+                        _state.update { AuthState() }
+                    } else {
+                        val code = response?.code()
+                        BoatLog.e("회원 탈퇴 실패 (code=$code)", result.exceptionOrNull())
+                        _state.update { it.copy(isLoading = false, error = "회원 탈퇴 실패") }
+                    }
+                }
+
                 is AuthIntent.Logout -> {
                     _state.update { it.copy(isLoading = true) }
                     authRepository.clearTokens()
