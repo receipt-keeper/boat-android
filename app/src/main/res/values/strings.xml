@@ -14,6 +14,9 @@
     <string name="common_cancel">취소</string>
     <string name="common_logout">로그아웃</string>
 
+    <!-- Error -->
+    <string name="error_server_retry">오류가 발생했습니다. 잠시 후 다시 시도해주세요.</string>
+
     <!-- Temp stub (HomeStub → 실제 홈 화면으로 교체 시 제거) -->
     <string name="home_stub_login_success">로그인 성공</string>
 
