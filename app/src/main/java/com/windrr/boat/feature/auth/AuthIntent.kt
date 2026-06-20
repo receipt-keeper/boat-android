@@ -52,6 +52,19 @@ sealed class AuthIntent {
         val email: String? = null,
     ) : AuthIntent()
 
+    /**
+     * 약관 동의 완료 후 백엔드 로그인 재시도 (신규 가입)
+     *
+     * @property termsAccepted    서비스 이용약관 동의 여부
+     * @property privacyAccepted  개인정보 처리방침 동의 여부
+     * @property marketingConsent 마케팅 수신 동의 여부
+     */
+    data class CompleteTermsAndLogin(
+        val termsAccepted: Boolean,
+        val privacyAccepted: Boolean,
+        val marketingConsent: Boolean,
+    ) : AuthIntent()
+
     /** 로그아웃 — Firebase 세션 + DataStore 토큰 전체 삭제 */
     data object SignOut : AuthIntent()
 

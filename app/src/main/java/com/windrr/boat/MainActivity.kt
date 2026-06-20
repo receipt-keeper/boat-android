@@ -16,9 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -55,28 +52,31 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                     val state by authViewModel.state.collectAsState()
-                    var termsAgreed by remember { mutableStateOf(false) }
                     val toastState = rememberBoatToastState()
                     val msgTermsCancelled = stringResource(R.string.login_error_cancelled)
 
                     BoatToastHost(state = toastState)
 
                     when {
-                        !state.isLoggedIn -> LoginScreen(
-                            viewModel = authViewModel,
-                            modifier = Modifier.padding(innerPadding),
-                        )
-                        !termsAgreed -> TermsScreen(
+                        state.requiresTerms -> TermsScreen(
                             onBack = {
                                 toastState.showError(msgTermsCancelled)
                                 authViewModel.handleIntent(AuthIntent.SignOut)
                             },
-                            onComplete = { termsAgreed = true },
+                            onComplete = { termsAccepted, privacyAccepted, marketingConsent ->
+                                authViewModel.handleIntent(
+                                    AuthIntent.CompleteTermsAndLogin(termsAccepted, privacyAccepted, marketingConsent)
+                                )
+                            },
                             modifier = Modifier.padding(innerPadding),
                         )
-                        else -> HomeStub(
+                        state.isLoggedIn -> HomeStub(
                             displayName = state.displayName,
                             onSignOut = { authViewModel.handleIntent(AuthIntent.SignOut) },
+                            modifier = Modifier.padding(innerPadding),
+                        )
+                        else -> LoginScreen(
+                            viewModel = authViewModel,
                             modifier = Modifier.padding(innerPadding),
                         )
                     }

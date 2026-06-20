@@ -60,7 +60,7 @@ import com.windrr.boat.ui.theme.RoundedXl
 @Composable
 fun TermsScreen(
     onBack: () -> Unit,
-    onComplete: () -> Unit,
+    onComplete: (termsAccepted: Boolean, privacyAccepted: Boolean, marketingConsent: Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var ageConsent    by remember { mutableStateOf(false) }
@@ -178,7 +178,7 @@ fun TermsScreen(
             Spacer(Modifier.weight(1f))
 
             Button(
-                onClick = onComplete,
+                onClick = { onComplete(serviceTerms, privacyPolicy, marketing) },
                 enabled = allRequired,
                 modifier = Modifier
                     .fillMaxWidth()
