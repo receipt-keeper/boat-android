@@ -71,6 +71,7 @@ fun LoginScreen(
             GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(webClientId)
                 .requestEmail()
+                .requestProfile()   // 이름(displayName) 명시적 요청
                 .build()
         )
     }
@@ -84,7 +85,13 @@ fun LoginScreen(
                     .getSignedInAccountFromIntent(result.data)
                     .getResult(ApiException::class.java)
                 account.idToken?.let {
-                    viewModel.handleIntent(AuthIntent.SignInWithGoogle(it))
+                    viewModel.handleIntent(
+                        AuthIntent.SignInWithGoogle(
+                            idToken = it,
+                            email = account.email,
+                            displayName = account.displayName,
+                        )
+                    )
                 }
             } catch (e: ApiException) {
                 when (e.statusCode) {
@@ -111,8 +118,18 @@ fun LoginScreen(
             .addOnSuccessListener { result ->
                 val idToken = (result.credential as? OAuthCredential)?.idToken
                     ?: return@addOnSuccessListener
-                val displayName = result.additionalUserInfo?.profile?.get("name") as? String
-                viewModel.handleIntent(AuthIntent.SignInWithApple(idToken, displayName))
+                // Apple은 최초 로그인 때만 name 제공 (Map 구조), 이후엔 Firebase user에서 가져옴
+                val nameMap = result.additionalUserInfo?.profile?.get("name") as? Map<*, *>
+                val displayName = if (nameMap != null) {
+                    val first = nameMap["firstName"] as? String ?: ""
+                    val last  = nameMap["lastName"]  as? String ?: ""
+                    "$first $last".trim().ifBlank { null }
+                } else {
+                    result.user?.displayName
+                }
+                val email = result.additionalUserInfo?.profile?.get("email") as? String
+                    ?: result.user?.email
+                viewModel.handleIntent(AuthIntent.SignInWithApple(idToken, displayName, email))
             }
             .addOnFailureListener { e ->
                 if (e.message?.contains("canceled", ignoreCase = true) == true) {

@@ -30,18 +30,26 @@ sealed class AuthIntent {
      * Google 로그인 성공 후 Firebase 인증 처리
      *
      * @property idToken Google Sign-In으로 발급받은 idToken
+     * @property email Google 계정 이메일
+     * @property displayName Google 계정 이름
      */
-    data class SignInWithGoogle(val idToken: String) : AuthIntent()
+    data class SignInWithGoogle(
+        val idToken: String,
+        val email: String? = null,
+        val displayName: String? = null,
+    ) : AuthIntent()
 
     /**
      * Apple 로그인 성공 후 Firebase 인증 처리
      *
      * @property idToken Apple Sign-In으로 발급받은 idToken
      * @property displayName Apple에서 제공하는 사용자 이름 (최초 로그인 시에만 제공)
+     * @property email Apple에서 제공하는 이메일
      */
     data class SignInWithApple(
         val idToken: String,
-        val displayName: String? = null
+        val displayName: String? = null,
+        val email: String? = null,
     ) : AuthIntent()
 
     /** 로그아웃 — Firebase 세션 + DataStore 토큰 전체 삭제 */
