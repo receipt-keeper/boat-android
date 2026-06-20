@@ -41,10 +41,30 @@ object ApiClient {
                 else HttpLoggingInterceptor.Level.NONE
     }
 
+    /**
+     * refresh 전용 순수 클라이언트 — TokenInterceptor/Authenticator 미포함.
+     * 만료된 AccessToken 주입을 막고, refresh 호출이 또 401일 때 authenticate() 재진입(무한 재귀)을 방지한다.
+     */
+    private val refreshApiService: AuthApiService by lazy {
+        val client = OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .build()
+
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(AuthApiService::class.java)
+    }
+
     private val okHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
-            .addInterceptor(TokenInterceptor(tokenDataStore))   // 토큰 헤더 자동 주입
-            .authenticator(TokenAuthenticator(tokenDataStore))  // 401 시 토큰 갱신
+            .addInterceptor(TokenInterceptor(tokenDataStore))                   // 토큰 헤더 자동 주입
+            .authenticator(TokenAuthenticator(tokenDataStore, refreshApiService)) // 401 시 토큰 갱신 후 재시도
             .addInterceptor(loggingInterceptor)
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
