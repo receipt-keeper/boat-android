@@ -62,7 +62,14 @@ class AuthViewModel(
                         val displayName = intent.displayName ?: user?.displayName
                         _state.update { it.copy(displayName = displayName, email = email, photoUrl = user?.photoUrl?.toString()) }
 
-                        callBackendLogin(user = user, email = email, displayName = displayName)
+                        if (result.additionalUserInfo?.isNewUser == true) {
+                            // 신규 가입 → 백엔드 호출 없이 바로 약관 동의 화면으로
+                            val firebaseIdToken = getFirebaseIdToken(user)
+                            BoatLog.i("신규 가입 — 약관 동의 필요, email=$email")
+                            _state.update { it.copy(isLoading = false, requiresTerms = true, pendingFirebaseToken = firebaseIdToken) }
+                        } else {
+                            callBackendLogin(user = user, email = email, displayName = displayName)
+                        }
                     } catch (e: Exception) {
                         BoatLog.e("Google Firebase 인증 실패", e)
                         _state.update { it.copy(isLoading = false, error = e.message) }
@@ -87,7 +94,13 @@ class AuthViewModel(
                         val displayName = intent.displayName ?: user?.displayName
                         _state.update { it.copy(displayName = displayName, email = email, photoUrl = user?.photoUrl?.toString()) }
 
-                        callBackendLogin(user = user, email = email, displayName = displayName)
+                        if (result.additionalUserInfo?.isNewUser == true) {
+                            val firebaseIdToken = getFirebaseIdToken(user)
+                            BoatLog.i("신규 가입 — 약관 동의 필요, email=$email")
+                            _state.update { it.copy(isLoading = false, requiresTerms = true, pendingFirebaseToken = firebaseIdToken) }
+                        } else {
+                            callBackendLogin(user = user, email = email, displayName = displayName)
+                        }
                     } catch (e: Exception) {
                         BoatLog.e("Apple Firebase 인증 실패", e)
                         _state.update { it.copy(isLoading = false, error = e.message) }
@@ -158,18 +171,21 @@ class AuthViewModel(
         }
     }
 
+    private suspend fun getFirebaseIdToken(user: FirebaseUser?): String =
+        suspendCancellableCoroutine<String?> { cont ->
+            user?.getIdToken(false)
+                ?.addOnSuccessListener { res -> cont.resume(res.token) }
+                ?.addOnFailureListener { cont.resumeWithException(it) }
+                ?: cont.resume(null)
+        } ?: throw Exception("Firebase ID 토큰 획득 실패")
+
     /** Firebase user로부터 Firebase ID 토큰을 얻어 백엔드 로그인 호출 */
     private suspend fun callBackendLogin(
         user: FirebaseUser?,
         email: String?,
         displayName: String?,
     ) {
-        val firebaseIdToken = suspendCancellableCoroutine<String?> { cont ->
-            user?.getIdToken(false)
-                ?.addOnSuccessListener { res -> cont.resume(res.token) }
-                ?.addOnFailureListener { cont.resumeWithException(it) }
-                ?: cont.resume(null)
-        } ?: throw Exception("Firebase ID 토큰 획득 실패")
+        val firebaseIdToken = getFirebaseIdToken(user)
 
         try {
             val response = ApiClient.authApiService.login(LoginRequest(idToken = firebaseIdToken))
