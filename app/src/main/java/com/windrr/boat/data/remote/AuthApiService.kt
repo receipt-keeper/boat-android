@@ -3,6 +3,7 @@ package com.windrr.boat.data.remote
 import com.windrr.boat.data.remote.model.LoginRequest
 import com.windrr.boat.data.remote.model.LoginResponse
 import com.windrr.boat.data.remote.model.RefreshRequest
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
 
@@ -18,4 +19,11 @@ interface AuthApiService {
      */
     @POST("api/v1/auth/refresh")
     suspend fun refresh(@Body request: RefreshRequest): LoginResponse
+
+    /**
+     * 로그아웃. 제시된 refreshToken의 세션을 revoke하고 같은 세션의 accessToken도 즉시 무효화한다.
+     * 성공 시 204 No Content(빈 본문)를 반환하므로 [Response]<Unit>으로 받아 isSuccessful만 확인한다.
+     */
+    @POST("api/v1/auth/logout")
+    suspend fun logout(@Body request: RefreshRequest): Response<Unit>
 }

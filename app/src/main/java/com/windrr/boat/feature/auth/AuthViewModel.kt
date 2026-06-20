@@ -9,10 +9,12 @@ import com.google.firebase.auth.OAuthProvider
 import com.windrr.boat.core.log.BoatLog
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.remote.model.LoginRequest
+import com.windrr.boat.data.remote.model.RefreshRequest
 import com.windrr.boat.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -153,6 +155,20 @@ class AuthViewModel(
                 }
 
                 is AuthIntent.SignOut -> {
+                    // 서버 세션 revoke (best-effort) — refreshToken을 비우기 전에 호출.
+                    // API 성공 여부와 무관하게 로컬 로그아웃은 항상 진행한다(네트워크 실패로 갇히지 않도록).
+                    val refreshToken = authRepository.refreshToken.first()
+                    if (!refreshToken.isNullOrBlank()) {
+                        runCatching {
+                            ApiClient.authApiService.logout(RefreshRequest(refreshToken))
+                        }.onSuccess { res ->
+                            if (res.isSuccessful) BoatLog.i("로그아웃 — 서버 세션 revoke 성공")
+                            else BoatLog.e("로그아웃 API 응답 실패: code=${res.code()}")
+                        }.onFailure { e ->
+                            BoatLog.e("로그아웃 API 호출 실패 (로컬 로그아웃은 진행)", e)
+                        }
+                    }
+
                     FirebaseAuth.getInstance().signOut()
                     authRepository.clearTokens()
                     BoatLog.clearUser()
