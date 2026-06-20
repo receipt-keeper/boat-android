@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
  */
 object ApiClient {
 
-    private const val BASE_URL = "https://api.boat-receipt.com/"  // TODO: 실제 서버 URL로 교체
+    private const val BASE_URL = "https://boatlab-dev.luigi99.cloud/"
     private const val TIMEOUT_SECONDS = 30L
 
     private lateinit var appContext: Context
