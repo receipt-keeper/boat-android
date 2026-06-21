@@ -70,7 +70,7 @@ class HomeActivity : ComponentActivity() {
                     }
                 }
 
-                HomeScreen(
+                MainScreen(
                     displayName = state.displayName,
                     onSignOut = { authViewModel.handleIntent(AuthIntent.SignOut) },
                     onDeleteAccount = { authViewModel.handleIntent(AuthIntent.DeleteAccount) },

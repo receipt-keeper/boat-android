@@ -24,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,12 +64,12 @@ fun TermsScreen(
     onComplete: (termsAccepted: Boolean, privacyAccepted: Boolean, marketingConsent: Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var ageConsent    by remember { mutableStateOf(false) }
-    var serviceTerms  by remember { mutableStateOf(false) }
+    var ageConsent by remember { mutableStateOf(false) }
+    var serviceTerms by remember { mutableStateOf(false) }
     var privacyPolicy by remember { mutableStateOf(false) }
-    var marketing     by remember { mutableStateOf(false) }
+    var marketing by remember { mutableStateOf(false) }
 
-    val allAgreed   = ageConsent && serviceTerms && privacyPolicy && marketing
+    val allAgreed = ageConsent && serviceTerms && privacyPolicy && marketing
     val allRequired = ageConsent && serviceTerms && privacyPolicy
 
     BackHandler(onBack = onBack)
@@ -93,8 +94,8 @@ fun TermsScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = ColorWhite,
+                colors = topAppBarColors(
+                    containerColor = ColorWhite
                 ),
             )
         },
@@ -126,10 +127,10 @@ fun TermsScreen(
                     .background(if (allAgreed) ColorBrandSenary else ColorGray100)
                     .clickable {
                         val next = !allAgreed
-                        ageConsent    = next
-                        serviceTerms  = next
+                        ageConsent = next
+                        serviceTerms = next
                         privacyPolicy = next
-                        marketing     = next
+                        marketing = next
                     }
                     .padding(horizontal = Margin16, vertical = 18.dp),
                 verticalAlignment = Alignment.CenterVertically,
