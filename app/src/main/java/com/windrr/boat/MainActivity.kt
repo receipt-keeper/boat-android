@@ -68,8 +68,9 @@ class MainActivity : ComponentActivity() {
                     }
 
                     when {
-                        // 토큰 확인 전: 로그인 화면 깜빡임 방지를 위해 빈 배경만 표시
-                        state.isInitializing -> Box(
+                        // 1) 토큰 확인 전, 2) 로그인 확인됐지만 HomeActivity 전환 직전 —
+                        // 두 구간 모두 LoginScreen을 그리지 않고 빈 배경만 표시해 깜빡임 방지
+                        state.isInitializing || (state.isLoggedIn && !state.requiresTerms) -> Box(
                             Modifier
                                 .fillMaxSize()
                                 .padding(innerPadding)
