@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -26,6 +28,7 @@ import com.windrr.boat.feature.terms.TermsScreen
 import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.BoatTheme
+import com.windrr.boat.ui.theme.ColorWhite
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,6 +68,13 @@ class MainActivity : ComponentActivity() {
                     }
 
                     when {
+                        // 토큰 확인 전: 로그인 화면 깜빡임 방지를 위해 빈 배경만 표시
+                        state.isInitializing -> Box(
+                            Modifier
+                                .fillMaxSize()
+                                .padding(innerPadding)
+                                .background(ColorWhite)
+                        )
                         state.requiresTerms -> TermsScreen(
                             onBack = {
                                 toastState.showError(msgTermsCancelled)

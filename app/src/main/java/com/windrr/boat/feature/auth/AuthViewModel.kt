@@ -38,7 +38,8 @@ class AuthViewModel(
     private fun observeTokens() {
         viewModelScope.launch {
             authRepository.accessToken.collect { token ->
-                _state.update { it.copy(isLoggedIn = token != null, accessToken = token) }
+                // 첫 emit 시점에 토큰 확인 완료 → isInitializing 해제 (로그인 화면 깜빡임 방지)
+                _state.update { it.copy(isLoggedIn = token != null, accessToken = token, isInitializing = false) }
             }
         }
     }
