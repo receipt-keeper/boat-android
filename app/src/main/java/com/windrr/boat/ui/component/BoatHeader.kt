@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -28,7 +27,6 @@ import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
 
 private val HeaderHeight = 56.dp
-private val HeaderIconSize = 24.dp
 
 /**
  * 공통 헤더 — 좌측 로고, 우측 검색/알림 아이콘.
@@ -75,12 +73,12 @@ private fun HeaderActionIcon(
     onClick: () -> Unit,
 ) {
     val noRipple = remember { MutableInteractionSource() }
+    // 에셋 고유 크기(검색 20×20, 알림 18×20)로 렌더 — 정사각형 강제 금지(비율 왜곡 방지)
     Icon(
         painter = painterResource(icon),
         contentDescription = stringResource(description),
         tint = ColorGray900,
         modifier = Modifier
-            .size(HeaderIconSize)
             .clickable(interactionSource = noRipple, indication = null, onClick = onClick),
     )
 }
