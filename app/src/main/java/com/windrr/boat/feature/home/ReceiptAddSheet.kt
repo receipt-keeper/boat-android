@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.windrr.boat.R
@@ -35,17 +36,19 @@ import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
 import com.windrr.boat.ui.theme.Rounded2xl
 
-// 카드 위치/크기 (디자인 가이드)
+// 카드 크기/아이콘 (디자인 가이드)
 private val MenuWidth = 214.dp
 private val MenuItemHeight = 76.dp
+private val MenuIconSize = 28.dp
 
-// FAB를 가리지 않도록 카드를 FAB 위로 띄우는 하단 여백
-// (BottomBar 80 + FAB margin 16 + FAB 56 + gap 12 ≈ 164dp, navigationBarsPadding 기준)
+// 카드를 FAB 위로 띄우는 하단 여백 (BottomBar 80 + FAB margin 16 + FAB 56 + gap 12 ≈ 164dp)
 private val MenuBottomOffset = 164.dp
+// 카드 오른쪽 변을 FAB 중심에 맞추는 오른쪽 여백 (FAB end margin 16 + FAB 반지름 28 = 44dp)
+private val MenuEndOffset = 44.dp
 
 /**
  * 영수증 등록 FAB 메뉴 오버레이.
- * 화면 전체를 덮는 scrim(탭 시 닫힘) 위에 FAB를 가리지 않도록 중앙 상단으로 카드를 띄운다.
+ * scrim(탭 시 닫힘) 위에, 카드의 오른쪽 변이 FAB 중심에 오도록 FAB 위쪽으로 띄운다.
  * 카드: 214dp × (76dp × 2) — "사진으로 찍기 / 갤러리에서 불러오기"
  */
 @Composable
@@ -65,9 +68,9 @@ fun ReceiptAddSheet(
     ) {
         Surface(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
+                .align(Alignment.BottomEnd)
                 .navigationBarsPadding()
-                .padding(bottom = MenuBottomOffset)
+                .padding(end = MenuEndOffset, bottom = MenuBottomOffset)
                 .width(MenuWidth)
                 // 카드 영역 탭은 scrim으로 전파되지 않도록 소비(no-op)
                 .clickable(interactionSource = noRipple, indication = null) {},
@@ -101,13 +104,15 @@ private fun AddMenuItem(
             painter = painterResource(icon),
             contentDescription = null,
             tint = ColorGray900,
-            modifier = Modifier.size(22.dp),
+            modifier = Modifier.size(MenuIconSize),
         )
         Spacer(Modifier.width(Margin16))
         Text(
             text = stringResource(label),
             fontSize = 16.sp,
             color = ColorGray900,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
