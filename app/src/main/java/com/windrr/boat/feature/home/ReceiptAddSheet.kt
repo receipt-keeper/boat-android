@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -29,15 +31,22 @@ import androidx.compose.ui.unit.sp
 import com.windrr.boat.R
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
-import com.windrr.boat.ui.theme.Margin8
 import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
-import com.windrr.boat.ui.theme.Margin32
 import com.windrr.boat.ui.theme.Rounded2xl
+
+// 카드 위치/크기 (디자인 가이드)
+private val MenuWidth = 214.dp
+private val MenuItemHeight = 76.dp
+
+// FAB를 가리지 않도록 카드를 FAB 위로 띄우는 하단 여백
+// (BottomBar 80 + FAB margin 16 + FAB 56 + gap 12 ≈ 164dp, navigationBarsPadding 기준)
+private val MenuBottomOffset = 164.dp
 
 /**
  * 영수증 등록 FAB 메뉴 오버레이.
- * 화면 전체를 덮는 scrim(탭 시 닫힘) 위에 "사진으로 찍기 / 갤러리에서 불러오기" 카드를 띄운다.
+ * 화면 전체를 덮는 scrim(탭 시 닫힘) 위에 FAB를 가리지 않도록 중앙 상단으로 카드를 띄운다.
+ * 카드: 214dp × (76dp × 2) — "사진으로 찍기 / 갤러리에서 불러오기"
  */
 @Composable
 fun ReceiptAddSheet(
@@ -57,15 +66,16 @@ fun ReceiptAddSheet(
         Surface(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(horizontal = Margin32)
-                .padding(bottom = 140.dp)
+                .navigationBarsPadding()
+                .padding(bottom = MenuBottomOffset)
+                .width(MenuWidth)
                 // 카드 영역 탭은 scrim으로 전파되지 않도록 소비(no-op)
                 .clickable(interactionSource = noRipple, indication = null) {},
             shape = Rounded2xl,
             color = ColorWhite,
             shadowElevation = 12.dp,
         ) {
-            Column(modifier = Modifier.padding(vertical = Margin8)) {
+            Column {
                 AddMenuItem(R.drawable.ic_camera, R.string.receipt_add_camera, onCamera)
                 AddMenuItem(R.drawable.ic_gallery, R.string.receipt_add_gallery, onGallery)
             }
@@ -82,8 +92,9 @@ private fun AddMenuItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .height(MenuItemHeight)
             .clickable(onClick = onClick)
-            .padding(horizontal = Margin20, vertical = Margin16),
+            .padding(horizontal = Margin20),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
