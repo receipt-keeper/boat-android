@@ -46,7 +46,8 @@ fun MainScreen(
             containerColor = ColorWhite,
             bottomBar = { BoatBottomBar(navController) },
             floatingActionButton = {
-                if (currentRoute == MainTab.HOME.route) {
+                // 홈/목록 탭에서 영수증 등록 FAB 노출 (마이 탭 제외)
+                if (currentRoute == MainTab.HOME.route || currentRoute == MainTab.LIST.route) {
                     FloatingActionButton(
                         onClick = { showAddMenu = true },
                         containerColor = ColorGray900,

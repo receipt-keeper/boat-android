@@ -5,8 +5,10 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +18,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,6 +48,7 @@ private val MenuIconSize = 28.dp
 
 // 카드를 FAB 위로 띄우는 하단 여백 (BottomBar 80 + FAB margin 16 + FAB 56 + gap 12 ≈ 164dp)
 private val MenuBottomOffset = 164.dp
+
 // 카드 오른쪽 변을 FAB 중심에 맞추는 오른쪽 여백 (FAB end margin 16 + FAB 반지름 28 = 44dp)
 private val MenuEndOffset = 44.dp
 
@@ -63,7 +69,6 @@ fun ReceiptAddSheet(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.35f))
-            // scrim 영역 탭 → 닫기
             .clickable(interactionSource = noRipple, indication = null) { onDismiss() },
     ) {
         Surface(
@@ -71,14 +76,21 @@ fun ReceiptAddSheet(
                 .align(Alignment.BottomEnd)
                 .navigationBarsPadding()
                 .padding(end = MenuEndOffset, bottom = MenuBottomOffset)
-                .width(MenuWidth)
-                // 카드 영역 탭은 scrim으로 전파되지 않도록 소비(no-op)
+                // [교정 1] 고정폭(MenuWidth) 삭제. 컨테이너가 내부 컨텐츠 길이에 맞춰지도록 허용
+                .wrapContentWidth()
+                .widthIn(min = 200.dp) // 단, 너무 좁아지는 것을 막기 위한 최소 너비만 보장
                 .clickable(interactionSource = noRipple, indication = null) {},
             shape = Rounded2xl,
             color = ColorWhite,
             shadowElevation = 12.dp,
         ) {
-            Column {
+            // [교정 2] 자식(Row)들 중 가장 긴 텍스트의 길이에 맞춰 Column 너비를 동기화
+            Column(
+                modifier = Modifier
+                    .width(IntrinsicSize.Max)
+                    .padding(vertical = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp) // 메뉴 간격 타이트하게 조절
+            ) {
                 AddMenuItem(R.drawable.ic_camera, R.string.receipt_add_camera, onCamera)
                 AddMenuItem(R.drawable.ic_gallery, R.string.receipt_add_gallery, onGallery)
             }
@@ -94,23 +106,26 @@ private fun AddMenuItem(
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(MenuItemHeight)
+            .fillMaxWidth() // Column의 IntrinsicSize.Max에 맞춰 꽉 차게 확장됨
             .clickable(onClick = onClick)
-            .padding(horizontal = Margin20),
+            .padding(horizontal = 24.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             painter = painterResource(icon),
             contentDescription = null,
-            tint = ColorGray900,
-            modifier = Modifier.size(MenuIconSize),
+            tint = Color.Unspecified,
+            // [교정 3] 아이콘 크기를 OS 스탠다드 규격인 24dp로 롤백
+            modifier = Modifier.size(24.dp),
         )
-        Spacer(Modifier.width(Margin16))
+        // [교정 4] 아이콘과 텍스트 사이 간격을 스크린샷과 동일한 텐션(12dp)으로 축소
+        Spacer(Modifier.width(12.dp))
         Text(
             text = stringResource(label),
             fontSize = 16.sp,
-            color = ColorGray900,
+            fontWeight = FontWeight.Medium,
+            color = Color.Black,
+            // 이제 공간이 부족해서 잘릴 일이 없으므로 maxLines 설정이 온전히 방어용으로만 작동함
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
