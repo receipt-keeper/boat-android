@@ -38,6 +38,12 @@
     <string name="common_confirm">확인</string>
     <string name="common_cancel">취소</string>
     <string name="common_logout">로그아웃</string>
+    <string name="common_back">뒤로</string>
+
+    <!-- 알림 설정 화면 -->
+    <string name="notif_settings_title">알림설정</string>
+    <string name="notif_settings_alarm">알림 설정</string>
+    <string name="notif_settings_marketing">마케팅 정보 수신 동의</string>
 
     <!-- 회원 탈퇴 -->
     <string name="account_delete">회원 탈퇴</string>

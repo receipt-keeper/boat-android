@@ -25,7 +25,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import android.content.Intent
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -56,6 +58,7 @@ fun MyPageScreen(
     modifier: Modifier = Modifier,
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     val nameText = name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.mypage_name_placeholder)
     val emailText = email?.takeIf { it.isNotBlank() } ?: stringResource(R.string.mypage_email_placeholder)
@@ -98,7 +101,11 @@ fun MyPageScreen(
 
         // 알림 설정
         SectionLabel(stringResource(R.string.mypage_section_notification))
-        SettingRow(stringResource(R.string.mypage_section_notification)) { /* TODO: 알림 설정 */ }
+        SettingRow(stringResource(R.string.mypage_section_notification)) {
+            context.startActivity(
+                Intent(context, com.windrr.boat.feature.notification.NotificationSettingsActivity::class.java)
+            )
+        }
 
         HorizontalDivider(
             modifier = Modifier.padding(horizontal = Margin20),
