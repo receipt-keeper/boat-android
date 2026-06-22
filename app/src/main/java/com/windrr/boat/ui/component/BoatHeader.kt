@@ -35,9 +35,13 @@ private val HeaderHeight = 56.dp
 @Composable
 fun BoatHeader(
     modifier: Modifier = Modifier,
+    title: String? = null,
     onSearchClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {},
 ) {
+    // title 미지정 시 로고(플레이스홀더) 표시
+    val headerTitle = title ?: stringResource(R.string.header_logo)
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -46,7 +50,7 @@ fun BoatHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = stringResource(R.string.header_logo),
+            text = headerTitle,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = ColorGray900,

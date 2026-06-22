@@ -72,6 +72,7 @@ class HomeActivity : ComponentActivity() {
 
                 MainScreen(
                     displayName = state.displayName,
+                    email = state.email,
                     onSignOut = { authViewModel.handleIntent(AuthIntent.SignOut) },
                     onDeleteAccount = { authViewModel.handleIntent(AuthIntent.DeleteAccount) },
                 )

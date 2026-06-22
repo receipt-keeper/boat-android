@@ -33,6 +33,7 @@ import com.windrr.boat.ui.theme.ColorWhite
 @Composable
 fun MainScreen(
     displayName: String?,
+    email: String?,
     onSignOut: () -> Unit,
     onDeleteAccount: () -> Unit,
 ) {
@@ -70,7 +71,12 @@ fun MainScreen(
                 composable(MainTab.LIST.route) { ReceiptListScreen() }
                 composable(MainTab.HOME.route) { HomeScreen(displayName = displayName) }
                 composable(MainTab.MY.route) {
-                    MyPageScreen(onSignOut = onSignOut, onDeleteAccount = onDeleteAccount)
+                    MyPageScreen(
+                        name = displayName,
+                        email = email,
+                        onSignOut = onSignOut,
+                        onDeleteAccount = onDeleteAccount,
+                    )
                 }
             }
         }
