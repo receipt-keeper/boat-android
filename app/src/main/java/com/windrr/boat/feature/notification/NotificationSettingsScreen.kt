@@ -16,6 +16,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +30,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.windrr.boat.R
+import com.windrr.boat.core.permission.ExactAlarmRationaleDialog
+import com.windrr.boat.core.permission.rememberAlarmPermissionState
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorGray300
 import com.windrr.boat.ui.theme.ColorGray900
@@ -45,8 +48,15 @@ fun NotificationSettingsScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var alarmEnabled by remember { mutableStateOf(true) }
+    val alarmPermission = rememberAlarmPermissionState()
+    // 알림 토글은 실제 권한(알림 + 정확 알람) 보유 여부를 반영
+    var alarmEnabled by remember { mutableStateOf(alarmPermission.allGranted) }
     var marketingEnabled by remember { mutableStateOf(true) }
+
+    // 권한 허용/거부·외부 해제 결과를 토글에 동기화 (값이 바뀔 때만 반영되므로 사용자 OFF는 유지됨)
+    LaunchedEffect(alarmPermission.allGranted) {
+        alarmEnabled = alarmPermission.allGranted
+    }
 
     Scaffold(
         containerColor = ColorWhite,
@@ -82,7 +92,13 @@ fun NotificationSettingsScreen(
             ToggleRow(
                 label = stringResource(R.string.notif_settings_alarm),
                 checked = alarmEnabled,
-                onCheckedChange = { alarmEnabled = it },
+                onCheckedChange = { wantOn ->
+                    when {
+                        // 켜려는데 권한 없음 → 권한 요청(알림 → 정확 알람). 결과는 위 LaunchedEffect로 반영
+                        wantOn && !alarmPermission.allGranted -> alarmPermission.requestAllPermissions()
+                        else -> alarmEnabled = wantOn
+                    }
+                },
             )
             ToggleRow(
                 label = stringResource(R.string.notif_settings_marketing),
@@ -91,6 +107,9 @@ fun NotificationSettingsScreen(
             )
         }
     }
+
+    // 정확 알람 권한 안내 다이얼로그 (설정 화면 유도)
+    ExactAlarmRationaleDialog(alarmPermission)
 }
 
 @Composable
