@@ -9,6 +9,11 @@
     <string name="login_error_google">Google 로그인에 실패했습니다.</string>
     <string name="login_error_apple">Apple 로그인에 실패했습니다.</string>
 
+    <!-- 공통 헤더 -->
+    <string name="header_logo">로고</string>
+    <string name="header_search">검색</string>
+    <string name="header_notification">알림</string>
+
     <!-- Bottom Navigation -->
     <string name="tab_list">목록</string>
     <string name="tab_home">홈</string>
