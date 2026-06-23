@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,22 +41,24 @@ import com.windrr.boat.ui.theme.Margin20
 
 /**
  * 알림 설정 화면 — 네이티브 Switch(primary 색상)로 알림/마케팅 수신 동의를 토글.
- * TODO: 토글 상태 영속화 + 실제 알림 권한/마케팅 수신 동의 연동
+ * 알림 토글은 실제 권한 보유 여부를 반영하고, 두 토글 값 모두 UserDataStore에 영속화한다.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationSettingsScreen(
+    viewModel: NotificationSettingsViewModel,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val user by viewModel.user.collectAsState()
     val alarmPermission = rememberAlarmPermissionState()
     // 알림 토글은 실제 권한(알림 + 정확 알람) 보유 여부를 반영
     var alarmEnabled by remember { mutableStateOf(alarmPermission.allGranted) }
-    var marketingEnabled by remember { mutableStateOf(true) }
 
-    // 권한 허용/거부·외부 해제 결과를 토글에 동기화 (값이 바뀔 때만 반영되므로 사용자 OFF는 유지됨)
+    // 권한 허용/거부·외부 해제 결과를 토글에 동기화하고 저장 (값이 바뀔 때만 반영되므로 사용자 OFF는 유지됨)
     LaunchedEffect(alarmPermission.allGranted) {
         alarmEnabled = alarmPermission.allGranted
+        viewModel.setNotificationEnabled(alarmPermission.allGranted)
     }
 
     Scaffold(
@@ -96,14 +99,17 @@ fun NotificationSettingsScreen(
                     when {
                         // 켜려는데 권한 없음 → 권한 요청(알림 → 정확 알람). 결과는 위 LaunchedEffect로 반영
                         wantOn && !alarmPermission.allGranted -> alarmPermission.requestAllPermissions()
-                        else -> alarmEnabled = wantOn
+                        else -> {
+                            alarmEnabled = wantOn
+                            viewModel.setNotificationEnabled(wantOn)
+                        }
                     }
                 },
             )
             ToggleRow(
                 label = stringResource(R.string.notif_settings_marketing),
-                checked = marketingEnabled,
-                onCheckedChange = { marketingEnabled = it },
+                checked = user.marketingConsent,
+                onCheckedChange = { viewModel.setMarketingConsent(it) },
             )
         }
     }

@@ -8,9 +8,11 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.OAuthProvider
 import com.windrr.boat.core.log.BoatLog
 import com.windrr.boat.data.remote.ApiClient
+import com.windrr.boat.data.model.User
 import com.windrr.boat.data.remote.model.LoginRequest
 import com.windrr.boat.data.remote.model.RefreshRequest
 import com.windrr.boat.data.repository.AuthRepository
+import com.windrr.boat.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,9 +25,12 @@ import kotlin.coroutines.resumeWithException
 
 private const val TERMS_VERSION   = "1.0"
 private const val PRIVACY_VERSION = "1.0"
+// 프로필 조회 API 연동 전까지 사용하는 임시 기본 무료 분석 토큰 수
+private const val DEFAULT_FREE_ANALYSIS_TOKENS = 3
 
 class AuthViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AuthState())
@@ -33,6 +38,16 @@ class AuthViewModel(
 
     init {
         observeTokens()
+        observeUser()
+    }
+
+    /** 저장된 사용자 정보를 관찰해 state에 반영 (앱 재시작 후에도 프로필 유지) */
+    private fun observeUser() {
+        viewModelScope.launch {
+            userRepository.user.collect { user ->
+                _state.update { it.copy(user = user) }
+            }
+        }
     }
 
     private fun observeTokens() {
@@ -126,6 +141,21 @@ class AuthViewModel(
                             )
                         )
                         authRepository.saveTokens(response.data.accessToken, response.data.refreshToken)
+
+                        // 사용자 정보 저장 — 현재는 소셜 로그인 정보 + 약관 동의로 구성.
+                        // TODO: 프로필 조회 API 연동 시 서버 응답으로 갱신(profileImageUrl/freeAnalysisTokensRemaining 등).
+                        val current = _state.value
+                        userRepository.saveUser(
+                            User(
+                                email = current.email ?: "",
+                                name = current.displayName ?: "",
+                                profileImageUrl = current.photoUrl ?: "",
+                                notificationEnabled = true,
+                                marketingConsent = intent.marketingConsent,
+                                freeAnalysisTokensRemaining = DEFAULT_FREE_ANALYSIS_TOKENS,
+                            )
+                        )
+
                         BoatLog.i("로그인 완료 — termsAccepted=${intent.termsAccepted}, marketing=${intent.marketingConsent}")
                         _state.update { it.copy(isLoading = false, requiresTerms = false, pendingFirebaseToken = null) }
                     } catch (e: Exception) {
@@ -172,6 +202,7 @@ class AuthViewModel(
 
                     FirebaseAuth.getInstance().signOut()
                     authRepository.clearTokens()
+                    userRepository.clear()
                     BoatLog.clearUser()
                     BoatLog.i("로그아웃")
                     _state.update { AuthState() }
@@ -182,9 +213,10 @@ class AuthViewModel(
                     val result = runCatching { ApiClient.authApiService.deleteAccount() }
                     val response = result.getOrNull()
                     if (response != null && response.isSuccessful) {
-                        // 서버 계정 삭제 성공(204) → 로컬 세션/토큰 정리 → 로그인 화면 복귀
+                        // 서버 계정 삭제 성공(204) → 로컬 세션/토큰/사용자정보 정리 → 로그인 화면 복귀
                         FirebaseAuth.getInstance().signOut()
                         authRepository.clearTokens()
+                        userRepository.clear()
                         BoatLog.clearUser()
                         BoatLog.i("회원 탈퇴 완료")
                         _state.update { AuthState() }

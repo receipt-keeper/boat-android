@@ -12,6 +12,7 @@ package com.windrr.boat.feature.auth
 data class AuthState(
     val isInitializing: Boolean = true,
     val isLoggedIn: Boolean = false,
+    val user: com.windrr.boat.data.model.User = com.windrr.boat.data.model.User(),
     val accessToken: String? = null,
     val displayName: String? = null,
     val email: String? = null,

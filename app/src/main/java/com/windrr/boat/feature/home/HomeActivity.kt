@@ -37,7 +37,8 @@ class HomeActivity : ComponentActivity() {
                         override fun <T : ViewModel> create(modelClass: Class<T>): T {
                             @Suppress("UNCHECKED_CAST")
                             return AuthViewModel(
-                                AuthRepositoryImpl(ApiClient.tokenDataStore)
+                                AuthRepositoryImpl(ApiClient.tokenDataStore),
+                                com.windrr.boat.data.repository.UserRepositoryImpl(ApiClient.userDataStore),
                             ) as T
                         }
                     }
@@ -71,8 +72,7 @@ class HomeActivity : ComponentActivity() {
                 }
 
                 MainScreen(
-                    displayName = state.displayName,
-                    email = state.email,
+                    user = state.user,
                     onSignOut = { authViewModel.handleIntent(AuthIntent.SignOut) },
                     onDeleteAccount = { authViewModel.handleIntent(AuthIntent.DeleteAccount) },
                 )

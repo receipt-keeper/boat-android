@@ -42,7 +42,8 @@ class MainActivity : ComponentActivity() {
                             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                                 @Suppress("UNCHECKED_CAST")
                                 return AuthViewModel(
-                                    AuthRepositoryImpl(ApiClient.tokenDataStore)
+                                    AuthRepositoryImpl(ApiClient.tokenDataStore),
+                                    com.windrr.boat.data.repository.UserRepositoryImpl(ApiClient.userDataStore),
                                 ) as T
                             }
                         }
