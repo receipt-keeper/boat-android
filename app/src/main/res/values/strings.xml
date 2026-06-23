@@ -45,10 +45,15 @@
     <string name="notif_settings_alarm">알림 설정</string>
     <string name="notif_settings_marketing">마케팅 정보 수신 동의</string>
 
+    <!-- 로그아웃 다이얼로그 -->
+    <string name="account_logout_dialog_title">로그아웃 할까요?</string>
+    <string name="account_logout_dialog_message">데이터는 안전하게 보관되며 언제든 다시 로그인 할 수 있어요</string>
+
     <!-- 회원 탈퇴 -->
     <string name="account_delete">회원 탈퇴</string>
-    <string name="account_delete_dialog_title">정말 탈퇴하시겠어요?</string>
-    <string name="account_delete_dialog_message">탈퇴 시 계정과 모든 데이터가 삭제되며 복구할 수 없습니다.</string>
+    <string name="account_delete_dialog_title">회원 탈퇴를 진행할까요?</string>
+    <string name="account_delete_dialog_message">탈퇴 시 모든 영수증과 계정 정보가 삭제되며 복구할 수 없어요</string>
+    <string name="account_delete_dialog_dismiss">돌아가기</string>
     <string name="account_delete_confirm">탈퇴하기</string>
     <string name="account_delete_error">탈퇴 처리에 실패했습니다. 잠시 후 다시 시도해주세요.</string>
 

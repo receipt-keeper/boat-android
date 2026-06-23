@@ -41,7 +41,6 @@ import com.windrr.boat.ui.theme.ColorGray200
 import com.windrr.boat.ui.theme.ColorGray500
 import com.windrr.boat.ui.theme.ColorGray800
 import com.windrr.boat.ui.theme.ColorGray900
-import com.windrr.boat.ui.theme.ColorSystemError
 import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
 
@@ -57,6 +56,7 @@ fun MyPageScreen(
     onDeleteAccount: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var showLogoutDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -128,18 +128,34 @@ fun MyPageScreen(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            BottomTextButton(stringResource(R.string.common_logout), onClick = onSignOut)
+            BottomTextButton(stringResource(R.string.common_logout), onClick = { showLogoutDialog = true })
             Text(text = "  |  ", fontSize = 14.sp, color = ColorGray200)
             BottomTextButton(stringResource(R.string.mypage_withdraw), onClick = { showDeleteDialog = true })
         }
     }
 
+    // 로그아웃 확인 다이얼로그
+    if (showLogoutDialog) {
+        BoatDialog(
+            title = stringResource(R.string.account_logout_dialog_title),
+            message = stringResource(R.string.account_logout_dialog_message),
+            confirmText = stringResource(R.string.common_logout),
+            dismissText = stringResource(R.string.common_cancel),
+            onConfirm = {
+                showLogoutDialog = false
+                onSignOut()
+            },
+            onDismiss = { showLogoutDialog = false },
+        )
+    }
+
+    // 회원 탈퇴 확인 다이얼로그
     if (showDeleteDialog) {
         BoatDialog(
             title = stringResource(R.string.account_delete_dialog_title),
             message = stringResource(R.string.account_delete_dialog_message),
             confirmText = stringResource(R.string.account_delete_confirm),
-            confirmTextColor = ColorSystemError,
+            dismissText = stringResource(R.string.account_delete_dialog_dismiss),
             onConfirm = {
                 showDeleteDialog = false
                 onDeleteAccount()
