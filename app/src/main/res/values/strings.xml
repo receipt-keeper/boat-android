@@ -34,6 +34,9 @@
     <string name="receipt_filter_living">리빙/냉난방</string>
     <string name="receipt_filter_other">기타</string>
     <string name="receipt_sort_default">기본 순</string>
+    <string name="receipt_sort_expiring">만료 임박 순</string>
+    <string name="receipt_sort_recent">최근 등록 순</string>
+    <string name="receipt_sort_purchase">구매일 순</string>
     <string name="receipt_empty">등록된 영수증이 없습니다.</string>
 
     <!-- 마이페이지 -->

@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -47,6 +49,7 @@ import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin20
+import com.windrr.boat.ui.theme.Rounded2xl
 
 /** 목록 상단 inner tab — 보증 상태 기준 */
 enum class ReceiptTab(@StringRes val titleRes: Int) {
@@ -63,6 +66,14 @@ enum class ReceiptFilter(@StringRes val labelRes: Int) {
     KITCHEN(R.string.receipt_filter_kitchen),
     LIVING(R.string.receipt_filter_living),
     OTHER(R.string.receipt_filter_other),
+}
+
+/** 정렬 옵션 */
+enum class ReceiptSort(@StringRes val labelRes: Int) {
+    DEFAULT(R.string.receipt_sort_default),
+    EXPIRING(R.string.receipt_sort_expiring),
+    RECENT(R.string.receipt_sort_recent),
+    PURCHASE(R.string.receipt_sort_purchase),
 }
 
 /**
@@ -166,6 +177,9 @@ private fun ReceiptInnerTabRow(
 
 @Composable
 private fun CountSortRow(count: Int) {
+    var selectedSort by remember { mutableStateOf(ReceiptSort.DEFAULT) }
+    var sortExpanded by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -179,21 +193,50 @@ private fun CountSortRow(count: Int) {
             Text(text = "  |  ", fontSize = 14.sp, color = ColorGray300)
             Text(text = "$count", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = ColorBrandPrimary)
         }
-        // 기본 순 ⌄ (TODO: 정렬 선택)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable { /* TODO: 정렬 변경 */ },
-        ) {
-            Text(text = stringResource(R.string.receipt_sort_default), fontSize = 14.sp, color = ColorGray600)
-            Icon(
-                painter = painterResource(R.drawable.ic_chevron_right),
-                contentDescription = null,
-                tint = ColorGray600,
-                modifier = Modifier
-                    .padding(start = 4.dp)
-                    .size(14.dp)
-                    .rotate(90f), // ">" → "v"
-            )
+
+        // 정렬 버튼 + 드롭다운 메뉴
+        Box {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { sortExpanded = true },
+            ) {
+                Text(text = stringResource(selectedSort.labelRes), fontSize = 14.sp, color = ColorGray600)
+                Icon(
+                    painter = painterResource(R.drawable.ic_chevron_right),
+                    contentDescription = null,
+                    tint = ColorGray600,
+                    modifier = Modifier
+                        .padding(start = 4.dp)
+                        .size(14.dp)
+                        .rotate(90f), // ">" → "v"
+                )
+            }
+
+            DropdownMenu(
+                expanded = sortExpanded,
+                onDismissRequest = { sortExpanded = false },
+                containerColor = ColorWhite,
+                shape = Rounded2xl,
+            ) {
+                ReceiptSort.entries.forEach { sort ->
+                    val isSelected = sort == selectedSort
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = stringResource(sort.labelRes),
+                                fontSize = 16.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isSelected) ColorGray900 else ColorGray500,
+                            )
+                        },
+                        onClick = {
+                            selectedSort = sort
+                            sortExpanded = false
+                            // TODO: 정렬 적용
+                        },
+                    )
+                }
+            }
         }
     }
 }
