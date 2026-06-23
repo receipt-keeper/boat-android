@@ -3,6 +3,7 @@ package com.windrr.boat.data.remote
 import android.content.Context
 import com.windrr.boat.BuildConfig
 import com.windrr.boat.data.local.TokenDataStore
+import com.windrr.boat.data.local.UserDataStore
 import com.windrr.boat.data.remote.interceptor.TokenAuthenticator
 import com.windrr.boat.data.remote.interceptor.TokenInterceptor
 import okhttp3.OkHttpClient
@@ -35,6 +36,9 @@ object ApiClient {
 
     /** TokenDataStore를 외부(Repository 등)에서도 접근할 수 있도록 lazy로 노출 */
     val tokenDataStore: TokenDataStore by lazy { TokenDataStore(appContext) }
+
+    /** UserDataStore를 외부(Repository 등)에서도 접근할 수 있도록 lazy로 노출 */
+    val userDataStore: UserDataStore by lazy { UserDataStore(appContext) }
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
