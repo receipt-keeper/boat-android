@@ -19,6 +19,10 @@
     <string name="tab_home">홈</string>
     <string name="tab_my">마이</string>
 
+    <!-- 홈 -->
+    <string name="home_free_analysis">영수증 무료 분석</string>
+    <string name="home_free_analysis_remaining">잔여 %1$d회</string>
+
     <!-- 마이페이지 -->
     <string name="mypage_title">마이페이지</string>
     <string name="mypage_name_placeholder">이름</string>

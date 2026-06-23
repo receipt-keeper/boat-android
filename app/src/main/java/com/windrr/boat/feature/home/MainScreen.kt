@@ -68,7 +68,7 @@ fun MainScreen(
                 modifier = Modifier.padding(innerPadding),
             ) {
                 composable(MainTab.LIST.route) { ReceiptListScreen() }
-                composable(MainTab.HOME.route) { HomeScreen(displayName = user.name.ifBlank { null }) }
+                composable(MainTab.HOME.route) { HomeScreen(freeAnalysisTokens = user.freeAnalysisTokensRemaining) }
                 composable(MainTab.MY.route) {
                     MyPageScreen(
                         name = user.name,
