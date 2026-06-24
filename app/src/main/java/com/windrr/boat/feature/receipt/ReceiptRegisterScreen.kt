@@ -303,14 +303,20 @@ fun ReceiptRegisterScreen(
         NoTokenBottomSheet(
             onDismiss = { showNoTokenSheet = false },
             onRecharge = { showNoTokenSheet = false /* TODO: 무료 충전 */ },
-            onManualInput = { showNoTokenSheet = false /* TODO: 영수증 직접 입력 */ },
+            onManualInput = {
+                showNoTokenSheet = false
+                context.startActivity(ReceiptManualInputActivity.intent(context))
+            },
         )
     }
 
     if (showAnalysisFailedSheet) {
         AnalysisFailedBottomSheet(
             onDismiss = { showAnalysisFailedSheet = false },
-            onManualInput = { showAnalysisFailedSheet = false /* TODO: 영수증 직접 입력 */ },
+            onManualInput = {
+                showAnalysisFailedSheet = false
+                context.startActivity(ReceiptManualInputActivity.intent(context))
+            },
             onRetry = { showAnalysisFailedSheet = false /* TODO: 다시 분석 시도 */ },
         )
     }

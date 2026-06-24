@@ -43,6 +43,35 @@
     <string name="token_empty_manual">영수증 직접 입력하기</string>
     <string name="token_empty_later">다음에 할게요</string>
 
+    <!-- 영수증 수동 입력 화면 -->
+    <string name="manual_image_section">등록된 이미지 확인</string>
+    <string name="manual_image_add">등록하기</string>
+    <string name="manual_product_name">제품명</string>
+    <string name="manual_product_name_hint">제품명을 입력하세요.</string>
+    <string name="manual_purchase_date">구매일</string>
+    <string name="manual_purchase_date_hint">구매일을 입력하세요.</string>
+    <string name="manual_warranty">무상 AS 만료기간</string>
+    <string name="manual_warranty_hint">AS 만료기간을 입력해 주세요.</string>
+    <string name="manual_warranty_6m">6개월</string>
+    <string name="manual_warranty_1y">1년</string>
+    <string name="manual_warranty_2y">2년</string>
+    <string name="manual_warranty_3y">3년</string>
+    <string name="manual_warranty_custom">직접입력</string>
+    <string name="manual_memo">메모</string>
+    <string name="manual_memo_hint">기기 관련 특이사항을 입력하세요.</string>
+    <string name="manual_memo_counter">최대 100자</string>
+    <string name="manual_warranty_section">보증 정보</string>
+    <string name="manual_brand">브랜드명</string>
+    <string name="manual_brand_hint">브랜드명을 입력하세요.</string>
+    <string name="manual_price">구매 가격</string>
+    <string name="manual_price_hint">구매 가격을 입력하세요.</string>
+    <string name="manual_serial">시리얼 넘버</string>
+    <string name="manual_serial_hint">시리얼 넘버를 입력하세요.</string>
+    <string name="manual_as_section">무상 AS 안내</string>
+    <string name="manual_as_guide">일부 제조사의 경우, 추후 수리 접수 시\n실물 영수증 증빙을 추가로 요구할 수 있습니다.</string>
+    <string name="manual_as_keep_receipt">실물 영수증도 함께 보관</string>
+    <string name="manual_submit">영수증 정보 등록하기</string>
+
     <!-- 영수증 분석 실패 BottomSheet -->
     <string name="analysis_failed_title">영수증 분석에 실패했어요</string>
     <string name="analysis_failed_subtitle">사진이 흐릿하거나 인식되지 않았어요.\n다시 시도해 주세요.</string>
