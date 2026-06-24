@@ -43,6 +43,12 @@
     <string name="token_empty_manual">영수증 직접 입력하기</string>
     <string name="token_empty_later">다음에 할게요</string>
 
+    <!-- 영수증 분석 실패 BottomSheet -->
+    <string name="analysis_failed_title">영수증 분석에 실패했어요</string>
+    <string name="analysis_failed_subtitle">사진이 흐릿하거나 인식되지 않았어요.\n다시 시도해 주세요.</string>
+    <string name="analysis_failed_manual">영수증 직접 입력하기</string>
+    <string name="analysis_failed_retry">영수증 다시 업로드</string>
+
     <!-- 목록 (영수증 리스트) -->
     <string name="receipt_tab_all">전체</string>
     <string name="receipt_tab_expiring">만료예정</string>

@@ -107,6 +107,8 @@ fun ReceiptRegisterScreen(
     var cameraImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
     // 무료 분석 토큰 소진 시 BottomSheet 표시 여부
     var showNoTokenSheet by rememberSaveable { mutableStateOf(false) }
+    // 분석 실패 BottomSheet 표시 여부
+    var showAnalysisFailedSheet by rememberSaveable { mutableStateOf(false) }
 
     // 최대 장수 초과 등 에러 → 토스트
     androidx.compose.runtime.LaunchedEffect(galleryState.error) {
@@ -253,7 +255,9 @@ fun ReceiptRegisterScreen(
                         if (freeAnalysisTokens <= 0) {
                             showNoTokenSheet = true // 무료 분석 횟수 소진 → 안내 BottomSheet
                         } else {
-                            // TODO: 영수증 분석 시작 (선택된 photos 업로드/분석)
+                            // TODO: OCR 분석 API 호출 → 성공 시 결과 화면, 실패 시 실패 시트.
+                            // 현재 API 미연동 → 실패 케이스 디자인 확인용으로 실패 시트 표시
+                            showAnalysisFailedSheet = true
                         }
                     },
                     enabled = photos.isNotEmpty(),
@@ -286,6 +290,14 @@ fun ReceiptRegisterScreen(
             onDismiss = { showNoTokenSheet = false },
             onRecharge = { showNoTokenSheet = false /* TODO: 무료 충전 */ },
             onManualInput = { showNoTokenSheet = false /* TODO: 영수증 직접 입력 */ },
+        )
+    }
+
+    if (showAnalysisFailedSheet) {
+        AnalysisFailedBottomSheet(
+            onDismiss = { showAnalysisFailedSheet = false },
+            onManualInput = { showAnalysisFailedSheet = false /* TODO: 영수증 직접 입력 */ },
+            onRetry = { showAnalysisFailedSheet = false /* TODO: 다시 분석 시도 */ },
         )
     }
 }
