@@ -25,6 +25,7 @@ class UserDataStore(private val context: Context) {
     companion object {
         private val KEY_EMAIL = stringPreferencesKey("email")
         private val KEY_NAME = stringPreferencesKey("name")
+        private val KEY_NICKNAME = stringPreferencesKey("nickname")
         private val KEY_PROFILE_IMAGE_URL = stringPreferencesKey("profile_image_url")
         private val KEY_NOTIFICATION_ENABLED = booleanPreferencesKey("notification_enabled")
         private val KEY_MARKETING_CONSENT = booleanPreferencesKey("marketing_consent")
@@ -38,6 +39,7 @@ class UserDataStore(private val context: Context) {
             User(
                 email = prefs[KEY_EMAIL] ?: "",
                 name = prefs[KEY_NAME] ?: "",
+                nickname = prefs[KEY_NICKNAME] ?: "",
                 profileImageUrl = prefs[KEY_PROFILE_IMAGE_URL] ?: "",
                 notificationEnabled = prefs[KEY_NOTIFICATION_ENABLED] ?: false,
                 marketingConsent = prefs[KEY_MARKETING_CONSENT] ?: false,
@@ -50,6 +52,7 @@ class UserDataStore(private val context: Context) {
         context.userDataStore.edit { prefs ->
             prefs[KEY_EMAIL] = user.email
             prefs[KEY_NAME] = user.name
+            prefs[KEY_NICKNAME] = user.nickname
             prefs[KEY_PROFILE_IMAGE_URL] = user.profileImageUrl
             prefs[KEY_NOTIFICATION_ENABLED] = user.notificationEnabled
             prefs[KEY_MARKETING_CONSENT] = user.marketingConsent

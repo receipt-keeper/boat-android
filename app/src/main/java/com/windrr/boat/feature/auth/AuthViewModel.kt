@@ -25,8 +25,6 @@ import kotlin.coroutines.resumeWithException
 
 private const val TERMS_VERSION   = "1.0"
 private const val PRIVACY_VERSION = "1.0"
-// 프로필 조회 API 연동 전까지 사용하는 임시 기본 무료 분석 토큰 수
-private const val DEFAULT_FREE_ANALYSIS_TOKENS = 3
 
 class AuthViewModel(
     private val authRepository: AuthRepository,
@@ -47,6 +45,18 @@ class AuthViewModel(
             userRepository.user.collect { user ->
                 _state.update { it.copy(user = user) }
             }
+        }
+    }
+
+    /**
+     * 서버에서 내 정보(GET /users/me)를 조회해 로컬에 동기화.
+     * 앱 시작(로그인 상태) 또는 로그인/가입 성공 후 메인 진입 시 호출.
+     * 성공 시 결과는 observeUser를 통해 state.user에 자동 반영된다.
+     */
+    fun syncUser() {
+        viewModelScope.launch {
+            userRepository.refreshUser()
+                .onFailure { BoatLog.e("내 정보 동기화 실패", it) }
         }
     }
 
@@ -142,8 +152,8 @@ class AuthViewModel(
                         )
                         authRepository.saveTokens(response.data.accessToken, response.data.refreshToken)
 
-                        // 사용자 정보 저장 — 현재는 소셜 로그인 정보 + 약관 동의로 구성.
-                        // TODO: 프로필 조회 API 연동 시 서버 응답으로 갱신(profileImageUrl/freeAnalysisTokensRemaining 등).
+                        // 메인 진입 직후 HomeActivity에서 GET /users/me 동기화로 실제 정보를 채운다.
+                        // 동기화 전 즉시 표시용으로 소셜 로그인 기본 정보만 임시 저장.
                         val current = _state.value
                         userRepository.saveUser(
                             User(
@@ -152,7 +162,6 @@ class AuthViewModel(
                                 profileImageUrl = current.photoUrl ?: "",
                                 notificationEnabled = true,
                                 marketingConsent = intent.marketingConsent,
-                                freeAnalysisTokensRemaining = DEFAULT_FREE_ANALYSIS_TOKENS,
                             )
                         )
 

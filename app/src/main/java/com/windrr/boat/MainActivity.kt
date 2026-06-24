@@ -43,7 +43,10 @@ class MainActivity : ComponentActivity() {
                                 @Suppress("UNCHECKED_CAST")
                                 return AuthViewModel(
                                     AuthRepositoryImpl(ApiClient.tokenDataStore),
-                                    com.windrr.boat.data.repository.UserRepositoryImpl(ApiClient.userDataStore),
+                                    com.windrr.boat.data.repository.UserRepositoryImpl(
+                                        ApiClient.userDataStore,
+                                        ApiClient.userApiService,
+                                    ),
                                 ) as T
                             }
                         }

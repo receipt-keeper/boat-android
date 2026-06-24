@@ -71,7 +71,7 @@ fun MainScreen(
                 composable(MainTab.HOME.route) { HomeScreen(freeAnalysisTokens = user.freeAnalysisTokensRemaining) }
                 composable(MainTab.MY.route) {
                     MyPageScreen(
-                        name = user.name,
+                        name = user.displayName,
                         email = user.email,
                         profileImageUrl = user.profileImageUrl,
                         onSignOut = onSignOut,

@@ -2,6 +2,8 @@ package com.windrr.boat.data.repository
 
 import com.windrr.boat.data.local.UserDataStore
 import com.windrr.boat.data.model.User
+import com.windrr.boat.data.remote.UserApiService
+import com.windrr.boat.data.remote.model.toUser
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -11,6 +13,9 @@ import kotlinx.coroutines.flow.Flow
 interface UserRepository {
     /** 저장된 사용자 정보를 관찰하는 Flow */
     val user: Flow<User>
+
+    /** 서버에서 내 정보 조회 후 로컬에 캐시 (동기화). 성공 시 최신 User 반환 */
+    suspend fun refreshUser(): Result<User>
 
     /** 사용자 정보 전체 저장 */
     suspend fun saveUser(user: User)
@@ -29,10 +34,18 @@ interface UserRepository {
 }
 
 class UserRepositoryImpl(
-    private val userDataStore: UserDataStore
+    private val userDataStore: UserDataStore,
+    private val userApiService: UserApiService,
 ) : UserRepository {
 
     override val user: Flow<User> = userDataStore.user
+
+    override suspend fun refreshUser(): Result<User> = runCatching {
+        val response = userApiService.getMe()
+        val user = response.data.toUser()
+        userDataStore.saveUser(user)
+        user
+    }
 
     override suspend fun saveUser(user: User) = userDataStore.saveUser(user)
 

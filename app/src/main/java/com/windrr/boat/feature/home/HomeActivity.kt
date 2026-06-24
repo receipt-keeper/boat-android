@@ -38,12 +38,19 @@ class HomeActivity : ComponentActivity() {
                             @Suppress("UNCHECKED_CAST")
                             return AuthViewModel(
                                 AuthRepositoryImpl(ApiClient.tokenDataStore),
-                                com.windrr.boat.data.repository.UserRepositoryImpl(ApiClient.userDataStore),
+                                com.windrr.boat.data.repository.UserRepositoryImpl(
+                                    ApiClient.userDataStore,
+                                    ApiClient.userApiService,
+                                ),
                             ) as T
                         }
                     }
                 )
                 val state by authViewModel.state.collectAsState()
+
+                // 메인 진입 시(앱 시작/로그인 성공 모두 이 화면을 거침) 서버에서 내 정보 동기화
+                LaunchedEffect(Unit) { authViewModel.syncUser() }
+
                 val toastState = rememberBoatToastState()
                 val msgDeleteError = stringResource(R.string.account_delete_error)
 
