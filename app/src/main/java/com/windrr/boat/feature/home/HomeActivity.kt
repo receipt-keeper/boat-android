@@ -11,10 +11,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.windrr.boat.MainActivity
+import com.windrr.boat.R
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.repository.AuthRepositoryImpl
 import com.windrr.boat.feature.auth.AuthIntent
@@ -50,6 +52,7 @@ class HomeActivity : ComponentActivity() {
                 LaunchedEffect(Unit) { authViewModel.syncUser() }
 
                 val toastState = rememberBoatToastState()
+                val msgBackExit = stringResource(R.string.home_back_exit)
 
                 BoatToastHost(state = toastState)
 
@@ -82,6 +85,7 @@ class HomeActivity : ComponentActivity() {
                     user = state.user,
                     onSignOut = { authViewModel.handleIntent(AuthIntent.SignOut) },
                     onDeleteAccount = { authViewModel.handleIntent(AuthIntent.DeleteAccount) },
+                    onShowExitToast = { toastState.show(msgBackExit) },
                 )
             }
         }

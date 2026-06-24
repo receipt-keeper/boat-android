@@ -1,5 +1,7 @@
 package com.windrr.boat.feature.home
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -13,8 +15,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -35,11 +39,39 @@ fun MainScreen(
     user: com.windrr.boat.data.model.User,
     onSignOut: () -> Unit,
     onDeleteAccount: () -> Unit,
+    onShowExitToast: () -> Unit,
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     var showAddMenu by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    var lastBackPressedAt by remember { mutableStateOf(0L) }
+    BackHandler {
+        when {
+            // 1) 등록 메뉴 열려 있으면 닫기
+            showAddMenu -> showAddMenu = false
+            // 2) 홈 탭이 아니면 홈 탭으로 복귀
+            currentRoute != MainTab.HOME.route -> {
+                navController.navigate(MainTab.HOME.route) {
+                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
+            // 3) 홈 탭에서 2초 내 두 번 → 종료, 첫 번째는 안내 토스트
+            else -> {
+                val now = System.currentTimeMillis()
+                if (now - lastBackPressedAt < 2_000L) {
+                    (context as? Activity)?.finish()
+                } else {
+                    lastBackPressedAt = now
+                    onShowExitToast()
+                }
+            }
+        }
+    }
 
     Box(Modifier.fillMaxSize()) {
         Scaffold(

@@ -20,6 +20,7 @@
     <string name="tab_my">마이</string>
 
     <!-- 홈 -->
+    <string name="home_back_exit">한 번 더 누르면 앱이 종료돼요</string>
     <string name="home_free_analysis">영수증 무료 분석</string>
     <string name="home_free_analysis_remaining">잔여 %1$d회</string>
     <string name="home_card_register_title">영수증 등록하기</string>
