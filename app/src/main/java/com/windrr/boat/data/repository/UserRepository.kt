@@ -3,6 +3,7 @@ package com.windrr.boat.data.repository
 import com.windrr.boat.data.local.UserDataStore
 import com.windrr.boat.data.model.User
 import com.windrr.boat.data.remote.UserApiService
+import com.windrr.boat.data.remote.model.UpdateMeRequest
 import com.windrr.boat.data.remote.model.toUser
 import kotlinx.coroutines.flow.Flow
 
@@ -16,6 +17,9 @@ interface UserRepository {
 
     /** 서버에서 내 정보 조회 후 로컬에 캐시 (동기화). 성공 시 최신 User 반환 */
     suspend fun refreshUser(): Result<User>
+
+    /** 내 정보 부분 수정 (PATCH). 전달한 필드만 수정하며 로컬에도 반영 */
+    suspend fun updateMe(notificationEnabled: Boolean? = null, marketingConsent: Boolean? = null): Result<Unit>
 
     /** 사용자 정보 전체 저장 */
     suspend fun saveUser(user: User)
@@ -46,6 +50,21 @@ class UserRepositoryImpl(
         userDataStore.saveUser(user)
         user
     }
+
+    override suspend fun updateMe(notificationEnabled: Boolean?, marketingConsent: Boolean?): Result<Unit> =
+        runCatching {
+            // 1) 낙관적 로컬 반영 (토글 즉시 반응)
+            notificationEnabled?.let { userDataStore.updateNotificationEnabled(it) }
+            marketingConsent?.let { userDataStore.updateMarketingConsent(it) }
+            // 2) 서버 부분 수정
+            val res = userApiService.updateMe(
+                UpdateMeRequest(marketingConsent = marketingConsent, notificationEnabled = notificationEnabled)
+            )
+            // 3) 서버가 확정한 값으로 재동기화
+            res.data.notificationEnabled?.let { userDataStore.updateNotificationEnabled(it) }
+            res.data.marketingConsent?.let { userDataStore.updateMarketingConsent(it) }
+            Unit
+        }
 
     override suspend fun saveUser(user: User) = userDataStore.saveUser(user)
 
