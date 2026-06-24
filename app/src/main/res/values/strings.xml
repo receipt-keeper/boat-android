@@ -33,6 +33,7 @@
     <string name="receipt_register_camera">카메라로 촬영하기</string>
     <string name="receipt_register_gallery">갤러리에서 불러오기</string>
     <string name="receipt_register_analyze">영수증 분석 시작하기</string>
+    <string name="receipt_max_photos">영수증은 최대 %1$d장까지 등록할 수 있어요</string>
 
     <!-- 목록 (영수증 리스트) -->
     <string name="receipt_tab_all">전체</string>

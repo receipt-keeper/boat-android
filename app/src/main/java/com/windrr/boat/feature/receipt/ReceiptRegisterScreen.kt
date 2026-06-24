@@ -39,6 +39,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -113,10 +114,23 @@ fun ReceiptRegisterScreen(
         }
     }
 
-    val galleryLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.PickMultipleVisualMedia(GalleryState.MAX_PHOTOS)
-    ) { uris ->
-        if (uris.isNotEmpty()) galleryViewModel.handleIntent(GalleryIntent.AddPhotos(uris))
+    // 남은 등록 가능 장수 (이미 올린 만큼 제외)
+    val remainingSlots = (GalleryState.MAX_PHOTOS - photos.size).coerceAtLeast(0)
+
+    // 단일 선택 런처 (남은 슬롯이 1장일 때 — PickMultiple은 maxItems>=2만 허용)
+    val singlePickLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) galleryViewModel.handleIntent(GalleryIntent.AddPhotos(listOf(uri)))
+    }
+
+    // 다중 선택 런처 — 남은 슬롯 수에 맞춰 재생성(key)해서 시스템 피커 선택 개수를 제한
+    val multiPickLauncher = key(remainingSlots) {
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.PickMultipleVisualMedia(remainingSlots.coerceAtLeast(2))
+        ) { uris ->
+            if (uris.isNotEmpty()) galleryViewModel.handleIntent(GalleryIntent.AddPhotos(uris))
+        }
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -136,11 +150,24 @@ fun ReceiptRegisterScreen(
         if (granted) launchCamera()
     }
 
+    fun showMaxReached() {
+        toastState.showError(context.getString(R.string.receipt_max_photos, GalleryState.MAX_PHOTOS))
+    }
+
     fun onPickFromGallery() {
-        galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        val request = PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+        when {
+            remainingSlots <= 0 -> showMaxReached()
+            remainingSlots == 1 -> singlePickLauncher.launch(request)   // 1장만 선택
+            else -> multiPickLauncher.launch(request)                   // 남은 만큼만 선택
+        }
     }
 
     fun onTakePhoto() {
+        if (remainingSlots <= 0) {
+            showMaxReached()
+            return
+        }
         if (cameraPermission.status.isGranted) launchCamera()
         else cameraPermission.launchPermissionRequest()
     }
