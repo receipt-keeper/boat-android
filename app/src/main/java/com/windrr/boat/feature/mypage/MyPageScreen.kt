@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +39,8 @@ import coil3.compose.AsyncImage
 import com.windrr.boat.R
 import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatHeader
+import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.ColorBrandSenary
 import com.windrr.boat.ui.theme.ColorGray200
 import com.windrr.boat.ui.theme.ColorGray500
@@ -62,11 +65,28 @@ fun MyPageScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val toastState = rememberBoatToastState()
 
     val nameText = name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.mypage_name_placeholder)
     val emailText = email?.takeIf { it.isNotBlank() } ?: stringResource(R.string.mypage_email_placeholder)
 
-    Column(modifier = modifier.fillMaxSize()) {
+    val inquiryEmail = stringResource(R.string.mypage_inquiry_email)
+    val inquirySubject = stringResource(R.string.mypage_inquiry_subject)
+    val noEmailAppMsg = stringResource(R.string.mypage_inquiry_no_app)
+
+    // 1:1 문의 — 메일 앱으로 작성 화면 열기
+    fun openInquiryEmail() {
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:")
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(inquiryEmail))
+            putExtra(Intent.EXTRA_SUBJECT, inquirySubject)
+        }
+        runCatching { context.startActivity(intent) }
+            .onFailure { toastState.showError(noEmailAppMsg) }
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize()) {
         BoatHeader(
             title = stringResource(R.string.mypage_title),
             onSearchClick = { /* TODO: 검색 */ },
@@ -131,7 +151,7 @@ fun MyPageScreen(
 
         // 도움말
         SectionLabel(stringResource(R.string.mypage_section_help))
-        SettingRow(stringResource(R.string.mypage_inquiry)) { /* TODO: 1:1 문의하기 */ }
+        SettingRow(stringResource(R.string.mypage_inquiry)) { openInquiryEmail() }
         SettingRow(stringResource(R.string.mypage_terms)) { /* TODO: 서비스 이용약관 */ }
 
         Spacer(Modifier.weight(1f))
@@ -148,6 +168,9 @@ fun MyPageScreen(
             Text(text = "  |  ", fontSize = 14.sp, color = ColorGray200)
             BottomTextButton(stringResource(R.string.mypage_withdraw), onClick = { showDeleteDialog = true })
         }
+    }
+
+        BoatToastHost(state = toastState)
     }
 
     // 로그아웃 확인 다이얼로그
