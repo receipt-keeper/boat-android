@@ -105,6 +105,8 @@ fun ReceiptRegisterScreen(
 
     // 카메라 촬영 결과 저장 URI (촬영 직전 생성, 프로세스 죽음에도 보존)
     var cameraImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+    // 무료 분석 토큰 소진 시 BottomSheet 표시 여부
+    var showNoTokenSheet by rememberSaveable { mutableStateOf(false) }
 
     // 최대 장수 초과 등 에러 → 토스트
     androidx.compose.runtime.LaunchedEffect(galleryState.error) {
@@ -247,7 +249,13 @@ fun ReceiptRegisterScreen(
 
                 Spacer(Modifier.height(Margin24))
                 Button(
-                    onClick = { /* TODO: 영수증 분석 시작 (선택된 photos 업로드/분석) */ },
+                    onClick = {
+                        if (freeAnalysisTokens <= 0) {
+                            showNoTokenSheet = true // 무료 분석 횟수 소진 → 안내 BottomSheet
+                        } else {
+                            // TODO: 영수증 분석 시작 (선택된 photos 업로드/분석)
+                        }
+                    },
                     enabled = photos.isNotEmpty(),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -271,6 +279,14 @@ fun ReceiptRegisterScreen(
         }
 
         BoatToastHost(state = toastState)
+    }
+
+    if (showNoTokenSheet) {
+        NoTokenBottomSheet(
+            onDismiss = { showNoTokenSheet = false },
+            onRecharge = { showNoTokenSheet = false /* TODO: 무료 충전 */ },
+            onManualInput = { showNoTokenSheet = false /* TODO: 영수증 직접 입력 */ },
+        )
     }
 }
 
