@@ -49,6 +49,11 @@
             android:exported="false"
             android:theme="@style/Theme.Boat" />
 
+        <activity
+            android:name=".feature.notification.NotificationListActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Boat" />
+
         <!-- AS 만료 알람 수신 -->
         <receiver
             android:name=".core.notification.AlarmReceiver"

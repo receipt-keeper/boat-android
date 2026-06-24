@@ -70,7 +70,11 @@ fun MyPageScreen(
         BoatHeader(
             title = stringResource(R.string.mypage_title),
             onSearchClick = { /* TODO: 검색 */ },
-            onNotificationClick = { /* TODO: 알림 */ },
+            onNotificationClick = {
+                context.startActivity(
+                    Intent(context, com.windrr.boat.feature.notification.NotificationListActivity::class.java)
+                )
+            },
         )
 
         // 프로필

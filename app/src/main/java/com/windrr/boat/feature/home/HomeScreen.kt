@@ -48,7 +48,11 @@ fun HomeScreen(
     Column(modifier = modifier.fillMaxSize()) {
         BoatHeader(
             onSearchClick = { /* TODO: 검색 */ },
-            onNotificationClick = { /* TODO: 알림 */ },
+            onNotificationClick = {
+                context.startActivity(
+                    Intent(context, com.windrr.boat.feature.notification.NotificationListActivity::class.java)
+                )
+            },
         )
         Column(
             modifier = Modifier

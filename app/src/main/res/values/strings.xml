@@ -70,6 +70,10 @@
     <string name="common_logout">로그아웃</string>
     <string name="common_back">뒤로</string>
 
+    <!-- 알림 목록 화면 -->
+    <string name="notif_list_title">알림</string>
+    <string name="notif_list_empty">알림이 없습니다.</string>
+
     <!-- 알림 설정 화면 -->
     <string name="notif_settings_title">알림설정</string>
     <string name="notif_settings_alarm">알림 설정</string>

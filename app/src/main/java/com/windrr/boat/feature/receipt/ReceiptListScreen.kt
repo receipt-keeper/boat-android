@@ -30,9 +30,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import android.content.Intent
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -85,6 +87,7 @@ fun ReceiptListScreen(modifier: Modifier = Modifier) {
     var selectedTab by remember { mutableStateOf(ReceiptTab.ALL) }
     var selectedFilter by remember { mutableStateOf(ReceiptFilter.ALL) }
     val receipts = emptyList<Unit>() // TODO: 실제 영수증 데이터 연동
+    val context = LocalContext.current
 
     Column(
         modifier = modifier
@@ -96,7 +99,11 @@ fun ReceiptListScreen(modifier: Modifier = Modifier) {
             BoatHeader(
                 title = stringResource(R.string.tab_list),
                 onSearchClick = { /* TODO: 검색 */ },
-                onNotificationClick = { /* TODO: 알림 */ },
+                onNotificationClick = {
+                    context.startActivity(
+                        Intent(context, com.windrr.boat.feature.notification.NotificationListActivity::class.java)
+                    )
+                },
             )
             ReceiptInnerTabRow(selected = selectedTab, onSelected = { selectedTab = it })
         }
