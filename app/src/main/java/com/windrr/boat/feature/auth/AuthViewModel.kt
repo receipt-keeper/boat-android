@@ -8,6 +8,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.OAuthProvider
 import com.windrr.boat.core.log.BoatLog
 import com.windrr.boat.data.remote.ApiClient
+import com.windrr.boat.data.remote.ApiErrorParser
 import com.windrr.boat.data.model.User
 import com.windrr.boat.data.remote.model.LoginRequest
 import com.windrr.boat.data.remote.model.RefreshRequest
@@ -56,8 +57,16 @@ class AuthViewModel(
     fun syncUser() {
         viewModelScope.launch {
             userRepository.refreshUser()
-                .onFailure { BoatLog.e("내 정보 동기화 실패", it) }
+                .onFailure {
+                    BoatLog.e("내 정보 동기화 실패", it)
+                    _state.update { s -> s.copy(error = ApiErrorParser.message(it)) }
+                }
         }
+    }
+
+    /** 에러 토스트 표시 후 호출 — 동일 에러 재발생 시에도 다시 트리거되도록 비운다 */
+    fun clearError() {
+        _state.update { it.copy(error = null) }
     }
 
     private fun observeTokens() {
@@ -98,7 +107,7 @@ class AuthViewModel(
                         }
                     } catch (e: Exception) {
                         BoatLog.e("Google Firebase 인증 실패", e)
-                        _state.update { it.copy(isLoading = false, error = e.message) }
+                        _state.update { it.copy(isLoading = false, error = ApiErrorParser.message(e)) }
                     }
                 }
 
@@ -129,7 +138,7 @@ class AuthViewModel(
                         }
                     } catch (e: Exception) {
                         BoatLog.e("Apple Firebase 인증 실패", e)
-                        _state.update { it.copy(isLoading = false, error = e.message) }
+                        _state.update { it.copy(isLoading = false, error = ApiErrorParser.message(e)) }
                     }
                 }
 
@@ -169,7 +178,7 @@ class AuthViewModel(
                         _state.update { it.copy(isLoading = false, requiresTerms = false, pendingFirebaseToken = null) }
                     } catch (e: Exception) {
                         BoatLog.e("약관 동의 후 로그인 실패", e)
-                        _state.update { it.copy(isLoading = false, error = e.message) }
+                        _state.update { it.copy(isLoading = false, error = ApiErrorParser.message(e)) }
                     }
                 }
 
@@ -179,7 +188,7 @@ class AuthViewModel(
                         authRepository.saveTokens(intent.accessToken, intent.refreshToken)
                     }.onFailure { e ->
                         BoatLog.e("토큰 저장 실패", e)
-                        _state.update { it.copy(isLoading = false, error = e.message) }
+                        _state.update { it.copy(isLoading = false, error = ApiErrorParser.message(e)) }
                         return@launch
                     }
                     _state.update { it.copy(isLoading = false) }
@@ -190,7 +199,7 @@ class AuthViewModel(
                         authRepository.updateAccessToken(intent.newAccessToken)
                     }.onFailure { e ->
                         BoatLog.e("토큰 갱신 실패", e)
-                        _state.update { it.copy(error = e.message) }
+                        _state.update { it.copy(error = ApiErrorParser.message(e)) }
                     }
                 }
 
@@ -230,9 +239,11 @@ class AuthViewModel(
                         BoatLog.i("회원 탈퇴 완료")
                         _state.update { AuthState() }
                     } else {
-                        val code = response?.code()
-                        BoatLog.e("회원 탈퇴 실패 (code=$code)", result.exceptionOrNull())
-                        _state.update { it.copy(isLoading = false, error = "회원 탈퇴 실패") }
+                        val message = response?.let { ApiErrorParser.message(it) }
+                            ?: result.exceptionOrNull()?.let { ApiErrorParser.message(it) }
+                            ?: ApiErrorParser.NETWORK_MESSAGE
+                        BoatLog.e("회원 탈퇴 실패 (code=${response?.code()})", result.exceptionOrNull())
+                        _state.update { it.copy(isLoading = false, error = message) }
                     }
                 }
 

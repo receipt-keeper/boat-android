@@ -1,5 +1,6 @@
 package com.windrr.boat.feature.notification
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +34,8 @@ import androidx.compose.ui.unit.sp
 import com.windrr.boat.R
 import com.windrr.boat.core.permission.ExactAlarmRationaleDialog
 import com.windrr.boat.core.permission.rememberAlarmPermissionState
+import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorGray300
 import com.windrr.boat.ui.theme.ColorGray900
@@ -61,6 +64,17 @@ fun NotificationSettingsScreen(
         viewModel.setNotificationEnabled(alarmPermission.allGranted)
     }
 
+    // 설정 변경(PATCH) 실패 시 에러 토스트
+    val error by viewModel.error.collectAsState()
+    val toastState = rememberBoatToastState()
+    LaunchedEffect(error) {
+        error?.let {
+            toastState.showError(it)
+            viewModel.clearError()
+        }
+    }
+
+    Box(Modifier.fillMaxSize()) {
     Scaffold(
         containerColor = ColorWhite,
         topBar = {
@@ -114,8 +128,11 @@ fun NotificationSettingsScreen(
         }
     }
 
-    // 정확 알람 권한 안내 다이얼로그 (설정 화면 유도)
-    ExactAlarmRationaleDialog(alarmPermission)
+        // 정확 알람 권한 안내 다이얼로그 (설정 화면 유도)
+        ExactAlarmRationaleDialog(alarmPermission)
+
+        BoatToastHost(state = toastState)
+    }
 }
 
 @Composable

@@ -54,13 +54,15 @@ class MainActivity : ComponentActivity() {
                     val state by authViewModel.state.collectAsState()
                     val toastState = rememberBoatToastState()
                     val msgTermsCancelled = stringResource(R.string.login_error_cancelled)
-                    val msgServerError    = stringResource(R.string.error_server_retry)
 
                     BoatToastHost(state = toastState)
 
-                    // API 호출 실패 시 에러 토스트
+                    // API 호출 실패 시 에러 토스트 (서버 message 또는 네트워크 안내)
                     LaunchedEffect(state.error) {
-                        if (state.error != null) toastState.showError(msgServerError)
+                        state.error?.let {
+                            toastState.showError(it)
+                            authViewModel.clearError()
+                        }
                     }
 
                     // 로그인 완료 시 HomeActivity로 전환
