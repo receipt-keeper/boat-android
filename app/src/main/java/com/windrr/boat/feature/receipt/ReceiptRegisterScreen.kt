@@ -37,6 +37,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -96,6 +97,7 @@ fun ReceiptRegisterScreen(
     freeAnalysisTokens: Int,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    autoLaunch: String? = null,
     galleryViewModel: GalleryViewModel = viewModel(),
 ) {
     val galleryState by galleryViewModel.state.collectAsState()
@@ -174,6 +176,18 @@ fun ReceiptRegisterScreen(
         }
         if (cameraPermission.status.isGranted) launchCamera()
         else cameraPermission.launchPermissionRequest()
+    }
+
+    // FAB 메뉴에서 진입한 경우 선택한 소스를 1회 자동 실행 (회전 후 재실행 방지)
+    var autoLaunchHandled by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if (!autoLaunchHandled) {
+            autoLaunchHandled = true
+            when (autoLaunch) {
+                ReceiptRegisterActivity.LAUNCH_CAMERA -> onTakePhoto()
+                ReceiptRegisterActivity.LAUNCH_GALLERY -> onPickFromGallery()
+            }
+        }
     }
 
     Box(modifier = modifier.fillMaxSize()) {

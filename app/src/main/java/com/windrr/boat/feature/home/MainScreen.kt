@@ -26,6 +26,7 @@ import androidx.navigation.compose.rememberNavController
 import com.windrr.boat.R
 import com.windrr.boat.feature.mypage.MyPageScreen
 import com.windrr.boat.feature.receipt.ReceiptListScreen
+import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 
@@ -116,8 +117,18 @@ fun MainScreen(
         if (showAddMenu) {
             ReceiptAddSheet(
                 onDismiss = { showAddMenu = false },
-                onCamera = { showAddMenu = false /* TODO: 카메라 촬영 → 영수증 등록 */ },
-                onGallery = { showAddMenu = false /* TODO: 갤러리 선택 → 영수증 등록 */ },
+                onCamera = {
+                    showAddMenu = false
+                    context.startActivity(
+                        ReceiptRegisterActivity.intent(context, ReceiptRegisterActivity.LAUNCH_CAMERA)
+                    )
+                },
+                onGallery = {
+                    showAddMenu = false
+                    context.startActivity(
+                        ReceiptRegisterActivity.intent(context, ReceiptRegisterActivity.LAUNCH_GALLERY)
+                    )
+                },
             )
         }
     }
