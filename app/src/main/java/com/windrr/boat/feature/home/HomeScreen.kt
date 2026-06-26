@@ -39,6 +39,7 @@ import com.windrr.boat.ui.component.BoatHeader
 import com.windrr.boat.ui.component.FreeAnalysisBanner
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandQuinary
+import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray300
 import com.windrr.boat.ui.theme.ColorGray500
 import com.windrr.boat.ui.theme.ColorWhite
@@ -60,7 +61,11 @@ fun HomeScreen(
     // 임시: 초기 홈 ↔ 일반 홈 전환 (백엔드 데이터 유무에 따른 화면 확인용)
     var isGeneralHome by rememberSaveable { mutableStateOf(false) }
 
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(ColorGray50), // 홈 기본 배경 #F5F7FA
+    ) {
         BoatHeader(
             onSearchClick = { /* TODO: 검색 */ },
             onNotificationClick = {
