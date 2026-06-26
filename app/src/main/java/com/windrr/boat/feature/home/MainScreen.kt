@@ -28,6 +28,7 @@ import com.windrr.boat.feature.mypage.MyPageScreen
 import com.windrr.boat.feature.receipt.ReceiptListScreen
 import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
 import com.windrr.boat.feature.receipt.ReceiptTab
+import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 
@@ -85,9 +86,12 @@ fun MainScreen(
         }
     }
 
+    // 홈은 #F5F7FA 배경(상태바 영역까지) — 목록/마이는 헤더가 흰색이라 흰색 유지
+    val systemBackground = if (currentRoute == MainTab.HOME.route) ColorGray50 else ColorWhite
+
     Box(Modifier.fillMaxSize()) {
         Scaffold(
-            containerColor = ColorWhite,
+            containerColor = systemBackground,
             bottomBar = { BoatBottomBar(navController) },
             floatingActionButton = {
                 // 홈/목록 탭에서 영수증 등록 FAB 노출 (마이 탭 제외)
