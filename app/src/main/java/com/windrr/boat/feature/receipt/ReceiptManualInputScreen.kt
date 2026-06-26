@@ -237,11 +237,22 @@ fun ReceiptManualInputScreen(
                 Spacer(Modifier.height(Margin8))
                 // 구매일 — 클릭 시 DatePicker
                 FieldBox(onClick = { showDatePicker = true }) {
-                    Text(
-                        text = purchaseDate.ifBlank { stringResource(R.string.manual_purchase_date_hint) },
-                        fontSize = 15.sp,
-                        color = if (purchaseDate.isBlank()) ColorGray400 else ColorGray900,
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (purchaseDate.isNotBlank()) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_calendar),
+                                contentDescription = null,
+                                tint = ColorGray700,
+                                modifier = Modifier.size(20.dp),
+                            )
+                            Spacer(Modifier.width(Margin8))
+                        }
+                        Text(
+                            text = purchaseDate.ifBlank { stringResource(R.string.manual_purchase_date_hint) },
+                            fontSize = 15.sp,
+                            color = if (purchaseDate.isBlank()) ColorGray400 else ColorGray900,
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(Margin16))
