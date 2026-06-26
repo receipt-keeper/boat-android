@@ -25,7 +25,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -65,6 +64,7 @@ import com.windrr.boat.core.ocr.DeviceCategory
 import com.windrr.boat.feature.gallery.GalleryIntent
 import com.windrr.boat.feature.gallery.GalleryState
 import com.windrr.boat.feature.gallery.GalleryViewModel
+import com.windrr.boat.ui.component.BoatInputField
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandQuinary
 import com.windrr.boat.ui.theme.ColorBrandSenary
@@ -224,12 +224,12 @@ fun ReceiptManualInputScreen(
                 }
 
                 Spacer(Modifier.height(Margin20))
-                FieldLabel(stringResource(R.string.manual_product_name), required = true)
-                Spacer(Modifier.height(Margin8))
-                FormTextField(
+                BoatInputField(
                     value = productName,
                     onValueChange = { productName = it },
-                    hint = stringResource(R.string.manual_product_name_hint),
+                    label = stringResource(R.string.manual_product_name),
+                    required = true,
+                    placeholder = stringResource(R.string.manual_product_name_hint),
                 )
 
                 Spacer(Modifier.height(Margin16))
@@ -289,7 +289,7 @@ fun ReceiptManualInputScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(120.dp),
-                    shape = RoundedXl,
+                    shape = RoundedLg,
                     colors = formFieldColors(),
                     supportingText = {
                         Text(
@@ -314,24 +314,29 @@ fun ReceiptManualInputScreen(
                     .background(ColorWhite)
                     .padding(Margin16),
             ) {
-                FieldLabel(stringResource(R.string.manual_brand), required = false)
-                Spacer(Modifier.height(Margin8))
-                FormTextField(value = brand, onValueChange = { brand = it }, hint = stringResource(R.string.manual_brand_hint))
+                BoatInputField(
+                    value = brand,
+                    onValueChange = { brand = it },
+                    label = stringResource(R.string.manual_brand),
+                    placeholder = stringResource(R.string.manual_brand_hint),
+                )
 
                 Spacer(Modifier.height(Margin16))
-                FieldLabel(stringResource(R.string.manual_price), required = false)
-                Spacer(Modifier.height(Margin8))
-                FormTextField(
+                BoatInputField(
                     value = price,
                     onValueChange = { price = it.filter { c -> c.isDigit() } },
-                    hint = stringResource(R.string.manual_price_hint),
+                    label = stringResource(R.string.manual_price),
+                    placeholder = stringResource(R.string.manual_price_hint),
                     keyboardType = KeyboardType.Number,
                 )
 
                 Spacer(Modifier.height(Margin16))
-                FieldLabel(stringResource(R.string.manual_serial), required = false)
-                Spacer(Modifier.height(Margin8))
-                FormTextField(value = serial, onValueChange = { serial = it }, hint = stringResource(R.string.manual_serial_hint))
+                BoatInputField(
+                    value = serial,
+                    onValueChange = { serial = it },
+                    label = stringResource(R.string.manual_serial),
+                    placeholder = stringResource(R.string.manual_serial_hint),
+                )
             }
 
             Spacer(Modifier.height(Margin20))
@@ -448,7 +453,7 @@ private fun SectionTitle(text: String) {
 @Composable
 private fun FieldLabel(text: String, required: Boolean) {
     Row {
-        Text(text = text, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = ColorGray900)
+        Text(text = text, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = ColorGray600)
         if (required) {
             Text(text = " *", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = ColorSystemError)
         }
@@ -464,34 +469,15 @@ private fun formFieldColors() = OutlinedTextFieldDefaults.colors(
     cursorColor = ColorBrandPrimary,
 )
 
-@Composable
-private fun FormTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    hint: String,
-    keyboardType: KeyboardType = KeyboardType.Text,
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        placeholder = { Text(hint, color = ColorGray400, fontSize = 15.sp) },
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedXl,
-        colors = formFieldColors(),
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-    )
-}
-
-/** 클릭형 필드(구매일 등) — OutlinedTextField와 동일한 외형 */
+/** 클릭형 필드(구매일 등) — BoatInputField와 동일한 외형(52dp / 8dp radius) */
 @Composable
 private fun FieldBox(onClick: () -> Unit, content: @Composable () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
-            .clip(RoundedXl)
-            .border(1.dp, ColorGray300, RoundedXl)
+            .height(52.dp)
+            .clip(RoundedLg)
+            .border(1.dp, ColorGray300, RoundedLg)
             .clickable(onClick = onClick)
             .padding(horizontal = Margin16),
         contentAlignment = Alignment.CenterStart,
