@@ -248,7 +248,7 @@ private fun RecentReceiptItem(
             .clickable(onClick = onClick),
         shape = Rounded2xl,
         color = ColorWhite,
-        shadowElevation = 1.dp,
+        border = androidx.compose.foundation.BorderStroke(1.dp, ColorGray100),
     ) {
         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Thumbnail(url = item.thumbnailUrl, sizeDp = 48)

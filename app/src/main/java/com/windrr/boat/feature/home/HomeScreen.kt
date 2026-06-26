@@ -54,6 +54,7 @@ import com.windrr.boat.ui.theme.RoundedXl
 fun HomeScreen(
     freeAnalysisTokens: Int,
     modifier: Modifier = Modifier,
+    onSeeExpiringList: () -> Unit = {},
 ) {
     val context = LocalContext.current
     // 임시: 초기 홈 ↔ 일반 홈 전환 (백엔드 데이터 유무에 따른 화면 확인용)
@@ -97,6 +98,7 @@ fun HomeScreen(
             HomeGeneralContent(
                 expiring = remember { sampleExpiringWarranties() },
                 recent = remember { sampleRecentReceipts() },
+                onExpiringMore = onSeeExpiringList,
             )
         } else {
             HomeInitialContent(

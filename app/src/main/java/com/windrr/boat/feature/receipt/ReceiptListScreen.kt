@@ -83,11 +83,23 @@ enum class ReceiptSort(@StringRes val labelRes: Int) {
  * 목록 탭 — 공통 헤더 + 보증상태 inner tab + 카테고리 필터 칩 + 카운트/정렬 + 리스트(현재 placeholder).
  */
 @Composable
-fun ReceiptListScreen(modifier: Modifier = Modifier) {
+fun ReceiptListScreen(
+    modifier: Modifier = Modifier,
+    initialTab: ReceiptTab? = null,
+    onInitialTabConsumed: () -> Unit = {},
+) {
     var selectedTab by remember { mutableStateOf(ReceiptTab.ALL) }
     var selectedFilter by remember { mutableStateOf(ReceiptFilter.ALL) }
     val receipts = emptyList<Unit>() // TODO: 실제 영수증 데이터 연동
     val context = LocalContext.current
+
+    // 외부(홈 "만료 예정 >")에서 지정한 초기 탭으로 1회 전환
+    androidx.compose.runtime.LaunchedEffect(initialTab) {
+        if (initialTab != null) {
+            selectedTab = initialTab
+            onInitialTabConsumed()
+        }
+    }
 
     Column(
         modifier = modifier

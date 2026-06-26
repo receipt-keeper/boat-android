@@ -27,6 +27,7 @@ import com.windrr.boat.R
 import com.windrr.boat.feature.mypage.MyPageScreen
 import com.windrr.boat.feature.receipt.ReceiptListScreen
 import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
+import com.windrr.boat.feature.receipt.ReceiptTab
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 
@@ -46,6 +47,16 @@ fun MainScreen(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     var showAddMenu by remember { mutableStateOf(false) }
+    // 홈 "만료 예정 >" → 목록 탭의 특정 inner 탭으로 진입시키기 위한 1회성 신호
+    var pendingListTab by remember { mutableStateOf<ReceiptTab?>(null) }
+
+    fun goToListTab() {
+        navController.navigate(MainTab.LIST.route) {
+            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
 
     val context = LocalContext.current
     var lastBackPressedAt by remember { mutableStateOf(0L) }
@@ -100,8 +111,21 @@ fun MainScreen(
                 startDestination = MainTab.START.route,
                 modifier = Modifier.padding(innerPadding),
             ) {
-                composable(MainTab.LIST.route) { ReceiptListScreen() }
-                composable(MainTab.HOME.route) { HomeScreen(freeAnalysisTokens = user.freeAnalysisTokensRemaining) }
+                composable(MainTab.LIST.route) {
+                    ReceiptListScreen(
+                        initialTab = pendingListTab,
+                        onInitialTabConsumed = { pendingListTab = null },
+                    )
+                }
+                composable(MainTab.HOME.route) {
+                    HomeScreen(
+                        freeAnalysisTokens = user.freeAnalysisTokensRemaining,
+                        onSeeExpiringList = {
+                            pendingListTab = ReceiptTab.EXPIRING
+                            goToListTab()
+                        },
+                    )
+                }
                 composable(MainTab.MY.route) {
                     MyPageScreen(
                         name = user.displayName,
