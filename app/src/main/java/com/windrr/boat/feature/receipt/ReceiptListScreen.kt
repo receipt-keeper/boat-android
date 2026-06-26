@@ -86,19 +86,20 @@ enum class ReceiptSort(@StringRes val labelRes: Int) {
 fun ReceiptListScreen(
     modifier: Modifier = Modifier,
     initialTab: ReceiptTab? = null,
-    onInitialTabConsumed: () -> Unit = {},
+    initialSort: ReceiptSort? = null,
+    onInitialConsumed: () -> Unit = {},
 ) {
     var selectedTab by remember { mutableStateOf(ReceiptTab.ALL) }
     var selectedFilter by remember { mutableStateOf(ReceiptFilter.ALL) }
+    var selectedSort by remember { mutableStateOf(ReceiptSort.DEFAULT) }
     val receipts = emptyList<Unit>() // TODO: 실제 영수증 데이터 연동
     val context = LocalContext.current
 
-    // 외부(홈 "만료 예정 >")에서 지정한 초기 탭으로 1회 전환
-    androidx.compose.runtime.LaunchedEffect(initialTab) {
-        if (initialTab != null) {
-            selectedTab = initialTab
-            onInitialTabConsumed()
-        }
+    // 외부(홈 "만료 예정 >" / "더보기")에서 지정한 초기 탭·정렬로 1회 적용
+    androidx.compose.runtime.LaunchedEffect(initialTab, initialSort) {
+        if (initialTab != null) selectedTab = initialTab
+        if (initialSort != null) selectedSort = initialSort
+        if (initialTab != null || initialSort != null) onInitialConsumed()
     }
 
     Column(
@@ -136,7 +137,11 @@ fun ReceiptListScreen(
         }
 
         // 카운트 + 정렬
-        CountSortRow(count = receipts.size)
+        CountSortRow(
+            count = receipts.size,
+            selectedSort = selectedSort,
+            onSortSelected = { selectedSort = it },
+        )
 
         // 리스트 영역 — 데이터 없으면 placeholder
         Box(
@@ -196,8 +201,11 @@ private fun ReceiptInnerTabRow(
 }
 
 @Composable
-private fun CountSortRow(count: Int) {
-    var selectedSort by remember { mutableStateOf(ReceiptSort.DEFAULT) }
+private fun CountSortRow(
+    count: Int,
+    selectedSort: ReceiptSort,
+    onSortSelected: (ReceiptSort) -> Unit,
+) {
     var sortExpanded by remember { mutableStateOf(false) }
 
     Row(
@@ -251,7 +259,7 @@ private fun CountSortRow(count: Int) {
                             )
                         },
                         onClick = {
-                            selectedSort = sort
+                            onSortSelected(sort)
                             sortExpanded = false
                             // TODO: 정렬 적용
                         },

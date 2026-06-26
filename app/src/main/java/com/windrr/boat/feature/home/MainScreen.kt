@@ -27,6 +27,7 @@ import com.windrr.boat.R
 import com.windrr.boat.feature.mypage.MyPageScreen
 import com.windrr.boat.feature.receipt.ReceiptListScreen
 import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
+import com.windrr.boat.feature.receipt.ReceiptSort
 import com.windrr.boat.feature.receipt.ReceiptTab
 import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray900
@@ -48,8 +49,9 @@ fun MainScreen(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     var showAddMenu by remember { mutableStateOf(false) }
-    // 홈 "만료 예정 >" → 목록 탭의 특정 inner 탭으로 진입시키기 위한 1회성 신호
+    // 홈 → 목록 탭 진입 시 적용할 inner 탭/정렬 1회성 신호
     var pendingListTab by remember { mutableStateOf<ReceiptTab?>(null) }
+    var pendingListSort by remember { mutableStateOf<ReceiptSort?>(null) }
 
     fun goToListTab() {
         navController.navigate(MainTab.LIST.route) {
@@ -118,7 +120,11 @@ fun MainScreen(
                 composable(MainTab.LIST.route) {
                     ReceiptListScreen(
                         initialTab = pendingListTab,
-                        onInitialTabConsumed = { pendingListTab = null },
+                        initialSort = pendingListSort,
+                        onInitialConsumed = {
+                            pendingListTab = null
+                            pendingListSort = null
+                        },
                     )
                 }
                 composable(MainTab.HOME.route) {
@@ -126,6 +132,11 @@ fun MainScreen(
                         freeAnalysisTokens = user.freeAnalysisTokensRemaining,
                         onSeeExpiringList = {
                             pendingListTab = ReceiptTab.EXPIRING
+                            goToListTab()
+                        },
+                        onSeeRecentList = {
+                            pendingListTab = ReceiptTab.ALL
+                            pendingListSort = ReceiptSort.RECENT
                             goToListTab()
                         },
                     )
