@@ -38,7 +38,7 @@ import com.windrr.boat.R
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandQuaternary
 import com.windrr.boat.ui.theme.ColorBrandSenary
-import com.windrr.boat.ui.theme.ColorGray100
+import com.windrr.boat.ui.theme.ColorGray200
 import com.windrr.boat.ui.theme.ColorGray400
 import com.windrr.boat.ui.theme.ColorGray500
 import com.windrr.boat.ui.theme.ColorGray600
@@ -141,7 +141,7 @@ fun HomeGeneralContent(
                     .fillMaxWidth()
                     .height(52.dp)
                     .clip(RoundedXl)
-                    .background(ColorGray100)
+                    .background(ColorGray200) // #EEEEEE
                     .clickable(onClick = onRecentMore),
                 contentAlignment = Alignment.Center,
             ) {
