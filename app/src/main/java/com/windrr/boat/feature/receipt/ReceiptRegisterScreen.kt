@@ -305,7 +305,7 @@ fun ReceiptRegisterScreen(
             onRecharge = { showNoTokenSheet = false /* TODO: 무료 충전 */ },
             onManualInput = {
                 showNoTokenSheet = false
-                context.startActivity(ReceiptManualInputActivity.intent(context))
+                context.startActivity(ReceiptManualInputActivity.intent(context, photos))
             },
         )
     }
@@ -315,7 +315,7 @@ fun ReceiptRegisterScreen(
             onDismiss = { showAnalysisFailedSheet = false },
             onManualInput = {
                 showAnalysisFailedSheet = false
-                context.startActivity(ReceiptManualInputActivity.intent(context))
+                context.startActivity(ReceiptManualInputActivity.intent(context, photos))
             },
             onRetry = { showAnalysisFailedSheet = false /* TODO: 다시 분석 시도 */ },
         )

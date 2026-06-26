@@ -45,6 +45,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -104,11 +105,23 @@ private val WARRANTY_OPTIONS = listOf(
 fun ReceiptManualInputScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    initialPhotos: List<Uri> = emptyList(),
     galleryViewModel: GalleryViewModel = viewModel(),
 ) {
     // 이미지 첨부 (갤러리 다중선택, 남은 슬롯만큼 동적 제한)
     val galleryState by galleryViewModel.state.collectAsState()
     val photos = galleryState.photos
+
+    // 등록 화면에서 넘어온 사진을 1회 시드 (회전 후 재시드 방지)
+    var seededInitial by rememberSaveable { mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        if (!seededInitial) {
+            seededInitial = true
+            if (initialPhotos.isNotEmpty()) {
+                galleryViewModel.handleIntent(GalleryIntent.AddPhotos(initialPhotos))
+            }
+        }
+    }
     val remainingSlots = (GalleryState.MAX_PHOTOS - photos.size).coerceAtLeast(0)
 
     val singlePickLauncher = rememberLauncherForActivityResult(
