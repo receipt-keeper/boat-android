@@ -48,7 +48,7 @@ fun AnalysisFailedBottomSheet(
     onManualInput: () -> Unit,
     onRetry: () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,

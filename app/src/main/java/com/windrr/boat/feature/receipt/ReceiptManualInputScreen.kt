@@ -366,7 +366,7 @@ fun ReceiptManualInputScreen(
                         checked = keepReceipt,
                         onCheckedChange = { keepReceipt = it },
                         colors = CheckboxDefaults.colors(
-                            checkedColor = ColorGray400,
+                            checkedColor = ColorBrandPrimary,
                             uncheckedColor = ColorGray300,
                             checkmarkColor = ColorWhite,
                         ),

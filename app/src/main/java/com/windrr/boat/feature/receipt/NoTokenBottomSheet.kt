@@ -49,7 +49,7 @@ fun NoTokenBottomSheet(
     onRecharge: () -> Unit,
     onManualInput: () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
