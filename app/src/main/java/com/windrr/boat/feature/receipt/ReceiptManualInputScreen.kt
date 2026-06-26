@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -83,6 +82,7 @@ import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin12
 import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
+import com.windrr.boat.ui.theme.Margin24
 import com.windrr.boat.ui.theme.Margin8
 import com.windrr.boat.ui.theme.Rounded2xl
 import com.windrr.boat.ui.theme.RoundedFull
@@ -175,31 +175,6 @@ fun ReceiptManualInputScreen(
                 },
                 colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(containerColor = ColorGray50),
             )
-        },
-        bottomBar = {
-            Box(
-                modifier = Modifier
-                    .background(ColorGray50)
-                    .navigationBarsPadding() // 시스템 네비게이션 바와 겹치지 않도록
-                    .padding(horizontal = Margin20, vertical = 12.dp),
-            ) {
-                Button(
-                    onClick = { /* TODO: 영수증 정보 등록 API */ },
-                    enabled = canSubmit,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedXl,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ColorBrandPrimary,
-                        contentColor = ColorWhite,
-                        disabledContainerColor = ColorGray200,
-                        disabledContentColor = ColorGray500,
-                    ),
-                ) {
-                    Text(stringResource(R.string.manual_submit), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                }
-            }
         },
     ) { innerPadding ->
         Column(
@@ -396,6 +371,25 @@ fun ReceiptManualInputScreen(
                         color = ColorGray700,
                     )
                 }
+            }
+
+            // 등록 버튼 — 고정이 아니라 콘텐츠 최하단에 자연스럽게 배치
+            Spacer(Modifier.height(Margin24))
+            Button(
+                onClick = { /* TODO: 영수증 정보 등록 API */ },
+                enabled = canSubmit,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedXl,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ColorBrandPrimary,
+                    contentColor = ColorWhite,
+                    disabledContainerColor = ColorGray200,
+                    disabledContentColor = ColorGray500,
+                ),
+            ) {
+                Text(stringResource(R.string.manual_submit), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(Modifier.height(Margin16))
