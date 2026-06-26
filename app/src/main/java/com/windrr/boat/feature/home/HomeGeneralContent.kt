@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -37,7 +38,6 @@ import com.windrr.boat.R
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandQuaternary
 import com.windrr.boat.ui.theme.ColorBrandSenary
-import com.windrr.boat.ui.theme.ColorBrandTertiary
 import com.windrr.boat.ui.theme.ColorGray100
 import com.windrr.boat.ui.theme.ColorGray400
 import com.windrr.boat.ui.theme.ColorGray500
@@ -113,11 +113,7 @@ fun HomeGeneralContent(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             items(expiring, key = { it.id }) { item ->
-                ExpiringWarrantyCard(
-                    item = item,
-                    onClick = { onExpiringClick(item) },
-                    modifier = Modifier.fillParentMaxWidth(0.86f),
-                )
+                ExpiringWarrantyCard(item = item, onClick = { onExpiringClick(item) })
             }
         }
 
@@ -156,25 +152,33 @@ fun HomeGeneralContent(
     }
 }
 
-/** AS 만료 예정 가로형 카드 (D-day 뱃지 + 제품 정보) */
+private val ExpiringCardWidth = 334.dp
+private val ExpiringCardHeight = 183.dp
+private val DdayBadgeWidth = 80.dp
+private val DdayBadgeHeight = 30.dp
+// D-day 뱃지 절반이 카드 위로 겹치도록 확보하는 상단 여백
+private val DdayOverhang = 15.dp
+
+/** AS 만료 예정 가로형 카드 (334×183, D-day 뱃지 80×30이 우측 상단 모서리에 겹침) */
 @Composable
 private fun ExpiringWarrantyCard(
     item: ExpiringWarranty,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.padding(top = 10.dp)) {
+    Box(modifier = modifier.width(ExpiringCardWidth)) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
+                .padding(top = DdayOverhang)
+                .size(ExpiringCardWidth, ExpiringCardHeight)
                 .clip(Rounded2xl)
-                .background(ColorWhite)
-                .border(1.dp, ColorBrandTertiary, Rounded2xl)
+                .background(ColorBrandSenary)                 // 내부색 #F0F8FF
+                .border(1.dp, ColorBrandPrimary, Rounded2xl)  // 테두리 1px #0088FF
                 .clickable(onClick = onClick)
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Thumbnail(url = item.thumbnailUrl, sizeDp = 84)
+            Thumbnail(url = item.thumbnailUrl, sizeDp = 84, bg = ColorBrandQuaternary)
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -202,22 +206,29 @@ private fun ExpiringWarrantyCard(
                             .padding(horizontal = 8.dp, vertical = 4.dp),
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text(text = item.warrantyUntil, fontSize = 13.sp, color = ColorGray900)
+                    Text(
+                        text = item.warrantyUntil,
+                        fontSize = 13.sp,
+                        color = ColorGray900,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
             }
         }
-        // D-day 뱃지 (카드 상단에 겹침)
+        // D-day 뱃지 80×30 — 카드 우측 상단 모서리에 겹쳐 배치
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(end = 16.dp)
+                .size(DdayBadgeWidth, DdayBadgeHeight)
                 .clip(RoundedFull)
-                .background(ColorGray900)
-                .padding(horizontal = 12.dp, vertical = 5.dp),
+                .background(ColorGray900),
+            contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = stringResource(R.string.home_dday, item.dDay),
-                fontSize = 12.sp,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 color = ColorWhite,
             )
@@ -277,11 +288,11 @@ private fun LabelValueRow(label: String, value: String) {
 
 /** 제품 썸네일 — URL 있으면 이미지, 없으면 라이트블루 placeholder */
 @Composable
-private fun Thumbnail(url: String?, sizeDp: Int) {
+private fun Thumbnail(url: String?, sizeDp: Int, bg: Color = ColorBrandSenary) {
     val m = Modifier
         .size(sizeDp.dp)
         .clip(RoundedXl)
-        .background(ColorBrandSenary)
+        .background(bg)
     if (url != null) {
         AsyncImage(model = url, contentDescription = null, contentScale = ContentScale.Crop, modifier = m)
     } else {
