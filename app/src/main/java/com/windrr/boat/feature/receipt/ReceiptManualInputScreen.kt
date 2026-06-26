@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -176,7 +177,12 @@ fun ReceiptManualInputScreen(
             )
         },
         bottomBar = {
-            Box(modifier = Modifier.background(ColorGray50).padding(horizontal = Margin20, vertical = 12.dp)) {
+            Box(
+                modifier = Modifier
+                    .background(ColorGray50)
+                    .navigationBarsPadding() // 시스템 네비게이션 바와 겹치지 않도록
+                    .padding(horizontal = Margin20, vertical = 12.dp),
+            ) {
                 Button(
                     onClick = { /* TODO: 영수증 정보 등록 API */ },
                     enabled = canSubmit,
