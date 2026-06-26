@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">BoatLab</string>
+    <string name="app_name">보트랩</string>
 
     <!-- Login -->
     <string name="login_subtitle">사진 한 장으로 관리하는 무상 AS 케어</string>
