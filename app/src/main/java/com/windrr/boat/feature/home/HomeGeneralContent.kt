@@ -220,28 +220,28 @@ private fun ExpiringWarrantyCard(
                 Thumbnail(url = item.thumbnailUrl, sizeDp = 100, bg = Color.Transparent)
             }
 
-            Spacer(Modifier.width(14.dp))
+            Spacer(Modifier.width(16.dp))
 
-            // 텍스트 칼럼 — 이미지(100dp) 높이에 맞춰 이름=상단 / 구매처·구매일=중앙 / 보증기간=하단 분배
+            // 텍스트 칼럼 — 이름=상단 / 구매처·구매일=중앙 / 보증기간=하단으로 넉넉히 분배
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .heightIn(min = 100.dp),
+                    .heightIn(min = 132.dp),
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
                     text = item.productName,
-                    fontSize = 18.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = ColorGray900,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
 
-                // 구매처 / 구매일 — 라벨·값 모두 #616161 통일
+                // 구매처 / 구매일 — 라벨·값 모두 #616161, 가벼운 굵기
                 Column {
                     LabelValueRow(stringResource(R.string.home_label_vendor), item.vendor)
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(10.dp))
                     LabelValueRow(stringResource(R.string.home_label_purchase), item.purchaseDate)
                 }
 
@@ -250,19 +250,19 @@ private fun ExpiringWarrantyCard(
                     Text(
                         text = stringResource(R.string.home_label_warranty), // "보증 기간"
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Medium,
                         color = ColorBrandPrimary,
                         modifier = Modifier
                             .clip(RoundedFull)
                             .background(ColorWhite)
-                            .padding(horizontal = 8.dp, vertical = 5.dp),
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
                     )
-                    Spacer(Modifier.width(8.dp))
-                    // 만료일 — 강조 (크게·굵게·다크)
+                    Spacer(Modifier.width(10.dp))
+                    // 만료일 — 강조 (살짝 크게, SemiBold)
                     Text(
                         text = item.warrantyUntil,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
                         color = ColorGray900,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -299,15 +299,15 @@ private fun LabelValueRow(label: String, value: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = label,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal,
             color = ColorLabel,
-            modifier = Modifier.width(48.dp), // "Apple"과 "2025.03.13"의 시작점을 동일하게 맞추기 위한 고정폭
+            modifier = Modifier.width(52.dp), // "Apple"과 "2025.03.13"의 시작점을 동일하게 맞추기 위한 고정폭
         )
         Text(
             text = value,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal,
             color = ColorLabel,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
