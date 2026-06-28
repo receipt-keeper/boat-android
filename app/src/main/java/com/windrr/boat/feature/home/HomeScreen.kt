@@ -3,6 +3,7 @@ package com.windrr.boat.feature.home
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +43,7 @@ import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
 import com.windrr.boat.ui.component.BoatHeader
 import com.windrr.boat.ui.component.FreeAnalysisBanner
 import com.windrr.boat.ui.theme.ColorBrandPrimary
+import com.windrr.boat.ui.theme.ColorBrandTertiary
 import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray300
 import com.windrr.boat.ui.theme.ColorGray500
@@ -187,7 +189,7 @@ private fun ReceiptRegisterBanner(onClick: () -> Unit) {
     }
 }
 
-/** 가전제품 AS 배너 — 흰 배경 + 수리 서비스 이미지 */
+/** 가전제품 AS 배너 — 흰 배경 + Brand/Tertiary 1dp 테두리 + 수리 서비스 이미지 */
 @Composable
 private fun RepairServiceBanner(onClick: () -> Unit) {
     Row(
@@ -196,6 +198,7 @@ private fun RepairServiceBanner(onClick: () -> Unit) {
             .heightIn(min = 120.dp)
             .clip(RoundedXl)
             .background(ColorWhite)
+            .border(1.dp, ColorBrandTertiary, RoundedXl)
             .clickable(onClick = onClick)
             .padding(horizontal = Margin20, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -207,7 +210,7 @@ private fun RepairServiceBanner(onClick: () -> Unit) {
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = ColorBrandPrimary,
-                lineHeight = 24.sp,
+                maxLines = 1,
             )
             Spacer(Modifier.height(6.dp))
             Text(
