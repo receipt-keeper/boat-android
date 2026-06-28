@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
@@ -21,11 +22,15 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,6 +40,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.windrr.boat.BuildConfig
+import com.windrr.boat.data.remote.ApiClient
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -243,6 +250,51 @@ fun LoginScreen(
                     fontWeight = FontWeight.Medium,
                     color = ColorWhite,
                     modifier = Modifier.align(Alignment.Center),
+                )
+            }
+        }
+
+        // DEBUG 전용 — 서버 URL 전환 토글
+        if (BuildConfig.DEBUG) {
+            val prefs = remember {
+                context.getSharedPreferences(ApiClient.DEBUG_PREFS, android.content.Context.MODE_PRIVATE)
+            }
+            var useLocalUrl by remember {
+                mutableStateOf(prefs.getBoolean(ApiClient.KEY_USE_LOCAL_URL, false))
+            }
+            Spacer(Modifier.height(24.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column {
+                    Text(
+                        text = "로컬 서버 (DEBUG)",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = ColorGray500,
+                    )
+                    Text(
+                        text = if (useLocalUrl) ApiClient.BASE_URL_LOCAL else ApiClient.BASE_URL_PROD,
+                        fontSize = 11.sp,
+                        color = if (useLocalUrl) ColorBrandPrimary else ColorGray500,
+                    )
+                }
+                Switch(
+                    checked = useLocalUrl,
+                    onCheckedChange = { checked ->
+                        useLocalUrl = checked
+                        prefs.edit().putBoolean(ApiClient.KEY_USE_LOCAL_URL, checked).apply()
+                    },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = ColorWhite,
+                        checkedTrackColor = ColorBrandPrimary,
+                        checkedBorderColor = ColorBrandPrimary,
+                        uncheckedThumbColor = ColorWhite,
+                        uncheckedTrackColor = Color(0xFFBDBDBD),
+                        uncheckedBorderColor = Color(0xFFBDBDBD),
+                    ),
                 )
             }
         }

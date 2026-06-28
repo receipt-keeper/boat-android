@@ -21,7 +21,13 @@ import java.util.concurrent.TimeUnit
  */
 object ApiClient {
 
-    private const val BASE_URL = "https://boatlab-dev.luigi99.cloud/"
+    const val BASE_URL_PROD  = "https://boatlab-dev.luigi99.cloud/"
+    const val BASE_URL_LOCAL = "http://localhost:8000/"
+
+    /** DEBUG 빌드에서 SharedPreferences의 use_local_url 키로 URL 전환 가능 */
+    internal const val DEBUG_PREFS      = "debug_prefs"
+    internal const val KEY_USE_LOCAL_URL = "use_local_url"
+
     private const val TIMEOUT_SECONDS = 30L
 
     private lateinit var appContext: Context
@@ -32,6 +38,13 @@ object ApiClient {
      */
     fun init(context: Context) {
         appContext = context.applicationContext
+    }
+
+    /** lazy 빌드 시점에 사용할 baseUrl — DEBUG 빌드에서만 로컬 URL 선택 가능 */
+    private fun resolveBaseUrl(): String {
+        if (!BuildConfig.DEBUG) return BASE_URL_PROD
+        val prefs = appContext.getSharedPreferences(DEBUG_PREFS, Context.MODE_PRIVATE)
+        return if (prefs.getBoolean(KEY_USE_LOCAL_URL, false)) BASE_URL_LOCAL else BASE_URL_PROD
     }
 
     /** TokenDataStore를 외부(Repository 등)에서도 접근할 수 있도록 lazy로 노출 */
@@ -58,7 +71,7 @@ object ApiClient {
             .build()
 
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(resolveBaseUrl())
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -78,7 +91,7 @@ object ApiClient {
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(resolveBaseUrl())
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
