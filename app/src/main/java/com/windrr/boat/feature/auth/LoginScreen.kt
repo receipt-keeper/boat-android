@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -54,6 +53,7 @@ import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorGray500
+import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
@@ -159,41 +159,33 @@ fun LoginScreen(
             .padding(horizontal = Margin20),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(Modifier.height(60.dp))
+        Spacer(Modifier.weight(1f))
 
-        // 로고 영역 (임시)
-        Box(
-            modifier = Modifier
-                .size(width = 140.dp, height = 52.dp)
-                .background(ColorBrandPrimary, RoundedXl),
-            contentAlignment = Alignment.Center,
-        ) {
+        // 로고 — "Boat"(검정) + "Lab"(파란색) 텍스트
+        Row(horizontalArrangement = Arrangement.Center) {
             Text(
-                text = "로고 미정",
-                color = ColorWhite,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp,
+                text = "Boat ",
+                fontSize = 40.sp,
+                fontWeight = FontWeight.Bold,
+                color = ColorGray900,
+            )
+            Text(
+                text = "Lab",
+                fontSize = 40.sp,
+                fontWeight = FontWeight.Bold,
+                color = ColorBrandPrimary,
             )
         }
 
-        Spacer(Modifier.height(Margin16))
+        Spacer(Modifier.height(12.dp))
 
         Text(
             text = stringResource(R.string.login_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
+            fontSize = 15.sp,
             color = ColorGray500,
         )
 
-        Spacer(Modifier.weight(1f))
-
-        // 일러스트 (임시 — 에셋 추가 시 교체)
-        Image(
-            painter = painterResource(R.drawable.ic_launcher_image),
-            contentDescription = null,
-            modifier = Modifier.size(174.dp),
-        )
-
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.weight(1.5f))
 
         // Google 로그인 버튼
         OutlinedButton(
