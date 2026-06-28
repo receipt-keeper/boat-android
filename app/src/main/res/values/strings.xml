@@ -14,6 +14,9 @@
     <string name="header_search">검색</string>
     <string name="header_notification">알림</string>
 
+    <!-- 검색 화면 -->
+    <string name="search_placeholder">기기명 또는 메모를 검색해 보세요.</string>
+
     <!-- Bottom Navigation -->
     <string name="tab_list">목록</string>
     <string name="tab_home">홈</string>

@@ -88,6 +88,7 @@ fun ReceiptListScreen(
     initialTab: ReceiptTab? = null,
     initialSort: ReceiptSort? = null,
     onInitialConsumed: () -> Unit = {},
+    onSearchClick: () -> Unit = {},
 ) {
     var selectedTab by remember { mutableStateOf(ReceiptTab.ALL) }
     var selectedFilter by remember { mutableStateOf(ReceiptFilter.ALL) }
@@ -111,7 +112,7 @@ fun ReceiptListScreen(
         Column(modifier = Modifier.background(ColorWhite)) {
             BoatHeader(
                 title = stringResource(R.string.tab_list),
-                onSearchClick = { /* TODO: 검색 */ },
+                onSearchClick = onSearchClick,
                 onNotificationClick = {
                     context.startActivity(
                         Intent(context, com.windrr.boat.feature.notification.NotificationListActivity::class.java)

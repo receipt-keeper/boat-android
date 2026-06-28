@@ -55,6 +55,7 @@ import com.windrr.boat.ui.theme.RoundedXl
 fun HomeScreen(
     freeAnalysisTokens: Int,
     modifier: Modifier = Modifier,
+    onSearchClick: () -> Unit = {},
     onSeeExpiringList: () -> Unit = {},
     onSeeRecentList: () -> Unit = {},
 ) {
@@ -68,7 +69,7 @@ fun HomeScreen(
             .background(ColorGray50), // 홈 기본 배경 #F5F7FA
     ) {
         BoatHeader(
-            onSearchClick = { /* TODO: 검색 */ },
+            onSearchClick = onSearchClick,
             onNotificationClick = {
                 context.startActivity(
                     Intent(context, com.windrr.boat.feature.notification.NotificationListActivity::class.java)

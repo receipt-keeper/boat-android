@@ -29,6 +29,7 @@ import com.windrr.boat.feature.receipt.ReceiptListScreen
 import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
 import com.windrr.boat.feature.receipt.ReceiptSort
 import com.windrr.boat.feature.receipt.ReceiptTab
+import com.windrr.boat.feature.receipt.SearchScreen
 import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
@@ -53,6 +54,10 @@ fun MainScreen(
     var pendingListTab by remember { mutableStateOf<ReceiptTab?>(null) }
     var pendingListSort by remember { mutableStateOf<ReceiptSort?>(null) }
 
+    fun goSearch() {
+        navController.navigate("search")
+    }
+
     fun goToListTab() {
         navController.navigate(MainTab.LIST.route) {
             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -67,7 +72,9 @@ fun MainScreen(
         when {
             // 1) 등록 메뉴 열려 있으면 닫기
             showAddMenu -> showAddMenu = false
-            // 2) 홈 탭이 아니면 홈 탭으로 복귀
+            // 2) 검색 화면이면 이전 화면으로 복귀
+            currentRoute == "search" -> navController.popBackStack()
+            // 3) 홈 탭이 아니면 홈 탭으로 복귀
             currentRoute != MainTab.HOME.route -> {
                 navController.navigate(MainTab.HOME.route) {
                     popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -94,7 +101,7 @@ fun MainScreen(
     Box(Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = systemBackground,
-            bottomBar = { BoatBottomBar(navController) },
+            bottomBar = { if (currentRoute != "search") BoatBottomBar(navController) },
             floatingActionButton = {
                 // 홈/목록 탭에서 영수증 등록 FAB 노출 (마이 탭 제외)
                 if (currentRoute == MainTab.HOME.route || currentRoute == MainTab.LIST.route) {
@@ -125,11 +132,13 @@ fun MainScreen(
                             pendingListTab = null
                             pendingListSort = null
                         },
+                        onSearchClick = { goSearch() },
                     )
                 }
                 composable(MainTab.HOME.route) {
                     HomeScreen(
                         freeAnalysisTokens = user.freeAnalysisTokensRemaining,
+                        onSearchClick = { goSearch() },
                         onSeeExpiringList = {
                             pendingListTab = ReceiptTab.EXPIRING
                             goToListTab()
@@ -140,6 +149,9 @@ fun MainScreen(
                             goToListTab()
                         },
                     )
+                }
+                composable("search") {
+                    SearchScreen(onBack = { navController.popBackStack() })
                 }
                 composable(MainTab.MY.route) {
                     MyPageScreen(
