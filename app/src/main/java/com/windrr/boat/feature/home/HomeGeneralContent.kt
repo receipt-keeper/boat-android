@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -163,7 +164,7 @@ fun HomeGeneralContent(
     }
 }
 
-/** AS 만료 예정 가로형 카드 (334×183, D-day 뱃지 80×30이 우측 상단 모서리에 겹침) */
+/** AS 만료 예정 가로형 카드 — 화면폭 기준 너비, D-day 뱃지가 우측 상단 테두리에 겹침 */
 @Composable
 private fun ExpiringWarrantyCard(
     item: ExpiringWarranty,
@@ -173,10 +174,13 @@ private fun ExpiringWarrantyCard(
     // 뱃지 높이 절반을 정확히 계산하여 카드 위쪽 여백 및 오프셋(Offset)에 사용
     val badgeHeight = 32.dp
     val badgeHalfHeight = badgeHeight / 2
+    // LazyRow(가로 스크롤) 안에서는 가로 제약이 무한대라 fillMaxWidth가 동작하지 않는다.
+    // 화면 폭 기준으로 너비를 고정하되, 우측에 다음 카드가 살짝 보이도록 여백을 남긴다.
+    val cardWidth = LocalConfiguration.current.screenWidthDp.dp - 52.dp
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
+            .width(cardWidth)
             .padding(top = badgeHalfHeight) // 뱃지가 튀어나올 상단 공간 확보
     ) {
         Row(
