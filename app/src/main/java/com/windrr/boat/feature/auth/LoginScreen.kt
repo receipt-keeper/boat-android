@@ -181,7 +181,7 @@ fun LoginScreen(
 
         // 일러스트 (임시 — 에셋 추가 시 교체)
         Image(
-            painter = painterResource(R.drawable.ic_launcher_foreground),
+            painter = painterResource(R.drawable.ic_launcher_image),
             contentDescription = null,
             modifier = Modifier.size(174.dp),
         )
