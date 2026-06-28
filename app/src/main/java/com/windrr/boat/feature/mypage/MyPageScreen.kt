@@ -1,5 +1,6 @@
 package com.windrr.boat.feature.mypage
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -116,8 +117,12 @@ fun MyPageScreen(
                     modifier = avatarModifier,
                 )
             } else {
-                // 프로필 이미지 없으면 라이트블루 원형 placeholder
-                Box(modifier = avatarModifier)
+                Image(
+                    painter = painterResource(R.drawable.img_profile),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = avatarModifier,
+                )
             }
             Spacer(Modifier.width(Margin16))
             Column {
