@@ -2,8 +2,9 @@ package com.windrr.boat.data.repository
 
 import com.windrr.boat.data.local.UserDataStore
 import com.windrr.boat.data.model.User
+import com.windrr.boat.data.remote.NotificationApiService
 import com.windrr.boat.data.remote.UserApiService
-import com.windrr.boat.data.remote.model.UpdateMeRequest
+import com.windrr.boat.data.remote.model.UpdateNotificationSettingsRequest
 import com.windrr.boat.data.remote.model.toUser
 import kotlinx.coroutines.flow.Flow
 
@@ -15,10 +16,10 @@ interface UserRepository {
     /** 저장된 사용자 정보를 관찰하는 Flow */
     val user: Flow<User>
 
-    /** 서버에서 내 정보 조회 후 로컬에 캐시 (동기화). 성공 시 최신 User 반환 */
+    /** 서버에서 내 정보 + 알림 설정을 조회 후 로컬에 캐시. 성공 시 최신 User 반환 */
     suspend fun refreshUser(): Result<User>
 
-    /** 내 정보 부분 수정 (PATCH). 전달한 필드만 수정하며 로컬에도 반영 */
+    /** 알림 설정 수정 — PATCH /api/v1/notifications/settings */
     suspend fun updateMe(notificationEnabled: Boolean? = null, marketingConsent: Boolean? = null): Result<Unit>
 
     /** 사용자 정보 전체 저장 */
@@ -40,29 +41,44 @@ interface UserRepository {
 class UserRepositoryImpl(
     private val userDataStore: UserDataStore,
     private val userApiService: UserApiService,
+    private val notificationApiService: NotificationApiService,
 ) : UserRepository {
 
     override val user: Flow<User> = userDataStore.user
 
+    /**
+     * 프로필(GET /users/me)과 알림 설정(GET /notifications/settings)을 병렬 조회 후 병합.
+     */
     override suspend fun refreshUser(): Result<User> = runCatching {
-        val response = userApiService.getMe()
-        val user = response.data.toUser()
+        val profileData = userApiService.getMe().data.toUser()
+        val notifData = notificationApiService.getNotificationSettings().data
+        val user = profileData.copy(
+            notificationEnabled = notifData.pushEnabled,
+            marketingConsent = notifData.marketingConsent,
+        )
         userDataStore.saveUser(user)
         user
     }
 
+    /**
+     * 알림 설정 부분 수정 — PATCH /api/v1/notifications/settings.
+     * null 필드는 요청 바디에서 제외되어 기존 값이 유지된다.
+     */
     override suspend fun updateMe(notificationEnabled: Boolean?, marketingConsent: Boolean?): Result<Unit> =
         runCatching {
-            // 1) 낙관적 로컬 반영 (토글 즉시 반응)
+            // 1) 낙관적 로컬 반영
             notificationEnabled?.let { userDataStore.updateNotificationEnabled(it) }
             marketingConsent?.let { userDataStore.updateMarketingConsent(it) }
-            // 2) 서버 부분 수정
-            val res = userApiService.updateMe(
-                UpdateMeRequest(marketingConsent = marketingConsent, notificationEnabled = notificationEnabled)
+            // 2) 서버 부분 수정 (pushEnabled = notificationEnabled)
+            val res = notificationApiService.updateNotificationSettings(
+                UpdateNotificationSettingsRequest(
+                    pushEnabled = notificationEnabled,
+                    marketingConsent = marketingConsent,
+                )
             )
-            // 3) 서버가 확정한 값으로 재동기화
-            res.data.notificationEnabled?.let { userDataStore.updateNotificationEnabled(it) }
-            res.data.marketingConsent?.let { userDataStore.updateMarketingConsent(it) }
+            // 3) 서버 확정 값으로 재동기화
+            userDataStore.updateNotificationEnabled(res.data.pushEnabled)
+            userDataStore.updateMarketingConsent(res.data.marketingConsent)
             Unit
         }
 

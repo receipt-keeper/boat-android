@@ -17,18 +17,14 @@ data class UserData(
     @SerializedName("name")                        val name: String?,
     @SerializedName("nickname")                    val nickname: String?,
     @SerializedName("profileImageUrl")             val profileImageUrl: String?,
-    @SerializedName("notificationEnabled")         val notificationEnabled: Boolean = false,
-    @SerializedName("marketingConsent")            val marketingConsent: Boolean = false,
     @SerializedName("freeAnalysisTokensRemaining") val freeAnalysisTokensRemaining: Int = 0,
 )
 
-/** 서버 DTO → 앱 도메인 모델 매핑 (null은 빈 문자열로) */
+/** 서버 DTO → 앱 도메인 모델 매핑 (알림 설정은 별도 API에서 채워진다) */
 fun UserData.toUser(): User = User(
     email = email.orEmpty(),
     name = name.orEmpty(),
     nickname = nickname.orEmpty(),
     profileImageUrl = profileImageUrl.orEmpty(),
-    notificationEnabled = notificationEnabled,
-    marketingConsent = marketingConsent,
     freeAnalysisTokensRemaining = freeAnalysisTokensRemaining,
 )

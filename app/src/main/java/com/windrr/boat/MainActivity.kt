@@ -46,6 +46,7 @@ class MainActivity : ComponentActivity() {
                                     com.windrr.boat.data.repository.UserRepositoryImpl(
                                         ApiClient.userDataStore,
                                         ApiClient.userApiService,
+                                        ApiClient.notificationApiService,
                                     ),
                                 ) as T
                             }
