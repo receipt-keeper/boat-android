@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.windrr.boat.R
@@ -214,7 +215,7 @@ private fun TermsItem(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 14.dp),
+            .padding(horizontal = Margin16, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
@@ -235,6 +236,7 @@ private fun TermsItem(
                 text = stringResource(R.string.terms_view),
                 fontSize = 13.sp,
                 color = ColorGray500,
+                textDecoration = TextDecoration.Underline,
                 modifier = Modifier.padding(start = Margin8),
             )
         }
