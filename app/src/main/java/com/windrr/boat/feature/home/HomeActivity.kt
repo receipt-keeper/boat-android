@@ -42,6 +42,7 @@ class HomeActivity : ComponentActivity() {
                                     ApiClient.userDataStore,
                                     ApiClient.userApiService,
                                     ApiClient.notificationApiService,
+                                    ApiClient.creditsApiService,
                                 ),
                             ) as T
                         }

@@ -90,6 +90,8 @@ object ApiClient {
 
     val notificationApiService: NotificationApiService by lazy { create(NotificationApiService::class.java) }
 
+    val creditsApiService: CreditsApiService by lazy { create(CreditsApiService::class.java) }
+
     /**
      * 새 API Service 인스턴스 생성
      * 예: ApiClient.create(ReceiptApiService::class.java)

@@ -23,7 +23,7 @@ class NotificationSettingsActivity : ComponentActivity() {
                         override fun <T : ViewModel> create(modelClass: Class<T>): T {
                             @Suppress("UNCHECKED_CAST")
                             return NotificationSettingsViewModel(
-                                UserRepositoryImpl(ApiClient.userDataStore, ApiClient.userApiService, ApiClient.notificationApiService)
+                                UserRepositoryImpl(ApiClient.userDataStore, ApiClient.userApiService, ApiClient.notificationApiService, ApiClient.creditsApiService)
                             ) as T
                         }
                     }

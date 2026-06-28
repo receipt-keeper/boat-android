@@ -13,18 +13,16 @@ data class UserResponse(
 )
 
 data class UserData(
-    @SerializedName("email")                       val email: String?,
-    @SerializedName("name")                        val name: String?,
-    @SerializedName("nickname")                    val nickname: String?,
-    @SerializedName("profileImageUrl")             val profileImageUrl: String?,
-    @SerializedName("freeAnalysisTokensRemaining") val freeAnalysisTokensRemaining: Int = 0,
+    @SerializedName("email")            val email: String?,
+    @SerializedName("name")             val name: String?,
+    @SerializedName("nickname")         val nickname: String?,
+    @SerializedName("profileImageUrl")  val profileImageUrl: String?,
 )
 
-/** 서버 DTO → 앱 도메인 모델 매핑 (알림 설정은 별도 API에서 채워진다) */
+/** 서버 DTO → 앱 도메인 모델 매핑 (알림 설정·크레딧은 별도 API에서 채워진다) */
 fun UserData.toUser(): User = User(
     email = email.orEmpty(),
     name = name.orEmpty(),
     nickname = nickname.orEmpty(),
     profileImageUrl = profileImageUrl.orEmpty(),
-    freeAnalysisTokensRemaining = freeAnalysisTokensRemaining,
 )

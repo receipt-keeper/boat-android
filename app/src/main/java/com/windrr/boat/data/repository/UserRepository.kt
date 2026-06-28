@@ -2,6 +2,7 @@ package com.windrr.boat.data.repository
 
 import com.windrr.boat.data.local.UserDataStore
 import com.windrr.boat.data.model.User
+import com.windrr.boat.data.remote.CreditsApiService
 import com.windrr.boat.data.remote.NotificationApiService
 import com.windrr.boat.data.remote.UserApiService
 import com.windrr.boat.data.remote.model.UpdateNotificationSettingsRequest
@@ -42,19 +43,23 @@ class UserRepositoryImpl(
     private val userDataStore: UserDataStore,
     private val userApiService: UserApiService,
     private val notificationApiService: NotificationApiService,
+    private val creditsApiService: CreditsApiService,
 ) : UserRepository {
 
     override val user: Flow<User> = userDataStore.user
 
     /**
-     * 프로필(GET /users/me)과 알림 설정(GET /notifications/settings)을 병렬 조회 후 병합.
+     * 프로필(GET /users/me) · 알림 설정(GET /notifications/settings) · 크레딧(GET /credits)
+     * 세 API를 순차 조회 후 병합하여 로컬에 캐시.
      */
     override suspend fun refreshUser(): Result<User> = runCatching {
         val profileData = userApiService.getMe().data.toUser()
-        val notifData = notificationApiService.getNotificationSettings().data
+        val notifData   = notificationApiService.getNotificationSettings().data
+        val creditsData = creditsApiService.getCredits().data
         val user = profileData.copy(
-            notificationEnabled = notifData.pushEnabled,
-            marketingConsent = notifData.marketingConsent,
+            notificationEnabled          = notifData.pushEnabled,
+            marketingConsent             = notifData.marketingConsent,
+            freeAnalysisTokensRemaining  = creditsData.remainingCount,
         )
         userDataStore.saveUser(user)
         user
