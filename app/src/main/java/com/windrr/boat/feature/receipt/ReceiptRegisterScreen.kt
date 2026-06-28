@@ -61,6 +61,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import android.provider.OpenableColumns
+import androidx.compose.runtime.rememberCoroutineScope
+import com.windrr.boat.data.remote.ApiClient
+import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -95,6 +102,7 @@ import com.windrr.boat.ui.theme.RoundedXl
 @Composable
 fun ReceiptRegisterScreen(
     freeAnalysisTokens: Int,
+    remoteCanAnalyze: Boolean?,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     autoLaunch: String? = null,
@@ -104,6 +112,7 @@ fun ReceiptRegisterScreen(
     val photos = galleryState.photos
     val context = LocalContext.current
     val toastState = rememberBoatToastState()
+    val scope = rememberCoroutineScope()
 
     // 카메라 촬영 결과 저장 URI (촬영 직전 생성, 프로세스 죽음에도 보존)
     var cameraImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
@@ -263,15 +272,58 @@ fun ReceiptRegisterScreen(
                     onClick = { onPickFromGallery() },
                 )
 
+                Spacer(Modifier.height(Margin12))
+                // [임시 테스트] 파일 업로드 버튼 — 연동 확인 후 제거
+                Button(
+                    onClick = {
+                        scope.launch {
+                            try {
+                                val parts = photos.map { uri ->
+                                    val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
+                                    var fileName = "file.jpg"
+                                    context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                                        val col = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                                        if (col != -1 && cursor.moveToFirst()) fileName = cursor.getString(col)
+                                    }
+                                    val bytes = context.contentResolver.openInputStream(uri)!!.use { it.readBytes() }
+                                    val body = bytes.toRequestBody(mimeType.toMediaType())
+                                    MultipartBody.Part.createFormData("files", fileName, body)
+                                }
+                                val response = ApiClient.fileApiService.uploadFiles(parts)
+                                val ids = response.data.files.joinToString { it.fileId.takeLast(8) }
+                                toastState.show("업로드 성공 (${response.data.files.size}개): $ids")
+                            } catch (e: Exception) {
+                                toastState.showError("업로드 실패: ${e.message}")
+                            }
+                        }
+                    },
+                    enabled = photos.isNotEmpty(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedXl,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ColorGray500,
+                        contentColor = ColorWhite,
+                        disabledContainerColor = ColorGray200,
+                        disabledContentColor = ColorGray500,
+                    ),
+                ) {
+                    Text(text = "파일 업로드 (테스트)", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                }
+
                 Spacer(Modifier.height(Margin24))
                 Button(
                     onClick = {
-                        if (freeAnalysisTokens <= 0) {
-                            showNoTokenSheet = true // 무료 분석 횟수 소진 → 안내 BottomSheet
-                        } else {
-                            // TODO: OCR 분석 API 호출 → 성공 시 결과 화면, 실패 시 실패 시트.
-                            // 현재 API 미연동 → 실패 케이스 디자인 확인용으로 실패 시트 표시
-                            showAnalysisFailedSheet = true
+                        when {
+                            remoteCanAnalyze == null -> toastState.showError(
+                                context.getString(R.string.receipt_check_network)
+                            )
+                            remoteCanAnalyze && freeAnalysisTokens > 0 -> {
+                                // TODO: OCR 분석 API 호출 → 성공 시 결과 화면, 실패 시 실패 시트.
+                                showAnalysisFailedSheet = true
+                            }
+                            else -> showNoTokenSheet = true
                         }
                     },
                     enabled = photos.isNotEmpty(),

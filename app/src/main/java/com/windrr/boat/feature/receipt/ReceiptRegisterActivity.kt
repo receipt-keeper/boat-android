@@ -8,9 +8,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.lifecycleScope
 import com.windrr.boat.data.model.User
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.ui.theme.BoatTheme
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 class ReceiptRegisterActivity : ComponentActivity() {
 
@@ -28,16 +31,30 @@ class ReceiptRegisterActivity : ComponentActivity() {
             }
     }
 
+    // null=로딩 중, true/false=서버 응답 완료
+    private val canAnalyzeState = MutableStateFlow<Boolean?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        lifecycleScope.launch {
+            try {
+                val response = ApiClient.usageApiService.getUsage()
+                canAnalyzeState.value = response.data.ocr.canAnalyze
+            } catch (e: Exception) {
+                canAnalyzeState.value = false
+            }
+        }
+
         val autoLaunch = intent.getStringExtra(EXTRA_AUTO_LAUNCH)
         setContent {
             BoatTheme {
-                // 무료 분석 잔여 횟수는 로컬 캐시된 사용자 정보에서 가져온다
                 val user by ApiClient.userDataStore.user.collectAsState(initial = User())
+                val remoteCanAnalyze by canAnalyzeState.collectAsState()
                 ReceiptRegisterScreen(
                     freeAnalysisTokens = user.freeAnalysisTokensRemaining,
+                    remoteCanAnalyze = remoteCanAnalyze,
                     autoLaunch = autoLaunch,
                     onBack = { finish() },
                 )

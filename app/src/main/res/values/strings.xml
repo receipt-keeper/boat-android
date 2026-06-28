@@ -52,6 +52,7 @@
     <string name="receipt_register_gallery">갤러리에서 불러오기</string>
     <string name="receipt_register_analyze">영수증 분석 시작하기</string>
     <string name="receipt_max_photos">영수증은 최대 %1$d장까지 등록할 수 있어요</string>
+    <string name="receipt_check_network">네트워크 연결 상태를 확인해주세요.</string>
 
     <!-- 무료 분석 토큰 소진 BottomSheet -->
     <string name="token_empty_image">임시</string>
