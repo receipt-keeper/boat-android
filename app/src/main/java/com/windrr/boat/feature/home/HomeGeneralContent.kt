@@ -174,95 +174,76 @@ private fun ExpiringWarrantyCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // 뱃지 높이 절반을 정확히 계산하여 카드 위쪽 여백 및 오프셋(Offset)에 사용
     val badgeHeight = 32.dp
     val badgeHalfHeight = badgeHeight / 2
-    // LazyRow(가로 스크롤) 안에서는 가로 제약이 무한대라 fillMaxWidth가 동작하지 않는다.
-    // 화면 폭 기준으로 너비를 고정하되, 우측에 다음 카드가 살짝 보이도록 여백을 남긴다.
     val cardWidth = LocalConfiguration.current.screenWidthDp.dp - 52.dp
 
     Box(
         modifier = modifier
             .width(cardWidth)
-            .padding(top = badgeHalfHeight) // 뱃지가 튀어나올 상단 공간 확보
+            .padding(top = badgeHalfHeight)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                // 카드 그림자 — 옅은 블루 톤, 부드럽게
-                .shadow(
-                    elevation = 10.dp,
-                    shape = Rounded2xl,
-                    ambientColor = ColorBrandPrimary.copy(alpha = 0.10f),
-                    spotColor = ColorBrandPrimary.copy(alpha = 0.12f),
-                )
+                // [교정 1] 탁한 그림자 완전 제거. 플랫 디자인의 1px 테두리만 유지.
                 .clip(Rounded2xl)
-                .background(ColorBrandSenary)                 // 내부색 #F0F8FF
-                .border(1.dp, ColorBrandPrimary, Rounded2xl)  // 테두리 1px #0088FF
+                .background(ColorBrandSenary)
+                .border(1.dp, ColorBrandPrimary, Rounded2xl)
                 .clickable(onClick = onClick)
-                .padding(16.dp),
+                .padding(20.dp), // 스크린샷의 넉넉한 내부 여백 반영
             verticalAlignment = Alignment.Top,
         ) {
-            // 썸네일 — 100×100 흰 배경 박스 + 부드러운 그림자
+            // [교정 2] 썸네일 크기 축소 (100dp -> 88dp) 및 그림자 제거
             Box(
                 modifier = Modifier
-                    .size(100.dp)
-                    .shadow(
-                        elevation = 6.dp,
-                        shape = RoundedCornerShape(12.dp),
-                        ambientColor = ColorBrandPrimary.copy(alpha = 0.10f),
-                        spotColor = ColorBrandPrimary.copy(alpha = 0.15f),
-                    )
-                    .clip(RoundedCornerShape(12.dp))
+                    .size(88.dp)
+                    .clip(RoundedCornerShape(16.dp))
                     .background(ColorWhite),
                 contentAlignment = Alignment.Center,
             ) {
-                Thumbnail(url = item.thumbnailUrl, sizeDp = 100, bg = Color.Transparent)
+                Thumbnail(url = item.thumbnailUrl, sizeDp = 88, bg = Color.Transparent)
             }
 
             Spacer(Modifier.width(16.dp))
 
-            // 텍스트 칼럼 — 이름=상단 / 구매처·구매일=중앙 / 보증기간=하단으로 넉넉히 분배
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .heightIn(min = 132.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
-            ) {
+            // [교정 3] 강제 높이(heightIn) 및 SpaceBetween 제거. 콘텐츠에 맞춰 자연스럽게 흐르도록 수정
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.productName,
-                    fontSize = 20.sp,
+                    fontSize = 18.sp, // 20sp에서 스탠다드 규격으로 축소
                     fontWeight = FontWeight.Bold,
                     color = ColorGray900,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
 
-                // 구매처 / 구매일 — 라벨·값 모두 #616161, 가벼운 굵기
-                Column {
+                Spacer(Modifier.height(14.dp)) // 타이틀과 정보 사이의 명확한 여백
+
+                // 라벨 그룹은 간격을 타이트하게 묶음
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     LabelValueRow(stringResource(R.string.home_label_vendor), item.vendor)
-                    Spacer(Modifier.height(10.dp))
                     LabelValueRow(stringResource(R.string.home_label_purchase), item.purchaseDate)
                 }
 
+                Spacer(Modifier.height(16.dp)) // 보증기간 뱃지와 분리
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // 보증 기간 펠릿 — RoundedFull, 흰 배경, 파란 텍스트
                     Text(
-                        text = stringResource(R.string.home_label_warranty), // "보증 기간"
+                        text = stringResource(R.string.home_label_warranty),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         color = ColorBrandPrimary,
                         modifier = Modifier
                             .clip(RoundedFull)
                             .background(ColorWhite)
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                            .padding(horizontal = 8.dp, vertical = 4.dp), // 내부 패딩 타이트하게 조절
                     )
-                    Spacer(Modifier.width(10.dp))
-                    // 만료일 — 강조 (살짝 크게, SemiBold)
+                    Spacer(Modifier.width(8.dp))
                     Text(
                         text = item.warrantyUntil,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium, // SemiBold 제거. 스크린샷처럼 담백하게 유지
                         color = ColorGray900,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -271,21 +252,22 @@ private fun ExpiringWarrantyCard(
             }
         }
 
-        // D-Day 뱃지 — Offset으로 카드 우측 상단 테두리에 정확히 걸침
+        // D-Day 뱃지
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(end = 16.dp)
-                .offset(y = -badgeHalfHeight) // 수학적 중심점 정렬
+                // 스크린샷 비율상 우측 끝에서 살짝 더 들어와 있음
+                .padding(end = 24.dp)
+                .offset(y = -badgeHalfHeight)
                 .height(badgeHeight)
                 .clip(RoundedFull)
                 .background(ColorGray900)
-                .padding(horizontal = 16.dp), // 텍스트 길이에 맞춰 유동적 너비 확보
+                .padding(horizontal = 16.dp),
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = stringResource(R.string.home_dday, item.dDay), // "D - 20"
-                fontSize = 13.sp,
+                text = stringResource(R.string.home_dday, item.dDay),
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = ColorWhite,
             )
