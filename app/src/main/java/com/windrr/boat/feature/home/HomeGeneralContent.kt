@@ -176,7 +176,7 @@ private fun ExpiringWarrantyCard(
                 .border(1.dp, ColorBrandPrimary, Rounded2xl)  // 테두리 1px #0088FF
                 .clickable(onClick = onClick)
                 .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Top,
         ) {
             Thumbnail(url = item.thumbnailUrl, sizeDp = 84, bg = ColorBrandQuaternary)
             Spacer(Modifier.width(16.dp))
@@ -201,8 +201,8 @@ private fun ExpiringWarrantyCard(
                         fontWeight = FontWeight.Medium,
                         color = ColorBrandPrimary,
                         modifier = Modifier
-                            .clip(RoundedLg)
-                            .background(ColorBrandQuaternary)
+                            .clip(RoundedFull)
+                            .background(ColorWhite)
                             .padding(horizontal = 8.dp, vertical = 4.dp),
                     )
                     Spacer(Modifier.width(8.dp))
@@ -277,11 +277,13 @@ private fun RecentReceiptItem(
     }
 }
 
+private val ColorLabel = Color(0xFF616161)
+
 @Composable
 private fun LabelValueRow(label: String, value: String) {
     Row {
-        Text(text = label, fontSize = 13.sp, color = ColorGray500, modifier = Modifier.width(48.dp))
-        Text(text = value, fontSize = 13.sp, color = ColorGray900)
+        Text(text = label, fontSize = 13.sp, color = ColorLabel, modifier = Modifier.width(48.dp))
+        Text(text = value, fontSize = 13.sp, color = ColorLabel)
     }
 }
 
