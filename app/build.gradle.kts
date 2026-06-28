@@ -121,6 +121,9 @@ dependencies {
     // Accompanist
     implementation(libs.accompanist.permissions)
 
+    // Lottie
+    implementation(libs.lottie.compose)
+
     // Google Sign-In
     implementation(libs.play.services.auth)
 
