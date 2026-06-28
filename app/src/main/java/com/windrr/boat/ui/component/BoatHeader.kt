@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.windrr.boat.R
+import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
@@ -39,9 +40,6 @@ fun BoatHeader(
     onSearchClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {},
 ) {
-    // title 미지정 시 로고(플레이스홀더) 표시
-    val headerTitle = title ?: stringResource(R.string.header_logo)
-
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -49,12 +47,18 @@ fun BoatHeader(
             .padding(horizontal = Margin20),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = headerTitle,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = ColorGray900,
-        )
+        if (title != null) {
+            Text(
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = ColorGray900,
+            )
+        } else {
+            // 앱 로고 — "Boat"(검정) + "Lab"(파란색)
+            Text(text = "Boat ", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = ColorGray900)
+            Text(text = "Lab",   fontSize = 20.sp, fontWeight = FontWeight.Bold, color = ColorBrandPrimary)
+        }
         Spacer(Modifier.weight(1f))
         HeaderActionIcon(
             icon = R.drawable.ic_search,

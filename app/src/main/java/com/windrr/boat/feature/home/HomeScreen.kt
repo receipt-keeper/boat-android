@@ -1,10 +1,11 @@
 package com.windrr.boat.feature.home
 
 import android.content.Intent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -28,7 +30,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,7 +42,6 @@ import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
 import com.windrr.boat.ui.component.BoatHeader
 import com.windrr.boat.ui.component.FreeAnalysisBanner
 import com.windrr.boat.ui.theme.ColorBrandPrimary
-import com.windrr.boat.ui.theme.ColorBrandQuinary
 import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray300
 import com.windrr.boat.ui.theme.ColorGray500
@@ -117,7 +120,7 @@ fun HomeScreen(
     }
 }
 
-/** 초기 홈 — 무료 분석 배너 + 등록/추천 카드(임시 레이아웃) */
+/** 초기 홈 — 무료 분석 배너 + 등록 배너 + AS 배너 */
 @Composable
 private fun HomeInitialContent(
     freeAnalysisTokens: Int,
@@ -133,44 +136,93 @@ private fun HomeInitialContent(
         FreeAnalysisBanner(remaining = freeAnalysisTokens)
 
         Spacer(Modifier.height(Margin16))
-        HomeCard(
-            title = stringResource(R.string.home_card_register_title),
-            description = stringResource(R.string.home_card_register_desc),
-            minHeight = 360.dp,
-            onClick = onRegisterClick,
-        )
+        ReceiptRegisterBanner(onClick = onRegisterClick)
 
         Spacer(Modifier.height(Margin16))
-        HomeCard(
-            title = stringResource(R.string.home_card_popular_title),
-            description = stringResource(R.string.home_card_popular_desc),
-            minHeight = 120.dp,
-            onClick = { /* TODO: 인기상품 특가 */ },
-        )
+        RepairServiceBanner(onClick = { /* TODO: 수리 서비스 연결 */ })
+
         Spacer(Modifier.height(Margin16))
     }
 }
 
-/** 홈 카드 (임시 레이아웃) — 추후 디자인 확정 시 교체 */
+/** 영수증 등록 배너 — 파란 배경 + 영수증 이미지 */
 @Composable
-private fun HomeCard(
-    title: String,
-    description: String,
-    minHeight: androidx.compose.ui.unit.Dp,
-    onClick: () -> Unit,
-) {
-    Column(
+private fun ReceiptRegisterBanner(onClick: () -> Unit) {
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = minHeight)
+            .heightIn(min = 360.dp)
+            .clip(RoundedXl)
+            .background(ColorBrandPrimary)
+            .clickable(onClick = onClick),
+    ) {
+        Image(
+            painter = painterResource(R.drawable.img_receipt_upload),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter),
+        )
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = Margin20, top = 24.dp, end = Margin20),
+        ) {
+            Text(
+                text = stringResource(R.string.home_card_register_title),
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = ColorWhite,
+                lineHeight = 36.sp,
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.home_card_register_desc),
+                fontSize = 14.sp,
+                color = ColorWhite,
+                lineHeight = 20.sp,
+            )
+        }
+    }
+}
+
+/** 가전제품 AS 배너 — 흰 배경 + 수리 서비스 이미지 */
+@Composable
+private fun RepairServiceBanner(onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 120.dp)
             .clip(RoundedXl)
             .background(ColorWhite)
-            .border(1.dp, ColorBrandQuinary, RoundedXl)
             .clickable(onClick = onClick)
-            .padding(20.dp),
+            .padding(horizontal = Margin20, vertical = 20.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(text = title, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = ColorBrandPrimary)
-        Spacer(Modifier.height(Margin8))
-        Text(text = description, fontSize = 14.sp, color = ColorGray500, lineHeight = 20.sp)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.home_card_repair_title),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = ColorBrandPrimary,
+                lineHeight = 24.sp,
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = stringResource(R.string.home_card_repair_desc),
+                fontSize = 13.sp,
+                color = ColorGray500,
+                lineHeight = 18.sp,
+            )
+        }
+        Spacer(Modifier.width(Margin16))
+        Image(
+            painter = painterResource(R.drawable.img_banner_repair_service),
+            contentDescription = null,
+            modifier = Modifier.size(88.dp),
+            contentScale = ContentScale.Fit,
+        )
     }
 }
