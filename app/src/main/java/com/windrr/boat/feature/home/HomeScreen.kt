@@ -207,7 +207,7 @@ private fun RepairServiceBanner(onClick: () -> Unit) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = stringResource(R.string.home_card_repair_title),
-                fontSize = 18.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = ColorBrandPrimary,
                 maxLines = 1,
