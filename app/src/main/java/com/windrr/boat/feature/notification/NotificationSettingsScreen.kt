@@ -58,10 +58,16 @@ fun NotificationSettingsScreen(
     // 알림 토글은 실제 권한(알림 + 정확 알람) 보유 여부를 반영
     var alarmEnabled by remember { mutableStateOf(alarmPermission.allGranted) }
 
-    // 권한 허용/거부·외부 해제 결과를 토글에 동기화하고 저장 (값이 바뀔 때만 반영되므로 사용자 OFF는 유지됨)
+    // 최초 진입 시에는 서버 PATCH를 보내지 않는다(진입 동기화는 ViewModel의 GET이 담당).
+    // 이후 OS 설정에서 권한이 실제로 바뀐 경우에만 토글/서버에 반영한다.
+    var permissionSynced by remember { mutableStateOf(false) }
     LaunchedEffect(alarmPermission.allGranted) {
         alarmEnabled = alarmPermission.allGranted
-        viewModel.setNotificationEnabled(alarmPermission.allGranted)
+        if (permissionSynced) {
+            viewModel.setNotificationEnabled(alarmPermission.allGranted)
+        } else {
+            permissionSynced = true
+        }
     }
 
     // 설정 변경(PATCH) 실패 시 에러 토스트

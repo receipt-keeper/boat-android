@@ -14,7 +14,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
- * 알림 설정 화면 ViewModel — 알림/마케팅 수신 설정을 PATCH /users/me 로 서버에 반영하고 로컬에도 캐시.
+ * 알림 설정 화면 ViewModel — 진입 시 GET /notifications/settings 로 최신 설정을 조회하고,
+ * 토글 변경 시 PATCH /notifications/settings 로 서버에 반영하며 로컬에도 캐시한다.
  */
 class NotificationSettingsViewModel(
     private val userRepository: UserRepository
@@ -25,6 +26,14 @@ class NotificationSettingsViewModel(
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
+
+    init {
+        // 화면 진입 시 서버에서 최신 알림/마케팅 설정을 GET 하여 로컬 캐시 갱신
+        viewModelScope.launch {
+            userRepository.refreshNotificationSettings()
+                .onFailure { BoatLog.e("알림 설정 조회 실패", it) }
+        }
+    }
 
     fun clearError() {
         _error.value = null

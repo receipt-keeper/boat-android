@@ -20,6 +20,9 @@ interface UserRepository {
     /** 서버에서 내 정보 + 알림 설정을 조회 후 로컬에 캐시. 성공 시 최신 User 반환 */
     suspend fun refreshUser(): Result<User>
 
+    /** 알림 설정만 서버에서 조회해 로컬 캐시 갱신 — GET /api/v1/notifications/settings */
+    suspend fun refreshNotificationSettings(): Result<Unit>
+
     /** 알림 설정 수정 — PATCH /api/v1/notifications/settings */
     suspend fun updateMe(notificationEnabled: Boolean? = null, marketingConsent: Boolean? = null): Result<Unit>
 
@@ -65,6 +68,14 @@ class UserRepositoryImpl(
         user
     }
 
+    /** 알림 설정만 조회 — GET /api/v1/notifications/settings. 두 토글(알림/마케팅)을 로컬에 반영. */
+    override suspend fun refreshNotificationSettings(): Result<Unit> = runCatching {
+        val data = notificationApiService.getNotificationSettings().data
+        userDataStore.updateNotificationEnabled(data.pushEnabled)
+        userDataStore.updateMarketingConsent(data.marketingConsent)
+        Unit
+    }
+
     /**
      * 알림 설정 부분 수정 — PATCH /api/v1/notifications/settings.
      * null 필드는 요청 바디에서 제외되어 기존 값이 유지된다.
@@ -81,9 +92,10 @@ class UserRepositoryImpl(
                     marketingConsent = marketingConsent,
                 )
             )
-            // 3) 서버 확정 값으로 재동기화
-            userDataStore.updateNotificationEnabled(res.data.pushEnabled)
-            userDataStore.updateMarketingConsent(res.data.marketingConsent)
+            // 3) 서버 확정 값으로 재동기화 — 요청에 포함한 필드만 반영해
+            //    변경하지 않은 다른 토글 값을 응답으로 덮어쓰지 않는다.
+            if (notificationEnabled != null) userDataStore.updateNotificationEnabled(res.data.pushEnabled)
+            if (marketingConsent != null) userDataStore.updateMarketingConsent(res.data.marketingConsent)
             Unit
         }
 
