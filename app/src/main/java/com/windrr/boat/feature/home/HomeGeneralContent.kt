@@ -1,5 +1,6 @@
 package com.windrr.boat.feature.home
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -165,6 +167,7 @@ fun HomeGeneralContent(
 }
 
 /** AS 만료 예정 가로형 카드 — 화면폭 기준 너비, D-day 뱃지가 우측 상단 테두리에 겹침 */
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 private fun ExpiringWarrantyCard(
     item: ExpiringWarranty,
@@ -200,10 +203,10 @@ private fun ExpiringWarrantyCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.Top,
         ) {
-            // 썸네일 — 흰 배경 박스 + 부드러운 그림자
+            // 썸네일 — 100×100 흰 배경 박스 + 부드러운 그림자
             Box(
                 modifier = Modifier
-                    .size(84.dp)
+                    .size(100.dp)
                     .shadow(
                         elevation = 6.dp,
                         shape = RoundedCornerShape(12.dp),
@@ -214,12 +217,18 @@ private fun ExpiringWarrantyCard(
                     .background(ColorWhite),
                 contentAlignment = Alignment.Center,
             ) {
-                Thumbnail(url = item.thumbnailUrl, sizeDp = 84, bg = Color.Transparent)
+                Thumbnail(url = item.thumbnailUrl, sizeDp = 100, bg = Color.Transparent)
             }
 
-            Spacer(Modifier.width(16.dp))
+            Spacer(Modifier.width(14.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
+            // 텍스트 칼럼 — 이미지(100dp) 높이에 맞춰 이름=상단 / 구매처·구매일=중앙 / 보증기간=하단 분배
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 100.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
                 Text(
                     text = item.productName,
                     fontSize = 18.sp,
@@ -228,14 +237,13 @@ private fun ExpiringWarrantyCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(Modifier.height(12.dp))
 
                 // 구매처 / 구매일 — 라벨·값 모두 #616161 통일
-                LabelValueRow(stringResource(R.string.home_label_vendor), item.vendor)
-                Spacer(Modifier.height(4.dp))
-                LabelValueRow(stringResource(R.string.home_label_purchase), item.purchaseDate)
-
-                Spacer(Modifier.height(12.dp))
+                Column {
+                    LabelValueRow(stringResource(R.string.home_label_vendor), item.vendor)
+                    Spacer(Modifier.height(4.dp))
+                    LabelValueRow(stringResource(R.string.home_label_purchase), item.purchaseDate)
+                }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     // 보증 기간 펠릿 — RoundedFull, 흰 배경, 파란 텍스트
@@ -247,13 +255,13 @@ private fun ExpiringWarrantyCard(
                         modifier = Modifier
                             .clip(RoundedFull)
                             .background(ColorWhite)
-                            .padding(horizontal = 10.dp, vertical = 5.dp),
+                            .padding(horizontal = 8.dp, vertical = 5.dp),
                     )
-                    Spacer(Modifier.width(12.dp))
+                    Spacer(Modifier.width(8.dp))
                     // 만료일 — 강조 (크게·굵게·다크)
                     Text(
                         text = item.warrantyUntil,
-                        fontSize = 16.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = ColorGray900,
                         maxLines = 1,
