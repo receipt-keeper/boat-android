@@ -106,6 +106,13 @@ fun HomeScreen(
             )
         }
 
+        // 초기/일반 홈 전환과 무관하게 항상 노출
+        Spacer(Modifier.height(Margin8))
+        FreeAnalysisBanner(
+            remaining = freeAnalysisTokens,
+            modifier = Modifier.padding(horizontal = Margin20),
+        )
+
         if (isGeneralHome) {
             HomeGeneralContent(
                 expiring = remember { sampleExpiringWarranties() },
@@ -115,17 +122,15 @@ fun HomeScreen(
             )
         } else {
             HomeInitialContent(
-                freeAnalysisTokens = freeAnalysisTokens,
                 onRegisterClick = { context.startActivity(Intent(context, ReceiptRegisterActivity::class.java)) },
             )
         }
     }
 }
 
-/** 초기 홈 — 무료 분석 배너 + 등록 배너 + AS 배너 */
+/** 초기 홈 — 등록 배너 + AS 배너 (무료 분석 배너는 HomeScreen에서 공통 렌더링) */
 @Composable
 private fun HomeInitialContent(
-    freeAnalysisTokens: Int,
     onRegisterClick: () -> Unit,
 ) {
     Column(
@@ -134,9 +139,6 @@ private fun HomeInitialContent(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = Margin20),
     ) {
-        Spacer(Modifier.height(Margin8))
-        FreeAnalysisBanner(remaining = freeAnalysisTokens)
-
         Spacer(Modifier.height(Margin16))
         ReceiptRegisterBanner(onClick = onRegisterClick)
 
