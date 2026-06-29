@@ -141,6 +141,7 @@ fun MainScreen(
                         onSearchClick = { goSearch() },
                         onSeeExpiringList = {
                             pendingListTab = ReceiptTab.EXPIRING
+                            pendingListSort = ReceiptSort.EXPIRING
                             goToListTab()
                         },
                         onSeeRecentList = {
