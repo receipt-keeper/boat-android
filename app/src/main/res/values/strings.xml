@@ -114,6 +114,7 @@
     <string name="receipt_empty">등록된 영수증이 없습니다.</string>
     <string name="receipt_expiry_date_label">AS 만료일</string>
     <string name="receipt_list_retry">다시 시도</string>
+    <string name="receipt_delete">삭제하기</string>
 
     <!-- 마이페이지 -->
     <string name="mypage_title">마이페이지</string>

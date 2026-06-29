@@ -266,12 +266,38 @@ private fun ReceiptCard(item: ReceiptItem) {
 
                 WarrantyDayBadge(warrantyDDay = item.warrantyDDay)
 
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = null,
-                    tint = ColorGray500,
-                    modifier = Modifier.size(20.dp),
-                )
+                var menuExpanded by remember { mutableStateOf(false) }
+                Box {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = null,
+                        tint = ColorGray500,
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clickable { menuExpanded = true },
+                    )
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false },
+                        containerColor = ColorWhite,
+                        shape = Rounded2xl,
+                    ) {
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = stringResource(R.string.receipt_delete),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color(0xFFFF4444),
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                // TODO: 삭제 API 연동
+                            },
+                        )
+                    }
+                }
             }
 
             HorizontalDivider(color = ColorGray200)
