@@ -112,6 +112,8 @@
     <string name="receipt_sort_recent">최근 등록 순</string>
     <string name="receipt_sort_purchase">구매일 순</string>
     <string name="receipt_empty">등록된 영수증이 없습니다.</string>
+    <string name="receipt_expiry_date_label">AS 만료일</string>
+    <string name="receipt_list_retry">다시 시도</string>
 
     <!-- 마이페이지 -->
     <string name="mypage_title">마이페이지</string>
