@@ -56,11 +56,13 @@ class AuthViewModel(
      */
     fun syncUser() {
         viewModelScope.launch {
+            _state.update { it.copy(isSyncing = true) }
             userRepository.refreshUser()
                 .onFailure {
                     BoatLog.e("내 정보 동기화 실패", it)
                     _state.update { s -> s.copy(error = ApiErrorParser.message(it)) }
                 }
+            _state.update { it.copy(isSyncing = false) }
         }
     }
 

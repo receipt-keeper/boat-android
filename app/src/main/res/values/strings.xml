@@ -161,6 +161,9 @@
     <string name="account_delete_confirm">탈퇴하기</string>
     <string name="account_delete_error">탈퇴 처리에 실패했습니다. 잠시 후 다시 시도해주세요.</string>
 
+    <!-- Loading -->
+    <string name="loading_sync_message">잠시만 기다려 주세요.</string>
+
     <!-- Error -->
     <string name="error_server_retry">오류가 발생했습니다. 잠시 후 다시 시도해주세요.</string>
 
