@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.windrr.boat.R
+import com.windrr.boat.ui.component.FreeAnalysisBanner
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandSenary
 import com.windrr.boat.ui.theme.ColorGray200
@@ -49,6 +50,7 @@ import com.windrr.boat.ui.theme.ColorGray500
 import com.windrr.boat.ui.theme.ColorGray600
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
+import com.windrr.boat.ui.theme.Margin8
 import com.windrr.boat.ui.theme.Margin12
 import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
@@ -62,6 +64,7 @@ import com.windrr.boat.ui.theme.RoundedXl
  */
 @Composable
 fun HomeGeneralContent(
+    freeAnalysisTokens: Int,
     expiring: List<ExpiringWarranty>,
     recent: List<RecentReceipt>,
     onExpiringMore: () -> Unit = {},
@@ -75,6 +78,12 @@ fun HomeGeneralContent(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState()),
     ) {
+        Spacer(Modifier.height(Margin8))
+        FreeAnalysisBanner(
+            remaining = freeAnalysisTokens,
+            modifier = Modifier.padding(horizontal = Margin20),
+        )
+
         // ── AS 만료 예정 헤더 ─────────────────────────
         Spacer(Modifier.height(Margin16))
         Row(
