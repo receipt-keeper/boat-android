@@ -1,7 +1,7 @@
 package com.windrr.boat.feature.receipt
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,7 +19,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,14 +28,12 @@ import androidx.compose.ui.unit.sp
 import com.windrr.boat.R
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandTertiary
-import com.windrr.boat.ui.theme.ColorGray300
 import com.windrr.boat.ui.theme.ColorGray500
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin8
 import com.windrr.boat.ui.theme.Margin20
 import com.windrr.boat.ui.theme.Margin24
-import com.windrr.boat.ui.theme.RoundedLg
 import com.windrr.boat.ui.theme.RoundedXl
 
 /**
@@ -63,21 +61,11 @@ fun NoTokenBottomSheet(
                 .padding(top = 8.dp, bottom = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // 임시 이미지 placeholder
-            androidx.compose.foundation.layout.Box(
-                modifier = Modifier
-                    .size(88.dp)
-                    .clip(RoundedLg)
-                    .background(ColorGray300),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = stringResource(R.string.token_empty_image),
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = ColorGray900,
-                )
-            }
+            Image(
+                painter = painterResource(R.drawable.ai_color),
+                contentDescription = null,
+                modifier = Modifier.size(88.dp),
+            )
 
             Spacer(Modifier.height(Margin20))
             Text(
@@ -108,7 +96,11 @@ fun NoTokenBottomSheet(
                     contentColor = ColorWhite,
                 ),
             ) {
-                Text(text = stringResource(R.string.token_empty_recharge), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text(
+                    text = stringResource(R.string.token_empty_recharge),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
             }
 
             Spacer(Modifier.height(Margin8))
@@ -121,12 +113,20 @@ fun NoTokenBottomSheet(
                 border = BorderStroke(1.dp, ColorBrandTertiary),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = ColorBrandPrimary),
             ) {
-                Text(text = stringResource(R.string.token_empty_manual), fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                Text(
+                    text = stringResource(R.string.token_empty_manual),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                )
             }
 
             Spacer(Modifier.height(Margin8))
             TextButton(onClick = onDismiss) {
-                Text(text = stringResource(R.string.token_empty_later), fontSize = 14.sp, color = ColorGray500)
+                Text(
+                    text = stringResource(R.string.token_empty_later),
+                    fontSize = 14.sp,
+                    color = ColorGray500,
+                )
             }
         }
     }
