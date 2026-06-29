@@ -95,8 +95,8 @@ fun MainScreen(
         }
     }
 
-    // 홈은 #F5F7FA 배경(상태바 영역까지) — 목록/마이는 헤더가 흰색이라 흰색 유지
-    val systemBackground = if (currentRoute == MainTab.HOME.route) ColorGray50 else ColorWhite
+    // 홈/검색은 #F5F7FA 배경(상태바 영역까지) — 목록/마이는 헤더가 흰색이라 흰색 유지
+    val systemBackground = if (currentRoute == MainTab.HOME.route || currentRoute == "search") ColorGray50 else ColorWhite
 
     Box(Modifier.fillMaxSize()) {
         Scaffold(

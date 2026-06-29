@@ -15,7 +15,10 @@
     <string name="header_notification">알림</string>
 
     <!-- 검색 화면 -->
-    <string name="search_placeholder">기기명 또는 메모를 검색해 보세요.</string>
+    <string name="search_placeholder">제품명 또는 메모를 검색해 보세요.</string>
+    <string name="search_empty_title">검색 결과가 없습니다.</string>
+    <string name="search_empty_subtitle">등록하지 않은 제품이라면\n지금 등록해 볼까요?</string>
+    <string name="search_empty_register">지금 영수증 등록하기</string>
 
     <!-- Bottom Navigation -->
     <string name="tab_list">목록</string>
