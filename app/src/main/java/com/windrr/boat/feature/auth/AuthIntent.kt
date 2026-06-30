@@ -53,13 +53,13 @@ sealed class AuthIntent {
     ) : AuthIntent()
 
     /**
-     * 약관 동의 완료 후 백엔드 로그인 재시도 (신규 가입)
+     * 약관 동의 완료 후 신규 회원가입 (POST /api/v1/auth/signup)
      *
      * @property termsAccepted    서비스 이용약관 동의 여부
      * @property privacyAccepted  개인정보 처리방침 동의 여부
      * @property marketingConsent 마케팅 수신 동의 여부
      */
-    data class CompleteTermsAndLogin(
+    data class Signup(
         val termsAccepted: Boolean,
         val privacyAccepted: Boolean,
         val marketingConsent: Boolean,

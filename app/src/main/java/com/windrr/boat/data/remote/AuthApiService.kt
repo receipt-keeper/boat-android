@@ -3,14 +3,20 @@ package com.windrr.boat.data.remote
 import com.windrr.boat.data.remote.model.LoginRequest
 import com.windrr.boat.data.remote.model.LoginResponse
 import com.windrr.boat.data.remote.model.RefreshRequest
+import com.windrr.boat.data.remote.model.SignupRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.POST
 
 interface AuthApiService {
+    /** 가입된 사용자 로그인. 미가입 시 404 반환 → signup 호출 필요. */
     @POST("api/v1/auth/login")
     suspend fun login(@Body request: LoginRequest): LoginResponse
+
+    /** 신규 회원가입. Firebase idToken + 약관 동의 정보로 계정 생성 후 토큰 발급. */
+    @POST("api/v1/auth/signup")
+    suspend fun signup(@Body request: SignupRequest): LoginResponse
 
     /**
      * AccessToken 재발급. refreshToken을 1회용으로 회전해 새 토큰 쌍을 발급한다.

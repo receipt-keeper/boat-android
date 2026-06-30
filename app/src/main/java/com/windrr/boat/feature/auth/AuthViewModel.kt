@@ -12,6 +12,7 @@ import com.windrr.boat.data.remote.ApiErrorParser
 import com.windrr.boat.data.model.User
 import com.windrr.boat.data.remote.model.LoginRequest
 import com.windrr.boat.data.remote.model.RefreshRequest
+import com.windrr.boat.data.remote.model.SignupRequest
 import com.windrr.boat.data.repository.AuthRepository
 import com.windrr.boat.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,11 +22,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import retrofit2.HttpException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-
-private const val TERMS_VERSION   = "1.0"
-private const val PRIVACY_VERSION = "1.0"
 
 class AuthViewModel(
     private val authRepository: AuthRepository,
@@ -97,16 +96,12 @@ class AuthViewModel(
                         val user = result.user
                         user?.uid?.let { BoatLog.setUser(it) }
                         val firebaseIdToken = getFirebaseIdToken(user)
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                displayName = intent.displayName ?: user?.displayName,
-                                email = intent.email ?: user?.email,
-                                photoUrl = user?.photoUrl?.toString(),
-                                requiresTerms = true,
-                                pendingFirebaseToken = firebaseIdToken,
-                            )
-                        }
+                        loginOrRedirectToSignup(
+                            firebaseIdToken = firebaseIdToken,
+                            displayName = intent.displayName ?: user?.displayName,
+                            email = intent.email ?: user?.email,
+                            photoUrl = user?.photoUrl?.toString(),
+                        )
                     } catch (e: Exception) {
                         BoatLog.e("Google Firebase 인증 실패", e)
                         _state.update { it.copy(isLoading = false, error = ApiErrorParser.message(e)) }
@@ -128,34 +123,28 @@ class AuthViewModel(
                         val user = result.user
                         user?.uid?.let { BoatLog.setUser(it) }
                         val firebaseIdToken = getFirebaseIdToken(user)
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                displayName = intent.displayName ?: user?.displayName,
-                                email = intent.email ?: user?.email,
-                                photoUrl = user?.photoUrl?.toString(),
-                                requiresTerms = true,
-                                pendingFirebaseToken = firebaseIdToken,
-                            )
-                        }
+                        loginOrRedirectToSignup(
+                            firebaseIdToken = firebaseIdToken,
+                            displayName = intent.displayName ?: user?.displayName,
+                            email = intent.email ?: user?.email,
+                            photoUrl = user?.photoUrl?.toString(),
+                        )
                     } catch (e: Exception) {
                         BoatLog.e("Apple Firebase 인증 실패", e)
                         _state.update { it.copy(isLoading = false, error = ApiErrorParser.message(e)) }
                     }
                 }
 
-                is AuthIntent.CompleteTermsAndLogin -> {
+                is AuthIntent.Signup -> {
                     val firebaseToken = _state.value.pendingFirebaseToken ?: run {
-                        BoatLog.e("CompleteTermsAndLogin: pendingFirebaseToken 없음")
+                        BoatLog.e("Signup: pendingFirebaseToken 없음")
                         return@launch
                     }
                     _state.update { it.copy(isLoading = true, error = null) }
                     try {
-                        val response = ApiClient.authApiService.login(
-                            LoginRequest(
+                        val response = ApiClient.authApiService.signup(
+                            SignupRequest(
                                 idToken          = firebaseToken,
-                                termsVersion     = TERMS_VERSION,
-                                privacyVersion   = PRIVACY_VERSION,
                                 termsAccepted    = intent.termsAccepted,
                                 privacyAccepted  = intent.privacyAccepted,
                                 marketingConsent = intent.marketingConsent,
@@ -163,8 +152,8 @@ class AuthViewModel(
                         )
                         authRepository.saveTokens(response.data.accessToken, response.data.refreshToken)
 
-                        // 메인 진입 직후 HomeActivity에서 GET /users/me 동기화로 실제 정보를 채운다.
-                        // 동기화 전 즉시 표시용으로 소셜 로그인 기본 정보만 임시 저장.
+                        // HomeActivity의 syncUser()가 GET /users/me로 실제 정보를 채우기 전
+                        // 소셜 로그인 기본 정보를 임시 저장.
                         val current = _state.value
                         userRepository.saveUser(
                             User(
@@ -176,10 +165,10 @@ class AuthViewModel(
                             )
                         )
 
-                        BoatLog.i("로그인 완료 — termsAccepted=${intent.termsAccepted}, marketing=${intent.marketingConsent}")
+                        BoatLog.i("회원가입 완료 — marketing=${intent.marketingConsent}")
                         _state.update { it.copy(isLoading = false, requiresTerms = false, pendingFirebaseToken = null) }
                     } catch (e: Exception) {
-                        BoatLog.e("약관 동의 후 로그인 실패", e)
+                        BoatLog.e("회원가입 실패", e)
                         _state.update { it.copy(isLoading = false, error = ApiErrorParser.message(e)) }
                     }
                 }
@@ -254,6 +243,45 @@ class AuthViewModel(
                     authRepository.clearTokens()
                     _state.update { it.copy(isLoading = false) }
                 }
+            }
+        }
+    }
+
+    /**
+     * POST /api/v1/auth/login 시도.
+     * - 200 성공 → 토큰 저장 (isLoggedIn 트리거 → HomeActivity 전환)
+     * - 404 미가입 → requiresTerms = true (TermsScreen 진입)
+     * - 그 외 오류 → 에러 토스트
+     *
+     * 호출 전 isLoading = true 가 이미 세팅되어 있어야 한다.
+     */
+    private suspend fun loginOrRedirectToSignup(
+        firebaseIdToken: String,
+        displayName: String?,
+        email: String?,
+        photoUrl: String?,
+    ) {
+        try {
+            val response = ApiClient.authApiService.login(LoginRequest(idToken = firebaseIdToken))
+            authRepository.saveTokens(response.data.accessToken, response.data.refreshToken)
+            BoatLog.i("로그인 성공")
+            _state.update { it.copy(isLoading = false) }
+        } catch (e: HttpException) {
+            if (e.code() == 404) {
+                BoatLog.i("미가입 사용자 → 약관 동의 화면으로 이동")
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        displayName = displayName,
+                        email = email,
+                        photoUrl = photoUrl,
+                        requiresTerms = true,
+                        pendingFirebaseToken = firebaseIdToken,
+                    )
+                }
+            } else {
+                BoatLog.e("로그인 API 오류 (code=${e.code()})", e)
+                _state.update { it.copy(isLoading = false, error = ApiErrorParser.message(e)) }
             }
         }
     }

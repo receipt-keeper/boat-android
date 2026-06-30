@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
                             },
                             onComplete = { termsAccepted, privacyAccepted, marketingConsent ->
                                 authViewModel.handleIntent(
-                                    AuthIntent.CompleteTermsAndLogin(termsAccepted, privacyAccepted, marketingConsent)
+                                    AuthIntent.Signup(termsAccepted, privacyAccepted, marketingConsent)
                                 )
                             },
                             modifier = Modifier.padding(innerPadding),
