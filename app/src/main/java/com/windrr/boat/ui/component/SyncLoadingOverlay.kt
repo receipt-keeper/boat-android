@@ -27,7 +27,9 @@ import com.windrr.boat.R
 import com.windrr.boat.ui.theme.ColorGray600
 
 @Composable
-fun SyncLoadingOverlay() {
+fun SyncLoadingOverlay(
+    message: String = stringResource(R.string.loading_sync_message),
+) {
     val composition by rememberLottieComposition(
         LottieCompositionSpec.RawRes(R.raw.scan_loading_zero)
     )
@@ -51,7 +53,7 @@ fun SyncLoadingOverlay() {
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                text = stringResource(R.string.loading_sync_message),
+                text = message,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
                 color = ColorGray600,

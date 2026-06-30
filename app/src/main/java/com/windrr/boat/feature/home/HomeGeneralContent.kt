@@ -36,9 +36,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
 import coil3.compose.AsyncImage
 import com.windrr.boat.R
 import com.windrr.boat.ui.component.FreeAnalysisBanner
@@ -126,12 +128,16 @@ fun HomeGeneralContent(
         }
 
         Spacer(Modifier.height(Margin16))
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = Margin20),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            items(expiring, key = { it.id }) { item ->
-                ExpiringWarrantyCard(item = item, onClick = { onExpiringClick(item) })
+        if (expiring.isEmpty()) {
+            ExpiringEmptyBanner(modifier = Modifier.padding(horizontal = Margin20))
+        } else {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = Margin20),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                items(expiring, key = { it.id }) { item ->
+                    ExpiringWarrantyCard(item = item, onClick = { onExpiringClick(item) })
+                }
             }
         }
 
@@ -351,6 +357,39 @@ private fun RecentReceiptItem(
                     Text(item.purchaseDate, fontSize = 13.sp, color = ColorGray500)
                 }
             }
+        }
+    }
+}
+
+/** AS 만료 예정 0건일 때 표시되는 안전 배너 */
+@Composable
+private fun ExpiringEmptyBanner(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(Rounded2xl)
+            .background(ColorBrandSenary)
+            .border(1.dp, ColorGray200, Rounded2xl)
+            .padding(vertical = 28.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Image(
+                painter = painterResource(R.drawable.img_safe_banner),
+                contentDescription = null,
+                modifier = Modifier.size(72.dp),
+            )
+            Text(
+                text = stringResource(R.string.home_expiring_empty),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                color = ColorBrandPrimary,
+                textAlign = TextAlign.Center,
+                lineHeight = 22.sp,
+            )
         }
     }
 }

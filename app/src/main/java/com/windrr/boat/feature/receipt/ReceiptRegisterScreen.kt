@@ -59,8 +59,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.windrr.boat.ui.component.SyncLoadingOverlay
 import coil3.compose.AsyncImage
 import androidx.compose.runtime.rememberCoroutineScope
 import com.windrr.boat.core.log.BoatLog
@@ -121,20 +121,30 @@ fun ReceiptRegisterScreen(
     var showAnalysisFailedSheet by rememberSaveable { mutableStateOf(false) }
     // OCR 분석 진행 중 여부 (버튼 로딩/중복 호출 방지)
     var isAnalyzing by rememberSaveable { mutableStateOf(false) }
+    // OCR 분석 실패 여부 — 실패 시 각 썸네일에 에러 오버레이 표시
+    var isAnalysisFailed by rememberSaveable { mutableStateOf(false) }
 
     // 영수증 OCR 분석 호출 → 성공 시 결과 화면, 실패 시 실패 시트
     fun analyzeReceipt() {
         if (isAnalyzing) return
         scope.launch {
             isAnalyzing = true
+            isAnalysisFailed = false
             runCatching {
                 val parts = photos.map { it.toMultipartPart(context, "file") }
                 ApiClient.ocrApiService.analyze(parts)
             }.onSuccess { response ->
                 isAnalyzing = false
-                context.startActivity(OcrResultActivity.intent(context, response.data))
+                context.startActivity(
+                    ReceiptManualInputActivity.intent(context, photos, response.data)
+                )
+                scope.launch {
+                    val newCount = (freeAnalysisTokens - 1).coerceAtLeast(0)
+                    ApiClient.userDataStore.updateFreeAnalysisTokens(newCount)
+                }
             }.onFailure { e ->
                 isAnalyzing = false
+                isAnalysisFailed = true
                 BoatLog.e("OCR 분석 실패", e)
                 showAnalysisFailedSheet = true
             }
@@ -273,6 +283,7 @@ fun ReceiptRegisterScreen(
                             items(photos) { uri ->
                                 ReceiptThumbnail(
                                     uri = uri,
+                                    showError = isAnalysisFailed,
                                     onRemove = { galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri)) },
                                 )
                             }
@@ -345,25 +356,20 @@ fun ReceiptRegisterScreen(
                         disabledContentColor = ColorGray500,
                     ),
                 ) {
-                    if (isAnalyzing) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(22.dp),
-                            color = ColorWhite,
-                            strokeWidth = 2.dp,
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(R.string.receipt_register_analyze),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    }
+                    Text(
+                        text = stringResource(R.string.receipt_register_analyze),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    )
                 }
                 Spacer(Modifier.height(Margin16))
             }
         }
 
         BoatToastHost(state = toastState)
+        if (isAnalyzing) {
+            SyncLoadingOverlay(message = stringResource(R.string.loading_ocr_message))
+        }
     }
 
     if (showNoTokenSheet) {
@@ -392,9 +398,9 @@ fun ReceiptRegisterScreen(
     }
 }
 
-/** 업로드된 영수증 썸네일 + 우측 상단 X 삭제 버튼 */
+/** 업로드된 영수증 썸네일 + 우측 상단 X 삭제 버튼. showError=true 시 실패 오버레이 표시. */
 @Composable
-private fun ReceiptThumbnail(uri: Uri, onRemove: () -> Unit) {
+private fun ReceiptThumbnail(uri: Uri, onRemove: () -> Unit, showError: Boolean = false) {
     Box(
         modifier = Modifier
             .aspectRatio(1f)
@@ -408,6 +414,43 @@ private fun ReceiptThumbnail(uri: Uri, onRemove: () -> Unit) {
                 .fillMaxSize()
                 .clip(RoundedCornerShape(12.dp)),
         )
+
+        // 실패 오버레이
+        if (showError) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Black.copy(alpha = 0.65f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(26.dp)
+                            .border(1.5.dp, Color(0xFFFF3B30), CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "!",
+                            color = Color(0xFFFF3B30),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    Text(
+                        text = "다시 업로드해 주세요",
+                        color = Color(0xFFFF3B30),
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
+            }
+        }
+
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
