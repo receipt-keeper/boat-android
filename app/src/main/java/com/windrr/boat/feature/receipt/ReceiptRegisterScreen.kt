@@ -59,20 +59,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-import android.provider.OpenableColumns
 import androidx.compose.runtime.rememberCoroutineScope
+import com.windrr.boat.core.log.BoatLog
 import com.windrr.boat.data.remote.ApiClient
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.windrr.boat.R
 import com.windrr.boat.core.util.createImageCaptureUri
+import com.windrr.boat.core.util.toMultipartPart
 import com.windrr.boat.feature.gallery.GalleryIntent
 import com.windrr.boat.feature.gallery.GalleryState
 import com.windrr.boat.feature.gallery.GalleryViewModel
@@ -120,6 +119,27 @@ fun ReceiptRegisterScreen(
     var showNoTokenSheet by rememberSaveable { mutableStateOf(false) }
     // 분석 실패 BottomSheet 표시 여부
     var showAnalysisFailedSheet by rememberSaveable { mutableStateOf(false) }
+    // OCR 분석 진행 중 여부 (버튼 로딩/중복 호출 방지)
+    var isAnalyzing by rememberSaveable { mutableStateOf(false) }
+
+    // 영수증 OCR 분석 호출 → 성공 시 결과 화면, 실패 시 실패 시트
+    fun analyzeReceipt() {
+        if (isAnalyzing) return
+        scope.launch {
+            isAnalyzing = true
+            runCatching {
+                val parts = photos.map { it.toMultipartPart(context, "file") }
+                ApiClient.ocrApiService.analyze(parts)
+            }.onSuccess { response ->
+                isAnalyzing = false
+                context.startActivity(OcrResultActivity.intent(context, response.data))
+            }.onFailure { e ->
+                isAnalyzing = false
+                BoatLog.e("OCR 분석 실패", e)
+                showAnalysisFailedSheet = true
+            }
+        }
+    }
 
     // 최대 장수 초과 등 에러 → 토스트
     androidx.compose.runtime.LaunchedEffect(galleryState.error) {
@@ -278,17 +298,7 @@ fun ReceiptRegisterScreen(
                     onClick = {
                         scope.launch {
                             try {
-                                val parts = photos.map { uri ->
-                                    val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
-                                    var fileName = "file.jpg"
-                                    context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                                        val col = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                                        if (col != -1 && cursor.moveToFirst()) fileName = cursor.getString(col)
-                                    }
-                                    val bytes = context.contentResolver.openInputStream(uri)!!.use { it.readBytes() }
-                                    val body = bytes.toRequestBody(mimeType.toMediaType())
-                                    MultipartBody.Part.createFormData("files", fileName, body)
-                                }
+                                val parts = photos.map { it.toMultipartPart(context, "files") }
                                 val response = ApiClient.fileApiService.uploadFiles(parts)
                                 val ids = response.data.files.joinToString { it.fileId.takeLast(8) }
                                 toastState.show("업로드 성공 (${response.data.files.size}개): $ids")
@@ -319,14 +329,11 @@ fun ReceiptRegisterScreen(
                             remoteCanAnalyze == null -> toastState.showError(
                                 context.getString(R.string.receipt_check_network)
                             )
-                            remoteCanAnalyze && freeAnalysisTokens > 0 -> {
-                                // TODO: OCR 분석 API 호출 → 성공 시 결과 화면, 실패 시 실패 시트.
-                                showAnalysisFailedSheet = true
-                            }
+                            remoteCanAnalyze && freeAnalysisTokens > 0 -> analyzeReceipt()
                             else -> showNoTokenSheet = true
                         }
                     },
-                    enabled = photos.isNotEmpty(),
+                    enabled = photos.isNotEmpty() && !isAnalyzing,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -338,11 +345,19 @@ fun ReceiptRegisterScreen(
                         disabledContentColor = ColorGray500,
                     ),
                 ) {
-                    Text(
-                        text = stringResource(R.string.receipt_register_analyze),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                    )
+                    if (isAnalyzing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            color = ColorWhite,
+                            strokeWidth = 2.dp,
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(R.string.receipt_register_analyze),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
                 }
                 Spacer(Modifier.height(Margin16))
             }
@@ -369,7 +384,10 @@ fun ReceiptRegisterScreen(
                 showAnalysisFailedSheet = false
                 context.startActivity(ReceiptManualInputActivity.intent(context, photos))
             },
-            onRetry = { showAnalysisFailedSheet = false /* TODO: 다시 분석 시도 */ },
+            onRetry = {
+                showAnalysisFailedSheet = false
+                analyzeReceipt()
+            },
         )
     }
 }

@@ -2,7 +2,11 @@ package com.windrr.boat.core.util
 
 import android.content.Context
 import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.core.content.FileProvider
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 
 /**
@@ -47,4 +51,23 @@ fun Context.createImageCaptureUri(): Uri {
         "$packageName$FILE_PROVIDER_SUFFIX",
         imageFile
     )
+}
+
+/**
+ * content URI를 멀티파트 업로드용 [MultipartBody.Part]로 변환.
+ * MIME 타입과 표시 이름(DISPLAY_NAME)을 조회해 채운다.
+ *
+ * @param fieldName 서버가 기대하는 form-data field 이름
+ */
+fun Uri.toMultipartPart(context: Context, fieldName: String): MultipartBody.Part {
+    val resolver = context.contentResolver
+    val mimeType = resolver.getType(this) ?: "image/jpeg"
+    var fileName = "file.jpg"
+    resolver.query(this, null, null, null, null)?.use { cursor ->
+        val col = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        if (col != -1 && cursor.moveToFirst()) fileName = cursor.getString(col)
+    }
+    val bytes = resolver.openInputStream(this)!!.use { it.readBytes() }
+    val body = bytes.toRequestBody(mimeType.toMediaType())
+    return MultipartBody.Part.createFormData(fieldName, fileName, body)
 }

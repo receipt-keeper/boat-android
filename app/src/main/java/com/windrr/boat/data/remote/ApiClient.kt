@@ -111,6 +111,8 @@ object ApiClient {
 
     val receiptApiService: ReceiptApiService by lazy { create(ReceiptApiService::class.java) }
 
+    val ocrApiService: OcrApiService by lazy { create(OcrApiService::class.java) }
+
     val exampleApiService: ExampleApiService by lazy { create(ExampleApiService::class.java) }
 
     /**
