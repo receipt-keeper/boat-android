@@ -1,5 +1,6 @@
 package com.windrr.boat.feature.receipt
 
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -57,6 +58,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -67,15 +69,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.windrr.boat.R
+import com.windrr.boat.core.log.BoatLog
 import com.windrr.boat.core.ocr.DeviceCategory
+import com.windrr.boat.core.util.toMultipartPart
+import com.windrr.boat.data.remote.model.CreateReceiptRequest
 import com.windrr.boat.data.remote.model.OcrData
+import com.windrr.boat.data.repository.ReceiptRepository
 import com.windrr.boat.feature.gallery.GalleryIntent
 import com.windrr.boat.feature.gallery.GalleryState
 import com.windrr.boat.feature.gallery.GalleryViewModel
+import com.windrr.boat.feature.home.HomeActivity
 import com.windrr.boat.ui.component.BoatInputField
+import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.SyncLoadingOverlay
+import com.windrr.boat.ui.component.rememberBoatToastState
+import kotlinx.coroutines.launch
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandQuinary
 import com.windrr.boat.ui.theme.ColorBrandSenary
@@ -231,8 +243,65 @@ fun ReceiptManualInputScreen(
 
     val canSubmit = productName.isNotBlank() && purchaseDate.isNotBlank() && warrantyMonths != null
 
+    // ── 등록 (파일 업로드 → 영수증 생성 → 로컬 캐시) ─────────
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val toastState = rememberBoatToastState()
+    val repository = remember { ReceiptRepository() }
+    var isSubmitting by remember { mutableStateOf(false) }
+    val failMessage = stringResource(R.string.receipt_register_done_failed)
+
+    fun submit() {
+        if (isSubmitting || !canSubmit) return
+        scope.launch {
+            isSubmitting = true
+            // 1) 첨부 이미지 업로드 → fileId 수집
+            val parts = photos.map { it.toMultipartPart(context, "files") }
+            repository.uploadFiles(parts).fold(
+                onSuccess = { fileIds ->
+                    // 2) 입력값 + fileId로 영수증 생성
+                    val request = CreateReceiptRequest(
+                        itemName = productName.trim(),
+                        brandName = brand.trim().ifBlank { null },
+                        paymentLocation = null,
+                        paymentDate = purchaseDate.replace(".", "-").trim().ifBlank { null },
+                        totalAmount = price.toIntOrNull(),
+                        periodMonths = warrantyMonths,
+                        category = selectedCategory?.displayName,
+                        subCategory = null,
+                        memo = memo.trim().ifBlank { null },
+                        requiresPhysicalReceipt = keepReceipt,
+                        receiptFileIds = fileIds,
+                    )
+                    repository.createReceipt(request).fold(
+                        onSuccess = {
+                            isSubmitting = false
+                            // 홈으로 복귀 — 등록/OCR 화면 정리, 목록은 onResume에서 갱신
+                            context.startActivity(
+                                Intent(context, HomeActivity::class.java).apply {
+                                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                                            Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                }
+                            )
+                        },
+                        onFailure = {
+                            isSubmitting = false
+                            BoatLog.e("영수증 등록 실패", it)
+                            toastState.showError(failMessage)
+                        },
+                    )
+                },
+                onFailure = {
+                    isSubmitting = false
+                    BoatLog.e("영수증 파일 업로드 실패", it)
+                    toastState.showError(failMessage)
+                },
+            )
+        }
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
     Scaffold(
-        modifier = modifier,
         containerColor = ColorGray50,
         topBar = {
             CenterAlignedTopAppBar(
@@ -578,8 +647,8 @@ fun ReceiptManualInputScreen(
 
             Spacer(Modifier.height(Margin24))
             Button(
-                onClick = { /* TODO: 영수증 정보 등록 API */ },
-                enabled = canSubmit,
+                onClick = { submit() },
+                enabled = canSubmit && !isSubmitting,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -598,6 +667,12 @@ fun ReceiptManualInputScreen(
                 )
             }
             Spacer(Modifier.height(Margin16))
+        }
+    }
+
+        BoatToastHost(state = toastState)
+        if (isSubmitting) {
+            SyncLoadingOverlay(message = stringResource(R.string.loading_register_message))
         }
     }
 

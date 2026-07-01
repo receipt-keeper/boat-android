@@ -117,11 +117,14 @@ fun ReceiptListScreen(
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
 
-    // 홈 화면 "만료 예정 >" 등 외부 진입 시 초기 탭/정렬 1회 적용
-    LaunchedEffect(initialTab, initialSort) {
+    // 화면 진입(탭 전환 포함)마다 최신화 — 등록 후 홈 복귀 시 새 영수증 반영.
+    // 홈 "만료 예정 >" 등 외부 진입이면 초기 탭/정렬을 함께 적용한다.
+    LaunchedEffect(Unit) {
         if (initialTab != null || initialSort != null) {
             viewModel.handleIntent(ReceiptListIntent.ApplyInitial(initialTab, initialSort))
             onInitialConsumed()
+        } else {
+            viewModel.handleIntent(ReceiptListIntent.Refresh)
         }
     }
 
@@ -229,72 +232,87 @@ private fun ReceiptCard(item: ReceiptItem) {
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column {
-            // 상단: 썸네일 + 이름/만료일 + D-day 뱃지 + 더보기
+            // 상단: 썸네일 + [이름·D-day 뱃지·더보기 / 만료일]
+            // 뱃지·케밥을 제목과 같은 줄에 두어 만료일 행이 전체 폭을 사용하도록 함 (iOS 구조와 일치)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 ReceiptItemThumbnail(imageUrl = item.imageUrl)
 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = item.itemName,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = ColorGray900,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Spacer(Modifier.height(4.dp))
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    // 제목 + D-day 뱃지 + 케밥 (한 줄)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = item.itemName,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ColorGray900,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        WarrantyDayBadge(warrantyDDay = item.warrantyDDay)
+
+                        var menuExpanded by remember { mutableStateOf(false) }
+                        Box {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = null,
+                                tint = ColorGray500,
+                                modifier = Modifier
+                                    .padding(start = 4.dp)
+                                    .size(20.dp)
+                                    .clickable { menuExpanded = true },
+                            )
+                            DropdownMenu(
+                                expanded = menuExpanded,
+                                onDismissRequest = { menuExpanded = false },
+                                containerColor = ColorWhite,
+                                shape = Rounded2xl,
+                            ) {
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = stringResource(R.string.receipt_delete),
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = Color(0xFFFF4444),
+                                        )
+                                    },
+                                    onClick = {
+                                        menuExpanded = false
+                                        // TODO: 삭제 API 연동
+                                    },
+                                )
+                            }
+                        }
+                    }
+
+                    // 만료일 | 날짜 (전체 폭 사용 → 줄바꿈 없음)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = stringResource(R.string.receipt_expiry_date_label),
                             fontSize = 13.sp,
                             color = ColorGray500,
+                            maxLines = 1,
+                            softWrap = false,
                         )
                         Text(text = "  |  ", fontSize = 13.sp, color = ColorGray300)
                         Text(
                             text = item.expiresOn?.formatDate() ?: "-",
                             fontSize = 13.sp,
                             color = ColorGray500,
-                        )
-                    }
-                }
-
-                WarrantyDayBadge(warrantyDDay = item.warrantyDDay)
-
-                var menuExpanded by remember { mutableStateOf(false) }
-                Box {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = null,
-                        tint = ColorGray500,
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clickable { menuExpanded = true },
-                    )
-                    DropdownMenu(
-                        expanded = menuExpanded,
-                        onDismissRequest = { menuExpanded = false },
-                        containerColor = ColorWhite,
-                        shape = Rounded2xl,
-                    ) {
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    text = stringResource(R.string.receipt_delete),
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = Color(0xFFFF4444),
-                                )
-                            },
-                            onClick = {
-                                menuExpanded = false
-                                // TODO: 삭제 API 연동
-                            },
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }

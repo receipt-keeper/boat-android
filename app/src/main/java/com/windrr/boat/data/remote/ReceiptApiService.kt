@@ -1,10 +1,21 @@
 package com.windrr.boat.data.remote
 
+import com.windrr.boat.data.remote.model.CreateReceiptRequest
+import com.windrr.boat.data.remote.model.CreateReceiptResponse
 import com.windrr.boat.data.remote.model.ReceiptListResponse
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Query
 
 interface ReceiptApiService {
+
+    /**
+     * 영수증 등록 — OCR 결과 수정값 또는 수동 입력값으로 영수증 생성.
+     * 파일은 먼저 업로드(POST /files)해 받은 fileId들을 receiptFileIds로 전달한다.
+     */
+    @POST("api/v1/receipts")
+    suspend fun createReceipt(@Body request: CreateReceiptRequest): CreateReceiptResponse
 
     /**
      * 영수증 목록 조회 (커서 기반 페이징)

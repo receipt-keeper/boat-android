@@ -1,9 +1,12 @@
 package com.windrr.boat.data.remote
 
 import android.content.Context
+import androidx.room.Room
 import com.windrr.boat.BuildConfig
 import com.windrr.boat.data.local.TokenDataStore
 import com.windrr.boat.data.local.UserDataStore
+import com.windrr.boat.data.local.db.BoatDatabase
+import com.windrr.boat.data.local.db.ReceiptDao
 import com.windrr.boat.data.remote.interceptor.TokenAuthenticator
 import com.windrr.boat.data.remote.interceptor.TokenInterceptor
 import okhttp3.OkHttpClient
@@ -52,6 +55,15 @@ object ApiClient {
 
     /** UserDataStore를 외부(Repository 등)에서도 접근할 수 있도록 lazy로 노출 */
     val userDataStore: UserDataStore by lazy { UserDataStore(appContext) }
+
+    /** 로컬 Room DB — 오프라인 캐시 (영수증 등) */
+    val database: BoatDatabase by lazy {
+        Room.databaseBuilder(appContext, BoatDatabase::class.java, "boat.db")
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
+    }
+
+    val receiptDao: ReceiptDao by lazy { database.receiptDao() }
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY

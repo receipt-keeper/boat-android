@@ -169,6 +169,8 @@
     <!-- Loading -->
     <string name="loading_sync_message">잠시만 기다려 주세요.</string>
     <string name="loading_ocr_message">영수증을 분석하는 중이에요.</string>
+    <string name="loading_register_message">영수증을 등록하는 중이에요.</string>
+    <string name="receipt_register_done_failed">영수증 등록에 실패했어요.\n잠시 후 다시 시도해 주세요.</string>
 
     <!-- Error -->
     <string name="error_server_retry">오류가 발생했습니다. 잠시 후 다시 시도해주세요.</string>

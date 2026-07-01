@@ -114,6 +114,7 @@ dependencies {
 
     // Coil
     implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)   // Coil 3 원격(http) 이미지 로딩에 필수
 
     // Navigation
     implementation(libs.navigation.compose)

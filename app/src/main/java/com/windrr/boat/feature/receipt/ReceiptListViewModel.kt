@@ -36,8 +36,6 @@ class ReceiptListViewModel : ViewModel() {
     private val _state = MutableStateFlow(ReceiptListState())
     val state: StateFlow<ReceiptListState> = _state.asStateFlow()
 
-    init { loadReceipts() }
-
     fun handleIntent(intent: ReceiptListIntent) {
         when (intent) {
             is ReceiptListIntent.SelectTab -> {
@@ -53,14 +51,14 @@ class ReceiptListViewModel : ViewModel() {
                 loadReceipts()
             }
             is ReceiptListIntent.ApplyInitial -> {
-                var changed = false
                 _state.update { s ->
                     var next = s
-                    if (intent.tab != null)  { next = next.copy(selectedTab  = intent.tab);  changed = true }
-                    if (intent.sort != null) { next = next.copy(selectedSort = intent.sort); changed = true }
+                    if (intent.tab != null)  next = next.copy(selectedTab  = intent.tab)
+                    if (intent.sort != null) next = next.copy(selectedSort = intent.sort)
                     next
                 }
-                if (changed) loadReceipts()
+                // 초기 진입 시엔 변경 여부와 무관하게 항상 최신화
+                loadReceipts()
             }
             ReceiptListIntent.Refresh -> loadReceipts()
         }
