@@ -18,6 +18,8 @@ data class ReceiptListState(
     val selectedTab: ReceiptTab = ReceiptTab.ALL,
     val selectedFilter: ReceiptFilter = ReceiptFilter.ALL,
     val selectedSort: ReceiptSort = ReceiptSort.DEFAULT,
+    /** 삭제 실패 시 1회성 에러 메시지 (토스트 표시용, 목록 전체 에러 화면과는 분리) */
+    val deleteError: String? = null,
 )
 
 sealed class ReceiptListIntent {
@@ -27,6 +29,8 @@ sealed class ReceiptListIntent {
     /** 홈 화면 등 외부 진입 시 초기 탭/정렬 1회 적용 */
     data class ApplyInitial(val tab: ReceiptTab?, val sort: ReceiptSort?) : ReceiptListIntent()
     data object Refresh : ReceiptListIntent()
+    data class DeleteReceipt(val receiptId: String) : ReceiptListIntent()
+    data object ConsumeDeleteError : ReceiptListIntent()
 }
 
 class ReceiptListViewModel : ViewModel() {
@@ -61,6 +65,27 @@ class ReceiptListViewModel : ViewModel() {
                 loadReceipts()
             }
             ReceiptListIntent.Refresh -> loadReceipts()
+            is ReceiptListIntent.DeleteReceipt -> deleteReceipt(intent.receiptId)
+            ReceiptListIntent.ConsumeDeleteError -> _state.update { it.copy(deleteError = null) }
+        }
+    }
+
+    /** 서버 삭제 성공 시에만 목록에서 즉시 제거 — 실패하면 목록은 그대로 두고 에러만 알림 */
+    private fun deleteReceipt(receiptId: String) {
+        viewModelScope.launch {
+            repository.deleteReceipt(receiptId).fold(
+                onSuccess = {
+                    _state.update { s ->
+                        s.copy(
+                            receipts = s.receipts.filterNot { it.receiptId == receiptId },
+                            totalCount = (s.totalCount - 1).coerceAtLeast(0),
+                        )
+                    }
+                },
+                onFailure = { e ->
+                    _state.update { it.copy(deleteError = e.message) }
+                },
+            )
         }
     }
 

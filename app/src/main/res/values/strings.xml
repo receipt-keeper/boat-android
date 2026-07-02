@@ -120,6 +120,7 @@
     <string name="receipt_expiry_date_label">AS 만료일</string>
     <string name="receipt_list_retry">다시 시도</string>
     <string name="receipt_delete">삭제하기</string>
+    <string name="receipt_delete_failed">영수증 삭제에 실패했어요.\n잠시 후 다시 시도해 주세요.</string>
 
     <!-- 마이페이지 -->
     <string name="mypage_title">마이페이지</string>

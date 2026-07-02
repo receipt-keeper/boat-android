@@ -65,6 +65,8 @@ import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.remote.model.ReceiptItem
 import com.windrr.boat.ui.component.BoatFilterChip
 import com.windrr.boat.ui.component.BoatHeader
+import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorGray100
 import com.windrr.boat.ui.theme.ColorGray200
@@ -118,6 +120,8 @@ fun ReceiptListScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
+    val toastState = rememberBoatToastState()
+    val deleteFailedMessage = stringResource(R.string.receipt_delete_failed)
 
     // 화면 진입(탭 전환 포함)마다 최신화 — 등록 후 홈 복귀 시 새 영수증 반영.
     // 홈 "만료 예정 >" 등 외부 진입이면 초기 탭/정렬을 함께 적용한다.
@@ -130,103 +134,120 @@ fun ReceiptListScreen(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(ColorGray50),
-    ) {
-        // 헤더 + inner tab — 흰 배경
-        Column(modifier = Modifier.background(ColorWhite)) {
-            BoatHeader(
-                title = stringResource(R.string.tab_list),
-                onSearchClick = onSearchClick,
-                onNotificationClick = {
-                    context.startActivity(
-                        Intent(context, com.windrr.boat.feature.notification.NotificationListActivity::class.java)
-                    )
-                },
-            )
-            ReceiptInnerTabRow(
-                selected = state.selectedTab,
-                onSelected = { viewModel.handleIntent(ReceiptListIntent.SelectTab(it)) },
-            )
+    // 삭제 실패 시 토스트로 안내 (목록 전체를 가리는 error와는 별개)
+    LaunchedEffect(state.deleteError) {
+        if (state.deleteError != null) {
+            toastState.showError(deleteFailedMessage)
+            viewModel.handleIntent(ReceiptListIntent.ConsumeDeleteError)
         }
+    }
 
-        // 카테고리 필터 칩 (가로 스크롤)
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = Margin20, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(ColorGray50),
         ) {
-            items(ReceiptFilter.entries) { filter ->
-                BoatFilterChip(
-                    label = stringResource(filter.labelRes),
-                    selected = filter == state.selectedFilter,
-                    onClick = { viewModel.handleIntent(ReceiptListIntent.SelectFilter(filter)) },
+            // 헤더 + inner tab — 흰 배경
+            Column(modifier = Modifier.background(ColorWhite)) {
+                BoatHeader(
+                    title = stringResource(R.string.tab_list),
+                    onSearchClick = onSearchClick,
+                    onNotificationClick = {
+                        context.startActivity(
+                            Intent(context, com.windrr.boat.feature.notification.NotificationListActivity::class.java)
+                        )
+                    },
+                )
+                ReceiptInnerTabRow(
+                    selected = state.selectedTab,
+                    onSelected = { viewModel.handleIntent(ReceiptListIntent.SelectTab(it)) },
                 )
             }
-        }
 
-        // 카운트 + 정렬
-        CountSortRow(
-            count = state.totalCount,
-            selectedSort = state.selectedSort,
-            onSortSelected = { viewModel.handleIntent(ReceiptListIntent.SelectSort(it)) },
-        )
-
-        // 리스트 영역
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            contentAlignment = Alignment.Center,
-        ) {
-            when {
-                state.isLoading -> {
-                    CircularProgressIndicator(color = ColorBrandPrimary)
-                }
-                state.error != null -> {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = state.error!!,
-                            fontSize = 14.sp,
-                            color = ColorGray500,
-                        )
-                        TextButton(onClick = { viewModel.handleIntent(ReceiptListIntent.Refresh) }) {
-                            Text(
-                                text = stringResource(R.string.receipt_list_retry),
-                                color = ColorBrandPrimary,
-                            )
-                        }
-                    }
-                }
-                state.receipts.isEmpty() -> {
-                    Text(
-                        text = stringResource(R.string.receipt_empty),
-                        fontSize = 16.sp,
-                        color = ColorGray500,
+            // 카테고리 필터 칩 (가로 스크롤)
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = Margin20, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(ReceiptFilter.entries) { filter ->
+                    BoatFilterChip(
+                        label = stringResource(filter.labelRes),
+                        selected = filter == state.selectedFilter,
+                        onClick = { viewModel.handleIntent(ReceiptListIntent.SelectFilter(filter)) },
                     )
                 }
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = Margin20, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(Margin12),
-                    ) {
-                        items(state.receipts, key = { it.receiptId }) { item ->
-                            ReceiptCard(item = item)
+            }
+
+            // 카운트 + 정렬
+            CountSortRow(
+                count = state.totalCount,
+                selectedSort = state.selectedSort,
+                onSortSelected = { viewModel.handleIntent(ReceiptListIntent.SelectSort(it)) },
+            )
+
+            // 리스트 영역
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center,
+            ) {
+                when {
+                    state.isLoading -> {
+                        CircularProgressIndicator(color = ColorBrandPrimary)
+                    }
+                    state.error != null -> {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = state.error!!,
+                                fontSize = 14.sp,
+                                color = ColorGray500,
+                            )
+                            TextButton(onClick = { viewModel.handleIntent(ReceiptListIntent.Refresh) }) {
+                                Text(
+                                    text = stringResource(R.string.receipt_list_retry),
+                                    color = ColorBrandPrimary,
+                                )
+                            }
+                        }
+                    }
+                    state.receipts.isEmpty() -> {
+                        Text(
+                            text = stringResource(R.string.receipt_empty),
+                            fontSize = 16.sp,
+                            color = ColorGray500,
+                        )
+                    }
+                    else -> {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(horizontal = Margin20, vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(Margin12),
+                        ) {
+                            items(state.receipts, key = { it.receiptId }) { item ->
+                                ReceiptCard(
+                                    item = item,
+                                    onDelete = {
+                                        viewModel.handleIntent(ReceiptListIntent.DeleteReceipt(item.receiptId))
+                                    },
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+
+        BoatToastHost(state = toastState)
     }
 }
 
 // ── 영수증 카드 ───────────────────────────────────────────────────────────────
 
 @Composable
-private fun ReceiptCard(item: ReceiptItem) {
+private fun ReceiptCard(item: ReceiptItem, onDelete: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedXl,
@@ -295,7 +316,7 @@ private fun ReceiptCard(item: ReceiptItem) {
                                     },
                                     onClick = {
                                         menuExpanded = false
-                                        // TODO: 삭제 API 연동
+                                        onDelete()
                                     },
                                 )
                             }

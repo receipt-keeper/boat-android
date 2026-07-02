@@ -26,3 +26,9 @@ data class CreateReceiptResponse(
     val status: Int,
     val data: ReceiptItem,
 )
+
+/** 영수증 삭제 응답 — DELETE /api/v1/receipts/{receipt_id}. data 없이 성공 여부만 반환. */
+data class DeleteReceiptResponse(
+    val success: Boolean,
+    val status: Int,
+)

@@ -2,10 +2,13 @@ package com.windrr.boat.data.remote
 
 import com.windrr.boat.data.remote.model.CreateReceiptRequest
 import com.windrr.boat.data.remote.model.CreateReceiptResponse
+import com.windrr.boat.data.remote.model.DeleteReceiptResponse
 import com.windrr.boat.data.remote.model.ReceiptListResponse
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ReceiptApiService {
@@ -16,6 +19,13 @@ interface ReceiptApiService {
      */
     @POST("api/v1/receipts")
     suspend fun createReceipt(@Body request: CreateReceiptRequest): CreateReceiptResponse
+
+    /**
+     * 영수증 삭제 — 등록된 영수증과 제품 조회 데이터를 삭제한다.
+     * 연결 해제된 파일의 실제 스토리지 삭제는 서버의 파일 정리 작업에서 처리한다.
+     */
+    @DELETE("api/v1/receipts/{receipt_id}")
+    suspend fun deleteReceipt(@Path("receipt_id") receiptId: String): DeleteReceiptResponse
 
     /**
      * 영수증 목록 조회 (커서 기반 페이징)

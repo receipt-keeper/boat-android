@@ -78,6 +78,12 @@ class ReceiptRepository(
         dao.upsert(item.toEntity())
         item
     }
+
+    /** 영수증 삭제 — 서버 삭제 성공 시에만 로컬 캐시에서도 제거 */
+    suspend fun deleteReceipt(receiptId: String): Result<Unit> = runCatching {
+        receiptApi.deleteReceipt(receiptId)
+        dao.deleteById(receiptId)
+    }
 }
 
 // ── 오프라인 로컬 필터/정렬 ─────────────────────────────────────────────────────
