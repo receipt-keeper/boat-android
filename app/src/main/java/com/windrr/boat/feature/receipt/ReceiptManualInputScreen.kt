@@ -85,6 +85,7 @@ import com.windrr.boat.feature.gallery.GalleryViewModel
 import com.windrr.boat.feature.home.HomeActivity
 import com.windrr.boat.ui.component.BoatInputField
 import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.PriceVisualTransformation
 import com.windrr.boat.ui.component.SyncLoadingOverlay
 import com.windrr.boat.ui.component.rememberBoatToastState
 import kotlinx.coroutines.launch
@@ -596,6 +597,7 @@ fun ReceiptManualInputScreen(
                     label = stringResource(R.string.manual_price),
                     placeholder = stringResource(R.string.manual_price_hint),
                     keyboardType = KeyboardType.Number,
+                    visualTransformation = PriceVisualTransformation(),
                 )
                 Spacer(Modifier.height(Margin16))
                 BoatInputField(

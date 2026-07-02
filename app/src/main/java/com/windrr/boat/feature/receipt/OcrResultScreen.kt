@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.windrr.boat.R
+import com.windrr.boat.core.util.toPriceString
 import com.windrr.boat.data.remote.model.OcrData
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorGray100
@@ -90,7 +91,7 @@ fun OcrResultScreen(
             ResultRow("브랜드", result.brandName)
             ResultRow("구매처", result.paymentLocation)
             ResultRow("구매일", result.paymentDate)
-            ResultRow("금액", result.totalAmount?.let { "%,d원".format(it) })
+            ResultRow("금액", result.totalAmount?.let { "${it.toPriceString()}원" })
             ResultRow("AS 기간", result.periodMonths?.let { "${it}개월" })
             ResultRow("만료일", result.expiresOn)
             ResultRow("카테고리", result.category)

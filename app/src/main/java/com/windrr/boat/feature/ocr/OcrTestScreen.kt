@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import com.windrr.boat.core.ocr.OcrResult
+import com.windrr.boat.core.util.toPriceString
 import com.windrr.boat.data.repository.OcrRepositoryImpl
 import kotlinx.coroutines.launch
 import java.io.File
@@ -185,7 +186,7 @@ fun OcrTestScreen(onBack: () -> Unit) {
                     Spacer(modifier = Modifier.height(12.dp))
                 }
                 OcrResultRow("구매일", ocr.purchaseDateIso)
-                OcrResultRow("결제 금액", ocr.price?.let { "${String.format("%,d", it)}원" })
+                OcrResultRow("결제 금액", ocr.price?.let { "${it.toPriceString()}원" })
                 OcrResultRow("제품명", ocr.productName)
                 OcrResultRow("브랜드", ocr.brand)
                 OcrResultRow("보증기간", ocr.warrantyMonths?.let { "${it}개월" })

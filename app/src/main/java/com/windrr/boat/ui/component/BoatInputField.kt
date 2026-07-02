@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.windrr.boat.ui.theme.ColorBrandPrimary
@@ -47,6 +48,7 @@ fun BoatInputField(
     errorText: String? = null,
     enabled: Boolean = true,
     keyboardType: KeyboardType = KeyboardType.Text,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
 ) {
     Column(modifier = modifier) {
         if (label != null) {
@@ -72,6 +74,7 @@ fun BoatInputField(
             placeholder = { Text(text = placeholder, color = ColorGray400, fontSize = 15.sp) },
             shape = RoundedLg, // 8dp
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            visualTransformation = visualTransformation,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = ColorBrandPrimary,
                 unfocusedBorderColor = ColorGray300,
