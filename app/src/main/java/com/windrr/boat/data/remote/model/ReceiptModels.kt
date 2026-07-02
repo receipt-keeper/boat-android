@@ -22,6 +22,7 @@ data class ReceiptItem(
     val periodMonths: Int?,
     val expiresOn: String?,
     val category: String?,
+    val subCategory: String?,
     val memo: String?,
     val requiresPhysicalReceipt: Boolean,
     val receiptFileIds: List<String>,
@@ -29,7 +30,7 @@ data class ReceiptItem(
     val warrantyDDay: Int?,
     val serialNumber: String?,
     val supportUrl: String?,
-    val registeredAt: String,
+    val registeredAt: String?,
 )
 
 data class ReceiptPagination(

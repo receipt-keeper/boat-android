@@ -22,6 +22,7 @@ data class OcrData(
     @SerializedName("period_months")    val periodMonths: Int? = null,
     @SerializedName("expires_on")       val expiresOn: String? = null,
     @SerializedName("category")         val category: String? = null,
+    @SerializedName("sub_category")     val subCategory: String? = null,
     @SerializedName("needs_review")     val needsReview: Boolean = false,
     @SerializedName("warnings")         val warnings: List<String> = emptyList(),
 ) : Serializable

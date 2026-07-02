@@ -214,7 +214,9 @@ fun ReceiptManualInputScreen(
     }
 
     // ── 폼 상태 ──────────────────────────────────────────
-    var selectedCategory    by remember { mutableStateOf(ocrData?.category?.let { c -> DeviceCategory.entries.find { it.name == c } }) }
+    var selectedCategory    by remember { mutableStateOf(ocrData?.category?.let { c -> DeviceCategory.entries.find { it.displayName == c } }) }
+    // 소분류는 입력 UI가 없지만, OCR이 내려준 값을 그대로 등록 요청까지 보존해야 한다
+    val subCategory         = remember(ocrData) { ocrData?.subCategory }
     var productName         by remember { mutableStateOf(ocrData?.itemName.orEmpty()) }
     var purchaseDate        by remember { mutableStateOf(ocrData?.paymentDate?.normalizeDate().orEmpty()) }
     var selectedWarranty    by remember { mutableStateOf(initWarrantyIdx) }
@@ -269,7 +271,7 @@ fun ReceiptManualInputScreen(
                         totalAmount = price.toIntOrNull(),
                         periodMonths = warrantyMonths,
                         category = selectedCategory?.displayName,
-                        subCategory = null,
+                        subCategory = subCategory,
                         memo = memo.trim().ifBlank { null },
                         requiresPhysicalReceipt = keepReceipt,
                         receiptFileIds = fileIds,

@@ -19,6 +19,7 @@ data class ReceiptEntity(
     val periodMonths: Int?,
     val expiresOn: String?,
     val category: String?,
+    val subCategory: String?,
     val memo: String?,
     val requiresPhysicalReceipt: Boolean,
     val receiptFileIds: List<String>,
@@ -26,7 +27,7 @@ data class ReceiptEntity(
     val warrantyDDay: Int?,
     val serialNumber: String?,
     val supportUrl: String?,
-    val registeredAt: String,
+    val registeredAt: String?,
 )
 
 fun ReceiptEntity.toItem(): ReceiptItem = ReceiptItem(
@@ -39,6 +40,7 @@ fun ReceiptEntity.toItem(): ReceiptItem = ReceiptItem(
     periodMonths = periodMonths,
     expiresOn = expiresOn,
     category = category,
+    subCategory = subCategory,
     memo = memo,
     requiresPhysicalReceipt = requiresPhysicalReceipt,
     receiptFileIds = receiptFileIds,
@@ -59,6 +61,7 @@ fun ReceiptItem.toEntity(): ReceiptEntity = ReceiptEntity(
     periodMonths = periodMonths,
     expiresOn = expiresOn,
     category = category,
+    subCategory = subCategory,
     memo = memo,
     requiresPhysicalReceipt = requiresPhysicalReceipt,
     receiptFileIds = receiptFileIds,

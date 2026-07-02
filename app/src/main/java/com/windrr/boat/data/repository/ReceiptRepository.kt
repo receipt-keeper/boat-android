@@ -105,5 +105,5 @@ private fun List<ReceiptItem>.sortedBy(sort: String): List<ReceiptItem> = when (
     "expiresOn"    -> sortedBy { it.expiresOn ?: "9999-99-99" }
     // 구매일 내림차순 — 값 없으면(빈 문자열) 맨 뒤로
     "purchaseDate" -> sortedByDescending { it.paymentDate ?: "" }
-    else           -> sortedByDescending { it.registeredAt }  // "recent"
+    else           -> sortedByDescending { it.registeredAt ?: "" }  // "recent" — 값 없으면 맨 뒤로
 }
