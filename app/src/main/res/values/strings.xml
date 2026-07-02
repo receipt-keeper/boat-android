@@ -62,7 +62,8 @@
     <string name="token_empty_image">임시</string>
     <string name="token_empty_title">영수증 무료 분석\n횟수를 다 쓰셨네요!</string>
     <string name="token_empty_subtitle">오픈 기념으로 무료 연장을 드려요.</string>
-    <string name="token_empty_recharge">3회 무료로 충전하기</string>
+    <string name="token_empty_recharge">5회 무료로 충전하기</string>
+    <string name="token_empty_recharge_failed">충전에 실패했어요.\n잠시 후 다시 시도해 주세요.</string>
     <string name="token_empty_manual">영수증 직접 입력하기</string>
     <string name="token_empty_later">다음에 할게요</string>
 
@@ -171,6 +172,7 @@
     <string name="loading_sync_message">잠시만 기다려 주세요.</string>
     <string name="loading_ocr_message">영수증을 분석하는 중이에요.</string>
     <string name="loading_register_message">영수증을 등록하는 중이에요.</string>
+    <string name="loading_recharge_message">무료 분석 횟수를 충전하는 중이에요.</string>
     <string name="receipt_register_done_failed">영수증 등록에 실패했어요.\n잠시 후 다시 시도해 주세요.</string>
 
     <!-- Error -->

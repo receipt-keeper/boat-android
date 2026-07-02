@@ -108,6 +108,7 @@ fun ReceiptRegisterScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     autoLaunch: String? = null,
+    onUsageChanged: () -> Unit = {},
     galleryViewModel: GalleryViewModel = viewModel(),
 ) {
     val galleryState by galleryViewModel.state.collectAsState()
@@ -126,6 +127,28 @@ fun ReceiptRegisterScreen(
     var isAnalyzing by rememberSaveable { mutableStateOf(false) }
     // OCR 분석 실패 여부 — 실패 시 각 썸네일에 에러 오버레이 표시
     var isAnalysisFailed by rememberSaveable { mutableStateOf(false) }
+    // 테스트 크레딧 충전 진행 중 여부 (버튼 중복 클릭 방지 + 로딩 오버레이)
+    var isRecharging by rememberSaveable { mutableStateOf(false) }
+
+    // TODO: 정식 충전/이벤트 지급 API가 나오면 이 임시 example API 호출을 교체해야 한다.
+    // 무료 분석 크레딧 소진 시 테스트용 5회 재지급 → 성공하면 usage API로 잔여 횟수/분석 가능 여부 갱신
+    fun rechargeOcrTestCredits() {
+        if (isRecharging) return
+        scope.launch {
+            isRecharging = true
+            runCatching {
+                ApiClient.exampleApiService.grantOcrTestCredits()
+            }.onSuccess {
+                isRecharging = false
+                showNoTokenSheet = false
+                onUsageChanged()
+            }.onFailure { e ->
+                isRecharging = false
+                BoatLog.e("OCR 테스트 크레딧 충전 실패", e)
+                toastState.showError(context.getString(R.string.token_empty_recharge_failed))
+            }
+        }
+    }
 
     // 영수증 OCR 분석 호출 → 성공 시 결과 화면, 실패 시 실패 시트
     fun analyzeReceipt() {
@@ -347,12 +370,15 @@ fun ReceiptRegisterScreen(
         if (isAnalyzing) {
             SyncLoadingOverlay(message = stringResource(R.string.loading_ocr_message))
         }
+        if (isRecharging) {
+            SyncLoadingOverlay(message = stringResource(R.string.loading_recharge_message))
+        }
     }
 
     if (showNoTokenSheet) {
         NoTokenBottomSheet(
             onDismiss = { showNoTokenSheet = false },
-            onRecharge = { showNoTokenSheet = false /* TODO: 무료 충전 */ },
+            onRecharge = { rechargeOcrTestCredits() },
             onManualInput = {
                 showNoTokenSheet = false
                 context.startActivity(ReceiptManualInputActivity.intent(context, photos))
