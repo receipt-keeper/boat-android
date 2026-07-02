@@ -2,6 +2,7 @@ package com.windrr.boat.feature.receipt
 
 import android.content.Intent
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -59,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.windrr.boat.R
+import com.windrr.boat.core.ocr.DeviceImage
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.remote.model.ReceiptItem
 import com.windrr.boat.ui.component.BoatFilterChip
@@ -241,7 +243,11 @@ private fun ReceiptCard(item: ReceiptItem) {
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                ReceiptItemThumbnail(imageUrl = item.imageUrl)
+                ReceiptItemThumbnail(
+                    imageUrl = item.imageUrl,
+                    category = item.category,
+                    subCategory = item.subCategory,
+                )
 
                 Column(
                     modifier = Modifier.weight(1f),
@@ -339,9 +345,16 @@ private fun ReceiptCard(item: ReceiptItem) {
     }
 }
 
-/** 영수증 대표 이미지 썸네일 (56x56). imageUrl 없으면 아이콘 placeholder. */
+/**
+ * 영수증 대표 이미지 썸네일 (56x56).
+ * imageUrl(사용자 업로드 사진)이 있으면 그 이미지를, 없으면 카테고리/기기 기본 이미지를 표시.
+ */
 @Composable
-private fun ReceiptItemThumbnail(imageUrl: String?) {
+private fun ReceiptItemThumbnail(
+    imageUrl: String?,
+    category: String?,
+    subCategory: String?,
+) {
     val resolvedUrl = imageUrl?.let {
         if (it.startsWith("http")) it
         else "${ApiClient.BASE_URL_PROD}${it.trimStart('/')}"
@@ -361,11 +374,11 @@ private fun ReceiptItemThumbnail(imageUrl: String?) {
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
-            Icon(
-                painter = painterResource(R.drawable.ic_gallery),
+            // 업로드 이미지가 없으면 카테고리/기기 기본 이미지로 폴백
+            Image(
+                painter = painterResource(DeviceImage.resolve(category, subCategory)),
                 contentDescription = null,
-                tint = ColorGray400,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.fillMaxSize(),
             )
         }
     }

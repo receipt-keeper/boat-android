@@ -31,6 +31,6 @@ enum class DeviceCategory(val displayName: String) {
     KITCHEN("주방 가전"),
     LAUNDRY("세탁/청소"),
     LIVING("리빙/냉난방"),
-    IT("IT 기기"),
-    OTHER("기타 기기")
+    IT("IT 제품"),
+    OTHER("기타 제품")
 }

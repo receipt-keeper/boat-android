@@ -101,11 +101,12 @@ private fun ReceiptSort.toApiSort() = when (this) {
     ReceiptSort.PURCHASE                    -> "purchaseDate"
 }
 
+// 서버 category 문자열과 정확히 일치해야 필터가 걸린다 (등록/OCR과 동일한 가이드 기준 문자열)
 private fun ReceiptFilter.toApiCategory(): String? = when (this) {
     ReceiptFilter.ALL     -> null
-    ReceiptFilter.IT      -> "영상/IT 제품"
+    ReceiptFilter.IT      -> "IT 제품"
     ReceiptFilter.LAUNDRY -> "세탁/청소"
-    ReceiptFilter.KITCHEN -> "주방가전"
+    ReceiptFilter.KITCHEN -> "주방 가전"
     ReceiptFilter.LIVING  -> "리빙/냉난방"
-    ReceiptFilter.OTHER   -> "기타"
+    ReceiptFilter.OTHER   -> "기타 제품"
 }
