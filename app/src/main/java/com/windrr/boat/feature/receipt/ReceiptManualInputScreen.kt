@@ -5,6 +5,8 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -75,6 +77,7 @@ import coil3.compose.AsyncImage
 import com.windrr.boat.R
 import com.windrr.boat.core.log.BoatLog
 import com.windrr.boat.core.ocr.DeviceCategory
+import com.windrr.boat.core.ocr.DeviceImage
 import com.windrr.boat.core.util.toMultipartPart
 import com.windrr.boat.data.remote.model.CreateReceiptRequest
 import com.windrr.boat.data.remote.model.OcrData
@@ -88,6 +91,9 @@ import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.PriceVisualTransformation
 import com.windrr.boat.ui.component.SyncLoadingOverlay
 import com.windrr.boat.ui.component.rememberBoatToastState
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandQuinary
@@ -258,8 +264,11 @@ fun ReceiptManualInputScreen(
         if (isSubmitting || !canSubmit) return
         scope.launch {
             isSubmitting = true
-            // 1) 첨부 이미지 업로드 → fileId 수집
-            val parts = photos.map { it.toMultipartPart(context, "files") }
+            // 1) 첨부 이미지 업로드 → fileId 수집 (병렬로 읽어 지연 최소화)
+            val parts = coroutineScope {
+                photos.map { uri -> async { uri.toMultipartPart(context, "files") } }
+                    .awaitAll()
+            }
             repository.uploadFiles(parts).fold(
                 onSuccess = { fileIds ->
                     // 2) 입력값 + fileId로 영수증 생성
@@ -413,6 +422,7 @@ fun ReceiptManualInputScreen(
                     DeviceCategory.entries.forEach { cat ->
                         CategoryItem(
                             label = cat.displayName,
+                            iconRes = DeviceImage.categoryDefault(cat),
                             selected = selectedCategory == cat,
                             onClick = { selectedCategory = cat },
                             modifier = Modifier.weight(1f),
@@ -805,6 +815,7 @@ private fun WarrantyUnitChip(label: String, selected: Boolean, onClick: () -> Un
 @Composable
 private fun CategoryItem(
     label: String,
+    @DrawableRes iconRes: Int,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -821,7 +832,14 @@ private fun CategoryItem(
                 .then(
                     if (selected) Modifier.border(1.5.dp, ColorBrandPrimary, RoundedXl) else Modifier
                 ),
-        )
+            contentAlignment = Alignment.Center,
+        ) {
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(40.dp),
+            )
+        }
         Spacer(Modifier.height(6.dp))
         Text(
             text = label,

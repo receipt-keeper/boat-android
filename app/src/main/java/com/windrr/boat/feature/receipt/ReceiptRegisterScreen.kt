@@ -65,6 +65,9 @@ import coil3.compose.AsyncImage
 import androidx.compose.runtime.rememberCoroutineScope
 import com.windrr.boat.core.log.BoatLog
 import com.windrr.boat.data.remote.ApiClient
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -131,7 +134,11 @@ fun ReceiptRegisterScreen(
             isAnalyzing = true
             isAnalysisFailed = false
             runCatching {
-                val parts = photos.map { it.toMultipartPart(context, "file") }
+                // 여러 장을 병렬로 읽어 업로드 시작까지의 지연(=토큰 만료 위험)을 최소화
+                val parts = coroutineScope {
+                    photos.map { uri -> async { uri.toMultipartPart(context, "file") } }
+                        .awaitAll()
+                }
                 ApiClient.ocrApiService.analyze(parts)
             }.onSuccess { response ->
                 isAnalyzing = false
@@ -302,36 +309,6 @@ fun ReceiptRegisterScreen(
                     label = R.string.receipt_register_gallery,
                     onClick = { onPickFromGallery() },
                 )
-
-                Spacer(Modifier.height(Margin12))
-                // [임시 테스트] 파일 업로드 버튼 — 연동 확인 후 제거
-                Button(
-                    onClick = {
-                        scope.launch {
-                            try {
-                                val parts = photos.map { it.toMultipartPart(context, "files") }
-                                val response = ApiClient.fileApiService.uploadFiles(parts)
-                                val ids = response.data.files.joinToString { it.fileId.takeLast(8) }
-                                toastState.show("업로드 성공 (${response.data.files.size}개): $ids")
-                            } catch (e: Exception) {
-                                toastState.showError("업로드 실패: ${e.message}")
-                            }
-                        }
-                    },
-                    enabled = photos.isNotEmpty(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedXl,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ColorGray500,
-                        contentColor = ColorWhite,
-                        disabledContainerColor = ColorGray200,
-                        disabledContentColor = ColorGray500,
-                    ),
-                ) {
-                    Text(text = "파일 업로드 (테스트)", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                }
 
                 Spacer(Modifier.height(Margin24))
                 Button(

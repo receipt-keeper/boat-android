@@ -4,6 +4,8 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.core.content.FileProvider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -57,17 +59,22 @@ fun Context.createImageCaptureUri(): Uri {
  * content URI를 멀티파트 업로드용 [MultipartBody.Part]로 변환.
  * MIME 타입과 표시 이름(DISPLAY_NAME)을 조회해 채운다.
  *
+ * 디스크/ContentProvider I/O(readBytes)가 포함되어 있어 Dispatchers.IO에서 실행한다.
+ * 호출부가 rememberCoroutineScope() 등 메인 스레드 기반 스코프여도 이 함수 자체가
+ * 안전하게 IO로 전환하므로 UI 프리징 없이, 또 토큰 만료 전에 더 빨리 업로드를 시작할 수 있다.
+ *
  * @param fieldName 서버가 기대하는 form-data field 이름
  */
-fun Uri.toMultipartPart(context: Context, fieldName: String): MultipartBody.Part {
-    val resolver = context.contentResolver
-    val mimeType = resolver.getType(this) ?: "image/jpeg"
-    var fileName = "file.jpg"
-    resolver.query(this, null, null, null, null)?.use { cursor ->
-        val col = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-        if (col != -1 && cursor.moveToFirst()) fileName = cursor.getString(col)
+suspend fun Uri.toMultipartPart(context: Context, fieldName: String): MultipartBody.Part =
+    withContext(Dispatchers.IO) {
+        val resolver = context.contentResolver
+        val mimeType = resolver.getType(this@toMultipartPart) ?: "image/jpeg"
+        var fileName = "file.jpg"
+        resolver.query(this@toMultipartPart, null, null, null, null)?.use { cursor ->
+            val col = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (col != -1 && cursor.moveToFirst()) fileName = cursor.getString(col)
+        }
+        val bytes = resolver.openInputStream(this@toMultipartPart)!!.use { it.readBytes() }
+        val body = bytes.toRequestBody(mimeType.toMediaType())
+        MultipartBody.Part.createFormData(fieldName, fileName, body)
     }
-    val bytes = resolver.openInputStream(this)!!.use { it.readBytes() }
-    val body = bytes.toRequestBody(mimeType.toMediaType())
-    return MultipartBody.Part.createFormData(fieldName, fileName, body)
-}

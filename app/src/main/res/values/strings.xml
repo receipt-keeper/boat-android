@@ -107,11 +107,11 @@
     <string name="receipt_tab_expiring">만료예정</string>
     <string name="receipt_tab_expired">만료</string>
     <string name="receipt_filter_all">전체</string>
-    <string name="receipt_filter_it">영상/IT 제품</string>
+    <string name="receipt_filter_it">IT 제품</string>
     <string name="receipt_filter_laundry">세탁/청소</string>
-    <string name="receipt_filter_kitchen">주방가전</string>
+    <string name="receipt_filter_kitchen">주방 가전</string>
     <string name="receipt_filter_living">리빙/냉난방</string>
-    <string name="receipt_filter_other">기타</string>
+    <string name="receipt_filter_other">기타 제품</string>
     <string name="receipt_sort_default">기본 순</string>
     <string name="receipt_sort_expiring">만료 임박 순</string>
     <string name="receipt_sort_recent">최근 등록 순</string>
