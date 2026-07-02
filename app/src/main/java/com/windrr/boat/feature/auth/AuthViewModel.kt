@@ -219,7 +219,7 @@ class AuthViewModel(
 
                 is AuthIntent.DeleteAccount -> {
                     _state.update { it.copy(isLoading = true, error = null) }
-                    val result = runCatching { ApiClient.authApiService.deleteAccount() }
+                    val result = runCatching { ApiClient.userApiService.deleteAccount() }
                     val response = result.getOrNull()
                     if (response != null && response.isSuccessful) {
                         // 서버 계정 삭제 성공(204) → 로컬 세션/토큰/사용자정보 정리 → 로그인 화면 복귀

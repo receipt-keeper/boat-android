@@ -6,7 +6,6 @@ import com.windrr.boat.data.remote.model.RefreshRequest
 import com.windrr.boat.data.remote.model.SignupRequest
 import retrofit2.Response
 import retrofit2.http.Body
-import retrofit2.http.DELETE
 import retrofit2.http.POST
 
 interface AuthApiService {
@@ -33,11 +32,4 @@ interface AuthApiService {
      */
     @POST("api/v1/auth/logout")
     suspend fun logout(@Body request: RefreshRequest): Response<Unit>
-
-    /**
-     * 회원 탈퇴. 인증/사용자 데이터를 한 트랜잭션에서 삭제하고 성공 시 204, 실패 시 전체 롤백한다.
-     * AccessToken(Bearer)은 TokenInterceptor가 자동 주입한다. 본문 없음.
-     */
-    @DELETE("api/v1/auth/me")
-    suspend fun deleteAccount(): Response<Unit>
 }
