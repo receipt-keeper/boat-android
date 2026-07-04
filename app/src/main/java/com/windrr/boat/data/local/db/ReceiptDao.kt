@@ -19,6 +19,10 @@ interface ReceiptDao {
     @Query("SELECT * FROM receipts")
     suspend fun getAll(): List<ReceiptEntity>
 
+    /** 오프라인 폴백용 — 단건 캐시 조회 */
+    @Query("SELECT * FROM receipts WHERE receiptId = :receiptId")
+    suspend fun getById(receiptId: String): ReceiptEntity?
+
     @Query("DELETE FROM receipts WHERE receiptId = :receiptId")
     suspend fun deleteById(receiptId: String)
 

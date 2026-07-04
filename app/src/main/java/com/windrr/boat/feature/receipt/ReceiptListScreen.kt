@@ -236,6 +236,11 @@ fun ReceiptListScreen(
                             items(state.receipts, key = { it.receiptId }) { item ->
                                 ReceiptCard(
                                     item = item,
+                                    onClick = {
+                                        context.startActivity(
+                                            ReceiptDetailActivity.intent(context, item.receiptId)
+                                        )
+                                    },
                                     onDelete = {
                                         viewModel.handleIntent(ReceiptListIntent.DeleteReceipt(item.receiptId))
                                     },
@@ -254,9 +259,11 @@ fun ReceiptListScreen(
 // ── 영수증 카드 ───────────────────────────────────────────────────────────────
 
 @Composable
-private fun ReceiptCard(item: ReceiptItem, onDelete: () -> Unit) {
+private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onDelete: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         shape = RoundedXl,
         colors = CardDefaults.cardColors(containerColor = ColorWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),

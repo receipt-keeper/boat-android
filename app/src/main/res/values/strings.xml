@@ -122,6 +122,18 @@
     <string name="receipt_list_retry">다시 시도</string>
     <string name="receipt_delete">삭제하기</string>
     <string name="receipt_delete_failed">영수증 삭제에 실패했어요.\n잠시 후 다시 시도해 주세요.</string>
+    <string name="receipt_expired">만료</string>
+
+    <!-- 영수증 상세 -->
+    <string name="receipt_detail_edit">수정</string>
+    <string name="receipt_detail_expiry">무상 AS 만료일</string>
+    <string name="receipt_detail_load_failed">영수증을 불러오지 못했어요.</string>
+    <string name="receipt_detail_memo_empty">등록된 메모가 없습니다.</string>
+    <string name="receipt_detail_physical_title">실물 영수증 필요</string>
+    <string name="receipt_detail_physical_desc">AS 센터 방문 시, 실물 영수증을 꼭 지참하세요!</string>
+    <string name="receipt_detail_original">원본 영수증</string>
+    <string name="receipt_detail_original_empty">첨부된 원본 영수증이 없습니다.</string>
+    <string name="receipt_detail_support_cta">공식 AS 센터에서 접수하기</string>
 
     <!-- 마이페이지 -->
     <string name="mypage_title">마이페이지</string>

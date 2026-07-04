@@ -3,6 +3,7 @@ package com.windrr.boat.data.remote
 import com.windrr.boat.data.remote.model.CreateReceiptRequest
 import com.windrr.boat.data.remote.model.CreateReceiptResponse
 import com.windrr.boat.data.remote.model.DeleteReceiptResponse
+import com.windrr.boat.data.remote.model.ReceiptDetailResponse
 import com.windrr.boat.data.remote.model.ReceiptListResponse
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -26,6 +27,10 @@ interface ReceiptApiService {
      */
     @DELETE("api/v1/receipts/{receipt_id}")
     suspend fun deleteReceipt(@Path("receipt_id") receiptId: String): DeleteReceiptResponse
+
+    /** 영수증 상세 조회 — 제품명/구매일/무상 AS 기간/메모/첨부 이미지 등 전체 필드 반환. */
+    @GET("api/v1/receipts/{receipt_id}")
+    suspend fun getReceiptDetail(@Path("receipt_id") receiptId: String): ReceiptDetailResponse
 
     /**
      * 영수증 목록 조회 (커서 기반 페이징)

@@ -84,6 +84,20 @@ class ReceiptRepository(
         receiptApi.deleteReceipt(receiptId)
         dao.deleteById(receiptId)
     }
+
+    /**
+     * 영수증 상세 조회. 온라인이면 서버 결과를 로컬 캐시에 반영 후 반환하고,
+     * 실패(오프라인)하면 로컬 캐시에서 단건 반환한다.
+     */
+    suspend fun getReceiptDetail(receiptId: String): Result<ReceiptItem> {
+        return runCatching {
+            val item = receiptApi.getReceiptDetail(receiptId).data
+            dao.upsert(item.toEntity())
+            item
+        }.recoverCatching { error ->
+            dao.getById(receiptId)?.toItem() ?: throw error
+        }
+    }
 }
 
 // ── 오프라인 로컬 필터/정렬 ─────────────────────────────────────────────────────

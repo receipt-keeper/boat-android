@@ -39,3 +39,10 @@ data class ReceiptPagination(
     val nextCursor: String?,
     val totalCount: Int,
 )
+
+/** 영수증 상세 조회 응답 — data는 목록 아이템과 동일 형태(camelCase). */
+data class ReceiptDetailResponse(
+    val success: Boolean,
+    val status: Int,
+    val data: ReceiptItem,
+)
