@@ -67,6 +67,7 @@ import com.windrr.boat.ui.component.BoatFilterChip
 import com.windrr.boat.ui.component.BoatHeader
 import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.rememberBoatToastState
+import com.windrr.boat.ui.theme.BottomBarClearance
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorGray100
 import com.windrr.boat.ui.theme.ColorGray200
@@ -223,7 +224,13 @@ fun ReceiptListScreen(
                     else -> {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(horizontal = Margin20, vertical = 12.dp),
+                            // 플로팅 하단 바에 가려지지 않도록 하단 여백을 넉넉히 확보
+                            contentPadding = PaddingValues(
+                                start = Margin20,
+                                end = Margin20,
+                                top = 12.dp,
+                                bottom = BottomBarClearance,
+                            ),
                             verticalArrangement = Arrangement.spacedBy(Margin12),
                         ) {
                             items(state.receipts, key = { it.receiptId }) { item ->

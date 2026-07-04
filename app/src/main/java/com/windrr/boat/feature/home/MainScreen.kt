@@ -5,24 +5,22 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import com.windrr.boat.R
 import com.windrr.boat.feature.mypage.MyPageScreen
 import com.windrr.boat.feature.receipt.ReceiptListScreen
@@ -49,6 +47,8 @@ fun MainScreen(
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+    // 플로팅 바가 뒤 콘텐츠를 실시간 블러(글래스모피즘)로 샘플링하기 위한 상태
+    val hazeState = rememberHazeState()
     var showAddMenu by remember { mutableStateOf(false) }
     // 홈 → 목록 탭 진입 시 적용할 inner 탭/정렬 1회성 신호
     var pendingListTab by remember { mutableStateOf<ReceiptTab?>(null) }
@@ -101,28 +101,14 @@ fun MainScreen(
     Box(Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = systemBackground,
-            bottomBar = { if (currentRoute != "search") BoatBottomBar(navController) },
-            floatingActionButton = {
-                // 홈/목록 탭에서 영수증 등록 FAB 노출 (마이 탭 제외)
-                if (currentRoute == MainTab.HOME.route || currentRoute == MainTab.LIST.route) {
-                    FloatingActionButton(
-                        onClick = { showAddMenu = true },
-                        containerColor = ColorGray900,
-                        contentColor = ColorWhite,
-                        shape = CircleShape,
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_plus),
-                            contentDescription = stringResource(R.string.receipt_add),
-                        )
-                    }
-                }
-            },
         ) { innerPadding ->
             NavHost(
                 navController = navController,
                 startDestination = MainTab.START.route,
-                modifier = Modifier.padding(innerPadding),
+                // 이 콘텐츠가 하단 플로팅 바의 블러 소스가 된다
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .hazeSource(state = hazeState),
             ) {
                 composable(MainTab.LIST.route) {
                     ReceiptListScreen(
@@ -164,6 +150,17 @@ fun MainScreen(
                     )
                 }
             }
+        }
+
+        // 플로팅 글래스모피즘 하단 바 — 검색 화면에서는 숨김, 콘텐츠는 이 바 아래로 그대로 스크롤됨
+        if (currentRoute != "search") {
+            BoatFloatingBottomBar(
+                navController = navController,
+                hazeState = hazeState,
+                showAddButton = currentRoute == MainTab.HOME.route || currentRoute == MainTab.LIST.route,
+                onAddClick = { showAddMenu = true },
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
         }
 
         if (showAddMenu) {

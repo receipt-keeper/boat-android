@@ -42,6 +42,7 @@ import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatHeader
 import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.rememberBoatToastState
+import com.windrr.boat.ui.theme.BottomBarClearance
 import com.windrr.boat.ui.theme.ColorBrandSenary
 import com.windrr.boat.ui.theme.ColorGray200
 import com.windrr.boat.ui.theme.ColorGray500
@@ -161,11 +162,11 @@ fun MyPageScreen(
 
         Spacer(Modifier.weight(1f))
 
-        // 로그아웃 | 회원탈퇴
+        // 로그아웃 | 회원탈퇴 — 플로팅 하단 바에 가려지지 않도록 여백 확보
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 24.dp),
+                .padding(bottom = BottomBarClearance),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {

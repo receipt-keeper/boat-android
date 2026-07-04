@@ -20,6 +20,7 @@ navigation = "2.9.8"              # 2.7.7 → 2.9.8
 accompanist = "0.37.3"            # 0.34.0 → 0.37.3
 playServicesAuth = "21.3.0"       # 최신 유지
 lottie = "6.6.6"                  # Lottie Compose
+haze = "1.7.2"                    # 글래스모피즘 backdrop blur (실블러 API 31+, 미만은 반투명 폴백)
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,6 +46,8 @@ navigation-compose = { group = "androidx.navigation", name = "navigation-compose
 # Accompanist
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
+haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
+haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
 
 # Google Sign-In
 play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }

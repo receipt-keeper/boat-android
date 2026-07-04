@@ -52,6 +52,7 @@ import com.windrr.boat.ui.theme.ColorGray500
 import com.windrr.boat.ui.theme.ColorGray600
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
+import com.windrr.boat.ui.theme.BottomBarClearance
 import com.windrr.boat.ui.theme.Margin8
 import com.windrr.boat.ui.theme.Margin12
 import com.windrr.boat.ui.theme.Margin16
@@ -177,7 +178,8 @@ fun HomeGeneralContent(
                 )
             }
         }
-        Spacer(Modifier.height(Margin16))
+        // 플로팅 하단 바에 가려지지 않도록 여유 있게 확보
+        Spacer(Modifier.height(BottomBarClearance))
     }
 }
 
