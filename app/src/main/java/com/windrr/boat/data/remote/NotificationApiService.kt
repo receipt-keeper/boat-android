@@ -34,14 +34,15 @@ interface NotificationApiService {
     ): NotificationSettingsResponse
 
     /**
-     * FCM 디바이스 등록 — 로그인 사용자의 디바이스를 FID로 멱등 upsert. 성공 시 204(본문 없음).
+     * FCM 디바이스 등록 — 로그인 사용자의 디바이스를 FCM registration token으로 멱등 upsert.
+     * 성공 시 204(본문 없음).
      */
     @PUT("api/v1/notifications/devices")
     suspend fun registerDevice(@Body request: RegisterDeviceRequest): Response<Unit>
 
     /**
-     * FCM 디바이스 해제 — FID 기준. 로그아웃 전에 호출. 미등록 fid여도 멱등하게 204.
+     * FCM 디바이스 해제 — FCM registration token 기준. 로그아웃 전에 호출. 미등록 token이어도 멱등하게 204.
      */
-    @DELETE("api/v1/notifications/devices/{fid}")
-    suspend fun unregisterDevice(@Path("fid") fid: String): Response<Unit>
+    @DELETE("api/v1/notifications/devices/{token}")
+    suspend fun unregisterDevice(@Path("token") token: String): Response<Unit>
 }

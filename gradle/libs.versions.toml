@@ -1,6 +1,6 @@
 [versions]
 agp = "8.11.2"                    # 9.x는 Gradle 9+ 필요 — 유지
-firebaseBom = "34.14.0"           # 33.x → 34.14.0 (Kotlin 2.3+ 지원으로 업그레이드)
+firebaseBom = "34.15.0"           # 34.14.0 → 34.15.0 (FCM fid 발송 대응 — messaging 25.1.0)
 kotlin = "2.3.20"                 # 2.0.21 → 2.3.20 (의존성이 2.3.x 요구)
 ksp = "2.3.9"                     # 2.3.x부터 포맷 변경: {kotlin}-{patch} → 단일 버전
 coreKtx = "1.15.0"               # 1.16.0+ 는 compileSdk 36+ 필요 확인 필요 — 유지
