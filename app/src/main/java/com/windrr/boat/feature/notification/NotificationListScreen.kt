@@ -1,11 +1,15 @@
 package com.windrr.boat.feature.notification
 
+import android.content.Intent
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -13,32 +17,56 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.windrr.boat.R
+import com.windrr.boat.feature.receipt.ReceiptDetailActivity
+import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
+import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorGray50
+import com.windrr.boat.ui.theme.ColorGray500
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin20
 
 /**
  * 알림 목록 화면 — 상단 헤더의 종 아이콘으로 진입.
- * 사용자가 확인하기 전까지 알림을 목록에 보관해 보여준다.
+ * 서버(GET /notifications)에서 읽지 않은 알림을 조회해 보여준다.
+ * 카드 탭 시 읽음 처리(PATCH) 후 리스트에서 제거하고, resourceType 기준으로 화면 이동한다.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationListScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    viewModel: NotificationListViewModel = viewModel(),
 ) {
-    // TODO: 실제 알림 데이터 연동 (현재는 임시 데이터)
-    val notifications = remember { sampleNotifications() }
+    val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) { viewModel.load() }
+
+    // 앱이 처리할 수 있는 resourceType만 라우팅, 그 외/없음은 목록에 머문다.
+    fun route(item: AppNotification) {
+        when {
+            item.resourceType == "receipt" && !item.resourceId.isNullOrBlank() ->
+                context.startActivity(ReceiptDetailActivity.intent(context, item.resourceId))
+            item.kind == "registration_prompt" ->
+                context.startActivity(ReceiptRegisterActivity.intent(context))
+            // 그 외: 특정 리소스를 가리키지 않는 알림 → 목록에 머무름(별도 이동 없음)
+        }
+    }
 
     Scaffold(
         containerColor = ColorGray50,
@@ -65,38 +93,35 @@ fun NotificationListScreen(
             )
         },
     ) { innerPadding ->
-        LazyColumn(
+        Box(
             modifier = modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentPadding = PaddingValues(horizontal = Margin20, vertical = 16.dp),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            items(notifications, key = { it.id }) { notification ->
-                NotificationItem(notification = notification, onClick = { /* TODO: 알림 상세/확인 처리 */ })
+            when {
+                state.isLoading -> CircularProgressIndicator(color = ColorBrandPrimary)
+                state.notifications.isEmpty() -> Text(
+                    text = stringResource(R.string.notif_list_empty),
+                    fontSize = 15.sp,
+                    color = ColorGray500,
+                )
+                else -> LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = Margin20, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    items(state.notifications, key = { it.id }) { notification ->
+                        NotificationItem(
+                            notification = notification,
+                            onClick = {
+                                viewModel.onNotificationClicked(notification)
+                                route(notification)
+                            },
+                        )
+                    }
+                }
             }
         }
     }
 }
-
-/** 임시 알림 데이터 3개 (디자인 확인용) */
-private fun sampleNotifications(): List<AppNotification> = listOf(
-    AppNotification(
-        id = 1,
-        productName = "IPad Pro 13",
-        message = "무상 AS 7일 남았어요! 일주일 뒤에는 무상 AS가 종료돼요.",
-        date = "2026.06.15",
-    ),
-    AppNotification(
-        id = 2,
-        productName = "IPad Pro 13",
-        message = "무상 AS 14일 남았어요! 기간이 지나기 전 영수증을 확인하세요.",
-        date = "2026.06.15",
-    ),
-    AppNotification(
-        id = 3,
-        productName = "IPad Pro 13",
-        message = "무상 AS 30일 남았어요! 만료 전 서비스 센터를 방문해보세요.",
-        date = "2026.06.15",
-    ),
-)

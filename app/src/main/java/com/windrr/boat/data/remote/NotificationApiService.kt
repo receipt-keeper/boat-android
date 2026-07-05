@@ -1,5 +1,7 @@
 package com.windrr.boat.data.remote
 
+import com.windrr.boat.data.remote.model.NotificationDetailResponse
+import com.windrr.boat.data.remote.model.NotificationListResponse
 import com.windrr.boat.data.remote.model.NotificationSettingsResponse
 import com.windrr.boat.data.remote.model.RegisterDeviceRequest
 import com.windrr.boat.data.remote.model.UpdateNotificationSettingsRequest
@@ -12,6 +14,17 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface NotificationApiService {
+
+    /** 알림 목록 조회 */
+    @GET("api/v1/notifications")
+    suspend fun getNotifications(): NotificationListResponse
+
+    /** 알림 읽음 처리 — 응답 data.readAt에 읽음 시각이 채워진다. */
+    @PATCH("api/v1/notifications/{notificationId}")
+    suspend fun markNotificationRead(
+        @Path("notificationId") notificationId: String,
+    ): NotificationDetailResponse
+
     @GET("api/v1/notifications/settings")
     suspend fun getNotificationSettings(): NotificationSettingsResponse
 

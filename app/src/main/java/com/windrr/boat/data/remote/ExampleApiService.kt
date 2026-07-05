@@ -2,6 +2,9 @@ package com.windrr.boat.data.remote
 
 import com.windrr.boat.data.remote.model.BaseResponse
 import com.windrr.boat.data.remote.model.OcrTestCreditsResponse
+import com.windrr.boat.data.remote.model.TestPushRequest
+import com.windrr.boat.data.remote.model.TestPushResponse
+import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 
@@ -17,4 +20,8 @@ interface ExampleApiService {
      */
     @POST("api/v1/example/ocr-test-credits")
     suspend fun grantOcrTestCredits(): OcrTestCreditsResponse
+
+    /** 로그인 사용자의 등록된 모든 디바이스로 테스트 푸시 발송 (연동 확인용 임시 API). */
+    @POST("api/v1/example/push")
+    suspend fun sendTestPush(@Body request: TestPushRequest): TestPushResponse
 }

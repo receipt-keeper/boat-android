@@ -1,19 +1,51 @@
 package com.windrr.boat.feature.notification
 
+import com.windrr.boat.data.remote.model.NotificationDto
+
 /**
- * 알림 목록 아이템 모델.
- * 사용자가 확인(클릭)하기 전까지 목록에 저장해 보여준다.
+ * 알림 목록 화면용 표시 모델.
  *
- * @property id           알림 식별자
- * @property productName  관련 제품명
- * @property message      알림 메시지
- * @property date         표시용 날짜 (예: "2026.06.15")
- * @property thumbnailUrl 제품 썸네일 URL (없으면 placeholder)
+ * 서버 [NotificationDto] → 이 모델로 매핑한다. 카드 표시(productName/message/date)와
+ * 탭 시 화면 라우팅(resourceType/resourceId/kind)에 필요한 값만 담는다.
+ * 별도 로컬 저장은 하지 않는다 — 목록/읽음 상태의 소스 오브 트루스는 서버다.
+ *
+ * @property id           notificationId (UUID)
+ * @property productName  metadata.productName (없으면 title 폴백)
+ * @property message      서버 message 문구
+ * @property date         createdAt → "yyyy.MM.dd"
+ * @property subCategory  metadata.subCategory — 썸네일 이미지 매핑용(DeviceImage)
+ * @property resourceType 참조 리소스 유형(없으면 null) — 라우팅 결정
+ * @property resourceId   참조 리소스 ID
+ * @property kind         알림 종류 이름표 — 특정 종류만 특별 라우팅할 때 사용
  */
 data class AppNotification(
-    val id: Long,
+    val id: String,
     val productName: String,
     val message: String,
     val date: String,
-    val thumbnailUrl: String? = null,
+    val subCategory: String? = null,
+    val resourceType: String? = null,
+    val resourceId: String? = null,
+    val kind: String? = null,
+)
+
+/** "2026-06-15T12:00:00" → "2026.06.15" */
+private fun String?.toDisplayDate(): String {
+    if (this.isNullOrBlank()) return ""
+    val datePart = substringBefore('T')
+    val parts = datePart.split("-")
+    return if (parts.size == 3) "${parts[0]}.${parts[1]}.${parts[2]}" else datePart
+}
+
+fun NotificationDto.toAppNotification(): AppNotification = AppNotification(
+    id = notificationId,
+    productName = metadata["productName"]?.takeIf { it.isNotBlank() }
+        ?: title?.takeIf { it.isNotBlank() }
+        ?: "알림",
+    message = message.orEmpty(),
+    date = createdAt.toDisplayDate(),
+    subCategory = metadata["subCategory"],
+    resourceType = resourceType,
+    resourceId = resourceId,
+    kind = kind,
 )
