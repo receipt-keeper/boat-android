@@ -20,6 +20,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.windrr.boat.MainActivity
 import com.windrr.boat.R
+import com.windrr.boat.core.notification.FcmDeviceManager
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.repository.AuthRepositoryImpl
 import com.windrr.boat.feature.auth.AuthIntent
@@ -56,6 +57,8 @@ class HomeActivity : ComponentActivity() {
 
                 // 메인 진입 시(앱 시작/로그인 성공 모두 이 화면을 거침) 서버에서 내 정보 동기화
                 LaunchedEffect(Unit) { authViewModel.syncUser() }
+                // FCM 디바이스(FID) 등록 — 로그인 상태에서 멱등 upsert (PUT /notifications/devices)
+                LaunchedEffect(Unit) { FcmDeviceManager.register() }
 
                 val toastState = rememberBoatToastState()
                 val msgBackExit = stringResource(R.string.home_back_exit)

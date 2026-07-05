@@ -87,6 +87,26 @@
             </intent-filter>
         </receiver>
 
+        <!-- FCM 수신 -->
+        <service
+            android:name=".core.notification.BoatFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- 앱이 백그라운드/종료 상태일 때 시스템이 자동 표시하는 알림의 기본 아이콘/색상 -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_color" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="general_push" />
+
         <!-- 카메라 촬영 임시 파일 공유용 FileProvider -->
         <provider
             android:name="androidx.core.content.FileProvider"

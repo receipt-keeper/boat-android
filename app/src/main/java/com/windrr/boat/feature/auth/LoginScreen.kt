@@ -81,6 +81,7 @@ fun LoginScreen(
     val msgAppleFail  = stringResource(R.string.login_error_apple)
 
     val googleSignInClient = remember {
+        BoatLog.i("[GOOGLE-0] GoogleSignInClient 생성 — webClientId=${webClientId.takeLast(12)}")
         GoogleSignIn.getClient(
             context,
             GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -94,11 +95,13 @@ fun LoginScreen(
     val googleLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
+        BoatLog.i("[GOOGLE-2] 계정 선택창 결과 resultCode=${result.resultCode} (RESULT_OK=${Activity.RESULT_OK})")
         if (result.resultCode == Activity.RESULT_OK) {
             try {
                 val account = GoogleSignIn
                     .getSignedInAccountFromIntent(result.data)
                     .getResult(ApiException::class.java)
+                BoatLog.i("[GOOGLE-3] 계정 획득 성공 — email=${account.email}, idToken=${if (account.idToken != null) "있음(len=${account.idToken!!.length})" else "null!!"}")
                 account.idToken?.let {
                     viewModel.handleIntent(
                         AuthIntent.SignInWithGoogle(
@@ -107,32 +110,43 @@ fun LoginScreen(
                             displayName = account.displayName,
                         )
                     )
-                }
+                } ?: BoatLog.e("[GOOGLE-3-FAIL] idToken이 null — requestIdToken(webClientId) 설정/SHA-1 등록 확인 필요")
             } catch (e: ApiException) {
                 when (e.statusCode) {
-                    12501 -> toastState.showError(msgCancelled)
+                    12501 -> {
+                        BoatLog.i("[GOOGLE-2-CANCEL] 사용자 취소 (statusCode=12501)")
+                        toastState.showError(msgCancelled)
+                    }
                     else  -> {
-                        BoatLog.e("Google 로그인 실패 (code=${e.statusCode})", e)
+                        // 10=DEVELOPER_ERROR(SHA-1/OAuth 클라이언트 설정 불일치), 7=NETWORK_ERROR 등
+                        BoatLog.e("[GOOGLE-2-FAIL] statusCode=${e.statusCode} message=${e.message}", e)
                         toastState.showError(msgGoogleFail)
                     }
                 }
             }
         } else {
+            BoatLog.i("[GOOGLE-2-CANCEL] 계정 선택창이 OK가 아닌 resultCode로 종료")
             toastState.showError(msgCancelled)
         }
     }
 
     fun handleAppleSignIn() {
+        BoatLog.i("[APPLE-1] Apple 로그인 버튼 클릭")
         val provider = OAuthProvider.newBuilder("apple.com")
             .setScopes(listOf("email", "name"))
             .build()
         val pending = FirebaseAuth.getInstance().pendingAuthResult
+        BoatLog.i("[APPLE-2] pendingAuthResult=${if (pending != null) "있음(재사용)" else "없음(신규 웹뷰 시작)"}")
         val task = pending ?: FirebaseAuth.getInstance()
             .startActivityForSignInWithProvider(activity, provider)
         task
             .addOnSuccessListener { result ->
                 val idToken = (result.credential as? OAuthCredential)?.idToken
-                    ?: return@addOnSuccessListener
+                if (idToken == null) {
+                    BoatLog.e("[APPLE-3-FAIL] credential에서 idToken을 못 얻음 — credential=${result.credential}")
+                    return@addOnSuccessListener
+                }
+                BoatLog.i("[APPLE-3] idToken 획득 성공 (len=${idToken.length})")
                 // Apple은 최초 로그인 때만 name 제공 (Map 구조), 이후엔 Firebase user에서 가져옴
                 val nameMap = result.additionalUserInfo?.profile?.get("name") as? Map<*, *>
                 val displayName = if (nameMap != null) {
@@ -144,13 +158,17 @@ fun LoginScreen(
                 }
                 val email = result.additionalUserInfo?.profile?.get("email") as? String
                     ?: result.user?.email
+                BoatLog.i("[APPLE-4] displayName=$displayName, email=$email")
                 viewModel.handleIntent(AuthIntent.SignInWithApple(idToken, displayName, email))
             }
             .addOnFailureListener { e ->
                 if (e.message?.contains("canceled", ignoreCase = true) == true) {
+                    BoatLog.i("[APPLE-2-CANCEL] 사용자 취소: ${e.message}")
                     toastState.showError(msgCancelled)
                 } else {
-                    BoatLog.e("Apple 로그인 실패", e)
+                    // 자주 나오는 원인: Apple Developer 콘솔의 Return URL(Firebase 콜백)/Service ID 설정 불일치,
+                    // 또는 Firebase 콘솔 Apple 제공업체 Services ID·Team ID·Key 설정 만료/변경
+                    BoatLog.e("[APPLE-2-FAIL] ${e.javaClass.simpleName}: ${e.message}", e)
                     toastState.showError(msgAppleFail)
                 }
             }
@@ -193,7 +211,10 @@ fun LoginScreen(
 
         // Google 로그인 버튼
         OutlinedButton(
-            onClick = { googleLauncher.launch(googleSignInClient.signInIntent) },
+            onClick = {
+                BoatLog.i("[GOOGLE-1] Google 로그인 버튼 클릭 — 계정 선택창 실행")
+                googleLauncher.launch(googleSignInClient.signInIntent)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),

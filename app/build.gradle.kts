@@ -106,6 +106,7 @@ dependencies {
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.installations)
 
     // CameraX
     implementation(libs.camera.camera2)

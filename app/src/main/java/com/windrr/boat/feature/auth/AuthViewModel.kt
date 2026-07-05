@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.OAuthProvider
 import com.windrr.boat.core.log.BoatLog
+import com.windrr.boat.core.notification.FcmDeviceManager
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.remote.ApiErrorParser
 import com.windrr.boat.data.model.User
@@ -84,6 +85,7 @@ class AuthViewModel(
             when (intent) {
 
                 is AuthIntent.SignInWithGoogle -> {
+                    BoatLog.i("[GOOGLE-4] ViewModel 진입 — Firebase Credential 교환 시작 (idToken len=${intent.idToken.length})")
                     _state.update { it.copy(isLoading = true, error = null) }
                     try {
                         val credential = GoogleAuthProvider.getCredential(intent.idToken, null)
@@ -94,8 +96,10 @@ class AuthViewModel(
                                 .addOnFailureListener { cont.resumeWithException(it) }
                         }
                         val user = result.user
+                        BoatLog.i("[GOOGLE-5] Firebase signInWithCredential 성공 — uid=${user?.uid}")
                         user?.uid?.let { BoatLog.setUser(it) }
                         val firebaseIdToken = getFirebaseIdToken(user)
+                        BoatLog.i("[GOOGLE-6] Firebase ID 토큰 획득 성공 (len=${firebaseIdToken.length}) — 백엔드 로그인 호출")
                         loginOrRedirectToSignup(
                             firebaseIdToken = firebaseIdToken,
                             displayName = intent.displayName ?: user?.displayName,
@@ -103,12 +107,15 @@ class AuthViewModel(
                             photoUrl = user?.photoUrl?.toString(),
                         )
                     } catch (e: Exception) {
-                        BoatLog.e("Google Firebase 인증 실패", e)
+                        // 자주 나오는 원인: Firebase 콘솔 Authentication > Sign-in method > Google 비활성화,
+                        // 또는 google-services.json이 최신 SHA-1/OAuth 클라이언트를 반영 못함(재다운로드 필요)
+                        BoatLog.e("[GOOGLE-5-FAIL] Firebase Credential 교환 실패: ${e.javaClass.simpleName}: ${e.message}", e)
                         _state.update { it.copy(isLoading = false, error = ApiErrorParser.message(e)) }
                     }
                 }
 
                 is AuthIntent.SignInWithApple -> {
+                    BoatLog.i("[APPLE-5] ViewModel 진입 — Firebase Credential 교환 시작 (idToken len=${intent.idToken.length})")
                     _state.update { it.copy(isLoading = true, error = null) }
                     try {
                         val credential = OAuthProvider.newCredentialBuilder("apple.com")
@@ -121,8 +128,10 @@ class AuthViewModel(
                                 .addOnFailureListener { cont.resumeWithException(it) }
                         }
                         val user = result.user
+                        BoatLog.i("[APPLE-6] Firebase signInWithCredential 성공 — uid=${user?.uid}")
                         user?.uid?.let { BoatLog.setUser(it) }
                         val firebaseIdToken = getFirebaseIdToken(user)
+                        BoatLog.i("[APPLE-7] Firebase ID 토큰 획득 성공 (len=${firebaseIdToken.length}) — 백엔드 로그인 호출")
                         loginOrRedirectToSignup(
                             firebaseIdToken = firebaseIdToken,
                             displayName = intent.displayName ?: user?.displayName,
@@ -130,7 +139,9 @@ class AuthViewModel(
                             photoUrl = user?.photoUrl?.toString(),
                         )
                     } catch (e: Exception) {
-                        BoatLog.e("Apple Firebase 인증 실패", e)
+                        // 자주 나오는 원인: Firebase 콘솔 Authentication > Sign-in method > Apple 제공업체의
+                        // Services ID / Team ID / Key ID / 비공개 키가 만료되었거나 변경됨
+                        BoatLog.e("[APPLE-6-FAIL] Firebase Credential 교환 실패: ${e.javaClass.simpleName}: ${e.message}", e)
                         _state.update { it.copy(isLoading = false, error = ApiErrorParser.message(e)) }
                     }
                 }
@@ -195,6 +206,9 @@ class AuthViewModel(
                 }
 
                 is AuthIntent.SignOut -> {
+                    // FCM 디바이스 해제 — 인증 헤더가 필요하므로 토큰 삭제 "전"에 호출 (best-effort)
+                    FcmDeviceManager.unregister()
+
                     // 서버 세션 revoke (best-effort) — refreshToken을 비우기 전에 호출.
                     // API 성공 여부와 무관하게 로컬 로그아웃은 항상 진행한다(네트워크 실패로 갇히지 않도록).
                     val refreshToken = authRepository.refreshToken.first()
@@ -219,6 +233,8 @@ class AuthViewModel(
 
                 is AuthIntent.DeleteAccount -> {
                     _state.update { it.copy(isLoading = true, error = null) }
+                    // 계정 탈퇴 시 서버가 해당 계정의 모든 디바이스 등록을 함께 삭제하므로
+                    // 앱에서 별도 디바이스 해제 호출은 하지 않는다 (정책 문서 기준).
                     val result = runCatching { ApiClient.userApiService.deleteAccount() }
                     val response = result.getOrNull()
                     if (response != null && response.isSuccessful) {
@@ -261,14 +277,15 @@ class AuthViewModel(
         email: String?,
         photoUrl: String?,
     ) {
+        BoatLog.i("[LOGIN-1] POST /auth/login 호출")
         try {
             val response = ApiClient.authApiService.login(LoginRequest(idToken = firebaseIdToken))
             authRepository.saveTokens(response.data.accessToken, response.data.refreshToken)
-            BoatLog.i("로그인 성공")
+            BoatLog.i("[LOGIN-2] 로그인 성공 — 토큰 저장 완료")
             _state.update { it.copy(isLoading = false) }
         } catch (e: HttpException) {
             if (e.code() == 404) {
-                BoatLog.i("미가입 사용자 → 약관 동의 화면으로 이동")
+                BoatLog.i("[LOGIN-2] 미가입 사용자(404) → 약관 동의 화면으로 이동")
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -280,9 +297,14 @@ class AuthViewModel(
                     )
                 }
             } else {
-                BoatLog.e("로그인 API 오류 (code=${e.code()})", e)
+                val body = runCatching { e.response()?.errorBody()?.string() }.getOrNull()
+                BoatLog.e("[LOGIN-2-FAIL] 로그인 API 오류 code=${e.code()} body=$body", e)
                 _state.update { it.copy(isLoading = false, error = ApiErrorParser.message(e)) }
             }
+        } catch (e: Exception) {
+            // 네트워크 자체 실패(서버 URL/인터넷 연결/DNS 등) — HttpException이 아닌 IOException류
+            BoatLog.e("[LOGIN-2-FAIL] 네트워크 예외: ${e.javaClass.simpleName}: ${e.message}", e)
+            _state.update { it.copy(isLoading = false, error = ApiErrorParser.message(e)) }
         }
     }
 

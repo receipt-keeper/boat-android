@@ -3,6 +3,7 @@ package com.windrr.boat.data.remote
 import android.content.Context
 import androidx.room.Room
 import com.windrr.boat.BuildConfig
+import com.windrr.boat.data.local.FcmDeviceStore
 import com.windrr.boat.data.local.TokenDataStore
 import com.windrr.boat.data.local.UserDataStore
 import com.windrr.boat.data.local.db.BoatDatabase
@@ -55,6 +56,9 @@ object ApiClient {
 
     /** UserDataStore를 외부(Repository 등)에서도 접근할 수 있도록 lazy로 노출 */
     val userDataStore: UserDataStore by lazy { UserDataStore(appContext) }
+
+    /** FCM 디바이스(FID) 로컬 캐시 — 마지막 등록 FID 보관 (로그아웃 해제 시 사용) */
+    val fcmDeviceStore: FcmDeviceStore by lazy { FcmDeviceStore(appContext) }
 
     /** 로컬 Room DB — 오프라인 캐시 (영수증 등) */
     val database: BoatDatabase by lazy {
