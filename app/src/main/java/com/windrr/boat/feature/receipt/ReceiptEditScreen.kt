@@ -360,7 +360,7 @@ private fun ReceiptEditForm(
         )
     }
     var customWarrantyUnit by remember { mutableStateOf(EditWarrantyUnit.MONTH) }
-    var memo by remember { mutableStateOf("") } // 서버 상세엔 메모 원문이 있으나 별도 필드 없어 빈 값에서 시작
+    var memo by remember { mutableStateOf(receipt.memo.orEmpty().take(MEMO_MAX)) }
     var showDatePicker by remember { mutableStateOf(false) }
 
     // ── 실물 영수증 보관 여부 ──
