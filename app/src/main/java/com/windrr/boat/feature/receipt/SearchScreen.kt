@@ -1,12 +1,14 @@
 package com.windrr.boat.feature.receipt
 
 import android.content.Intent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,21 +18,22 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,15 +48,22 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.windrr.boat.R
+import com.windrr.boat.data.remote.model.ReceiptItem
 import com.windrr.boat.ui.theme.ColorBrandPrimary
+import com.windrr.boat.ui.theme.ColorGray100
+import com.windrr.boat.ui.theme.ColorGray200
 import com.windrr.boat.ui.theme.ColorGray400
 import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray500
+import com.windrr.boat.ui.theme.ColorGray600
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
+import com.windrr.boat.ui.theme.Margin12
 import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
 import com.windrr.boat.ui.theme.RoundedFull
@@ -66,10 +76,11 @@ import com.windrr.boat.ui.theme.RoundedXl
 fun SearchScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    viewModel: SearchViewModel = viewModel(),
 ) {
     val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
-    var query by remember { mutableStateOf("") }
+    val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
@@ -100,18 +111,25 @@ fun SearchScreen(
             )
             Spacer(Modifier.width(12.dp))
             SearchField(
-                query = query,
-                onQueryChange = { query = it },
-                onSearch = { /* TODO: 검색 실행 */ },
-                onClear = { query = "" },
+                query = state.query,
+                onQueryChange = { viewModel.onQueryChanged(it) },
+                onSearch = { /* 디바운스 검색으로 자동 실행되므로 별도 처리 불필요 */ },
+                onClear = { viewModel.onClear() },
                 focusRequester = focusRequester,
                 modifier = Modifier.weight(1f),
             )
         }
 
         // 결과 영역
-        if (query.isNotEmpty()) {
-            SearchEmptyState(
+        when {
+            state.query.isBlank() -> Unit
+            // 디바운스 대기 중 — 직전 쿼리의 결과를 그대로 보여주지 않도록 비워 둔다.
+            state.searchedQuery != state.query -> Unit
+            state.isLoading -> Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) { CircularProgressIndicator(color = ColorBrandPrimary) }
+            state.results.isEmpty() -> SearchEmptyState(
                 onRegisterClick = {
                     context.startActivity(Intent(context, ReceiptRegisterActivity::class.java))
                 },
@@ -119,6 +137,108 @@ fun SearchScreen(
                     .fillMaxSize()
                     .padding(horizontal = Margin20),
             )
+            else -> SearchResultList(
+                results = state.results,
+                totalCount = state.totalCount,
+                onItemClick = { receiptId ->
+                    context.startActivity(ReceiptDetailActivity.intent(context, receiptId))
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun SearchResultList(
+    results: List<ReceiptItem>,
+    totalCount: Int,
+    onItemClick: (String) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Margin20, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(text = stringResource(R.string.receipt_filter_all), fontSize = 14.sp, color = ColorGray600)
+            Text(text = "  |  ", fontSize = 14.sp, color = ColorGray200)
+            Text(text = "$totalCount", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = ColorBrandPrimary)
+        }
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = Margin20, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(Margin12),
+        ) {
+            items(results, key = { it.receiptId }) { item ->
+                SearchResultCard(item = item, onClick = { onItemClick(item.receiptId) })
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchResultCard(item: ReceiptItem, onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedXl,
+        color = ColorWhite,
+        border = BorderStroke(1.dp, ColorGray100),
+        shadowElevation = 0.dp,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            ReceiptItemThumbnail(
+                imageUrl = item.imageUrl,
+                category = item.category,
+                subCategory = item.subCategory,
+            )
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = item.itemName,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ColorGray900,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    WarrantyDayBadge(item.warrantyDDay)
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "AS 만료일",
+                        fontSize = 13.sp,
+                        color = ColorGray400,
+                        maxLines = 1,
+                        softWrap = false,
+                    )
+                    Text(text = "  |  ", fontSize = 13.sp, color = ColorGray200)
+                    Text(
+                        text = item.expiresOn?.formatDate() ?: "-",
+                        fontSize = 13.sp,
+                        color = ColorGray500,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
         }
     }
 }
@@ -164,11 +284,11 @@ private fun SearchField(
                     Spacer(Modifier.width(8.dp))
                     val clearRipple = remember { MutableInteractionSource() }
                     Icon(
-                        imageVector = Icons.Filled.Close,
+                        painter = painterResource(R.drawable.icon_close_search),
                         contentDescription = null,
-                        tint = ColorGray400,
+                        tint = Color.Unspecified,
                         modifier = Modifier
-                            .size(18.dp)
+                            .size(20.dp)
                             .clickable(
                                 interactionSource = clearRipple,
                                 indication = null,

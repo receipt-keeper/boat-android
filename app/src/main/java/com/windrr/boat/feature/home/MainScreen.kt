@@ -144,9 +144,11 @@ fun MainScreen(
                     MyPageScreen(
                         name = user.displayName,
                         email = user.email,
+                        freeAnalysisTokens = user.freeAnalysisTokensRemaining,
                         profileImageUrl = user.profileImageUrl,
                         onSignOut = onSignOut,
                         onDeleteAccount = onDeleteAccount,
+                        onSearchClick = { goSearch() },
                     )
                 }
             }
@@ -157,7 +159,7 @@ fun MainScreen(
             BoatFloatingBottomBar(
                 navController = navController,
                 hazeState = hazeState,
-                showAddButton = currentRoute == MainTab.HOME.route || currentRoute == MainTab.LIST.route,
+                showAddButton = true,
                 onAddClick = { showAddMenu = true },
                 modifier = Modifier.align(Alignment.BottomCenter),
             )

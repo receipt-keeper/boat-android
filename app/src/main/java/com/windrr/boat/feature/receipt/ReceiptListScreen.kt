@@ -68,6 +68,7 @@ import com.windrr.boat.R
 import com.windrr.boat.core.ocr.DeviceImage
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.remote.model.ReceiptItem
+import com.windrr.boat.feature.notification.NotificationBadgeViewModel
 import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatFilterChip
 import com.windrr.boat.ui.component.BoatHeader
@@ -126,8 +127,10 @@ fun ReceiptListScreen(
     onInitialConsumed: () -> Unit = {},
     onSearchClick: () -> Unit = {},
     viewModel: ReceiptListViewModel = viewModel(),
+    badgeViewModel: NotificationBadgeViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsState()
+    val hasUnreadNotification by badgeViewModel.hasUnread.collectAsState()
     val context = LocalContext.current
     val toastState = rememberBoatToastState()
     val deleteFailedMessage = stringResource(R.string.receipt_delete_failed)
@@ -141,6 +144,7 @@ fun ReceiptListScreen(
         } else {
             viewModel.handleIntent(ReceiptListIntent.Refresh)
         }
+        badgeViewModel.refresh()
     }
 
     // 삭제 실패 시 토스트로 안내 (목록 전체를 가리는 error와는 별개)
@@ -161,6 +165,7 @@ fun ReceiptListScreen(
             Column(modifier = Modifier.background(ColorWhite)) {
                 BoatHeader(
                     title = stringResource(R.string.tab_list),
+                    hasUnreadNotification = hasUnreadNotification,
                     onSearchClick = onSearchClick,
                     onNotificationClick = {
                         context.startActivity(
@@ -487,7 +492,7 @@ private fun MenuSheetRow(text: String, color: Color, onClick: () -> Unit) {
  * imageUrl(사용자 업로드 사진)이 있으면 그 이미지를, 없으면 카테고리/기기 기본 이미지를 표시.
  */
 @Composable
-private fun ReceiptItemThumbnail(
+internal fun ReceiptItemThumbnail(
     imageUrl: String?,
     category: String?,
     subCategory: String?,
@@ -527,7 +532,7 @@ private fun ReceiptItemThumbnail(
  * - >30: 파란 "D-N"
  */
 @Composable
-private fun WarrantyDayBadge(warrantyDDay: Int?) {
+internal fun WarrantyDayBadge(warrantyDDay: Int?) {
     val (label, color) = when {
         warrantyDDay == null || warrantyDDay <= 0 -> "만료" to ColorGray400
         warrantyDDay <= 30 -> "D-$warrantyDDay" to Color(0xFFFF4444)
@@ -548,7 +553,7 @@ private fun WarrantyDayBadge(warrantyDDay: Int?) {
 }
 
 /** "YYYY-MM-DD" → "YYYY. MM. DD" */
-private fun String.formatDate(): String {
+internal fun String.formatDate(): String {
     val parts = split("-")
     return if (parts.size == 3) "${parts[0]}. ${parts[1]}. ${parts[2]}" else this
 }

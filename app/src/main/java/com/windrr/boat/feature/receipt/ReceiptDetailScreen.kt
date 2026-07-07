@@ -64,6 +64,7 @@ import com.windrr.boat.core.util.toPriceString
 import com.windrr.boat.data.remote.model.ReceiptItem
 import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.InfoTooltipIcon
 import com.windrr.boat.ui.component.SyncLoadingOverlay
 import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.ColorBrandPrimary
@@ -296,7 +297,6 @@ private fun MenuSheetRow(text: String, color: Color, onClick: () -> Unit) {
 @Composable
 private fun ReceiptDetailContent(receipt: ReceiptItem) {
     val context = LocalContext.current
-    var showSerialHelp by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -369,7 +369,7 @@ private fun ReceiptDetailContent(receipt: ReceiptItem) {
                     color = ColorGray900,
                 )
                 Spacer(Modifier.width(6.dp))
-                HelpBadge(onClick = {})
+                InfoTooltipIcon(tooltipText = stringResource(R.string.manual_as_guide))
             }
             Spacer(Modifier.height(Margin12))
             ReadOnlyRadioRow(
@@ -405,7 +405,7 @@ private fun ReceiptDetailContent(receipt: ReceiptItem) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     FieldLabel(stringResource(R.string.manual_serial))
                     Spacer(Modifier.width(4.dp))
-                    HelpBadge(onClick = { showSerialHelp = true })
+                    InfoTooltipIcon(tooltipText = stringResource(R.string.manual_serial_help))
                 }
                 Spacer(Modifier.height(6.dp))
                 Text(
@@ -502,16 +502,6 @@ private fun ReceiptDetailContent(receipt: ReceiptItem) {
         }
         Spacer(Modifier.height(Margin24))
     }
-
-    if (showSerialHelp) {
-        BoatDialog(
-            message = stringResource(R.string.receipt_detail_serial_help),
-            confirmText = stringResource(R.string.common_confirm),
-            onConfirm = { showSerialHelp = false },
-            onDismiss = { showSerialHelp = false },
-            showDismissButton = false,
-        )
-    }
 }
 
 /** 라벨(회색) + 값(진한 색) + 하단 구분선. trailing으로 우측 요소(D-day 뱃지 등) 배치. */
@@ -579,20 +569,6 @@ private fun ReadOnlyRadioRow(label: String, selected: Boolean) {
     }
 }
 
-/** 원형 "?" 도움말 뱃지 */
-@Composable
-private fun HelpBadge(onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(18.dp)
-            .clip(CircleShape)
-            .border(1.dp, ColorGray400, CircleShape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text = "?", fontSize = 11.sp, color = ColorGray500, fontWeight = FontWeight.Bold)
-    }
-}
 
 /** 무상 AS 잔여일 뱃지 — 여유(파랑) / 만료(회색) */
 @Composable

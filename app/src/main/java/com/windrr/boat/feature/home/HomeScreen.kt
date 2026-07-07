@@ -19,14 +19,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -40,11 +40,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.windrr.boat.BuildConfig
 import com.windrr.boat.R
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.remote.ApiErrorParser
 import com.windrr.boat.data.remote.model.TestPushRequest
+import com.windrr.boat.feature.notification.NotificationBadgeViewModel
+import com.windrr.boat.feature.receipt.ReceiptDetailActivity
 import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
 import com.windrr.boat.ui.component.BoatHeader
 import com.windrr.boat.ui.component.BoatToastHost
@@ -53,17 +56,16 @@ import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandTertiary
 import com.windrr.boat.ui.theme.ColorGray50
-import com.windrr.boat.ui.theme.ColorGray300
 import com.windrr.boat.ui.theme.ColorGray500
 import com.windrr.boat.ui.theme.ColorWhite
-import com.windrr.boat.ui.theme.Margin8
 import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
+import com.windrr.boat.ui.theme.Margin8
 import com.windrr.boat.ui.theme.RoundedXl
 import kotlinx.coroutines.launch
 
 /**
- * 홈 탭 — 공통 헤더 + (임시 토글) 초기 홈 / 일반 홈(데이터 있음) 전환.
+ * 홈 탭 — 공통 헤더 + AS 만료 예정(가로형)/최근 등록된 영수증(세로형). GET /api/v1/receipts 연동.
  */
 @Composable
 fun HomeScreen(
@@ -72,13 +74,21 @@ fun HomeScreen(
     onSearchClick: () -> Unit = {},
     onSeeExpiringList: () -> Unit = {},
     onSeeRecentList: () -> Unit = {},
+    viewModel: HomeViewModel = viewModel(),
+    badgeViewModel: NotificationBadgeViewModel = viewModel(),
 ) {
     val context = LocalContext.current
-    // 임시: 초기 홈 ↔ 일반 홈 전환 (백엔드 데이터 유무에 따른 화면 확인용)
-    var isGeneralHome by rememberSaveable { mutableStateOf(false) }
+    val state by viewModel.state.collectAsState()
+    val hasUnreadNotification by badgeViewModel.hasUnread.collectAsState()
     var showTestPushDialog by rememberSaveable { mutableStateOf(false) }
     val toastState = rememberBoatToastState()
     val scope = rememberCoroutineScope()
+
+    // 홈 탭 진입(탭 전환 포함)마다 최신화 — 등록/삭제 후 반영.
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+        badgeViewModel.refresh()
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(
@@ -87,6 +97,7 @@ fun HomeScreen(
                 .background(ColorGray50), // 홈 기본 배경 #F5F7FA
         ) {
             BoatHeader(
+                hasUnreadNotification = hasUnreadNotification,
                 onSearchClick = onSearchClick,
                 onNotificationClick = {
                     context.startActivity(
@@ -95,48 +106,41 @@ fun HomeScreen(
                 },
             )
 
-            // 임시 전환 토글 (개발 확인용) + DEBUG 전용 테스트 푸시 버튼
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = Margin20, vertical = 2.dp),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (BuildConfig.DEBUG) {
+            // DEBUG 전용 테스트 푸시 버튼
+            if (BuildConfig.DEBUG) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Margin20, vertical = 2.dp),
+                    horizontalArrangement = Arrangement.End,
+                ) {
                     TextButton(onClick = { showTestPushDialog = true }) {
                         Text("[TEST] 푸시", fontSize = 12.sp, color = ColorBrandPrimary)
                     }
-                    Spacer(Modifier.weight(1f))
                 }
-                Text(stringResource(R.string.home_toggle_general), fontSize = 12.sp, color = ColorGray500)
-                Spacer(Modifier.width(8.dp))
-                Switch(
-                    checked = isGeneralHome,
-                    onCheckedChange = { isGeneralHome = it },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = ColorWhite,
-                        checkedTrackColor = ColorBrandPrimary,
-                        checkedBorderColor = ColorBrandPrimary,
-                        uncheckedThumbColor = ColorWhite,
-                        uncheckedTrackColor = ColorGray300,
-                        uncheckedBorderColor = ColorGray300,
-                    ),
-                )
             }
 
-            if (isGeneralHome) {
-                HomeGeneralContent(
-                    freeAnalysisTokens = freeAnalysisTokens,
-                    expiring = remember { sampleExpiringWarranties() },
-                    recent = remember { sampleRecentReceipts() },
-                    onExpiringMore = onSeeExpiringList,
-                    onRecentMore = onSeeRecentList,
-                )
-            } else {
-                HomeInitialContent(
+            when {
+                state.isLoading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = ColorBrandPrimary)
+                }
+                // 등록된 영수증이 하나도 없으면 초기 홈(등록 유도 배너)을 보여준다.
+                !state.hasAnyReceipts -> HomeInitialContent(
                     freeAnalysisTokens = freeAnalysisTokens,
                     onRegisterClick = { context.startActivity(Intent(context, ReceiptRegisterActivity::class.java)) },
+                )
+                else -> HomeGeneralContent(
+                    freeAnalysisTokens = freeAnalysisTokens,
+                    expiring = state.expiring,
+                    recent = state.recent,
+                    onExpiringMore = onSeeExpiringList,
+                    onExpiringClick = { item ->
+                        context.startActivity(ReceiptDetailActivity.intent(context, item.receiptId))
+                    },
+                    onRecentMore = onSeeRecentList,
+                    onRecentClick = { item ->
+                        context.startActivity(ReceiptDetailActivity.intent(context, item.receiptId))
+                    },
                 )
             }
         }

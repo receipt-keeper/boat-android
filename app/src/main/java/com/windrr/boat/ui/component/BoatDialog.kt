@@ -72,7 +72,7 @@ fun BoatDialog(
                 TextButton(onClick = onDismiss) {
                     Text(
                         text = resolvedDismissText,
-                        color = dismissTextColor,
+                        color = confirmTextColor,
                         fontWeight = FontWeight.Medium,
                     )
                 }

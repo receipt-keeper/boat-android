@@ -93,9 +93,9 @@ import com.windrr.boat.feature.gallery.GalleryIntent
 import com.windrr.boat.feature.gallery.GalleryState
 import com.windrr.boat.feature.gallery.GalleryViewModel
 import com.windrr.boat.feature.home.ReceiptAddSheet
-import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatInputField
 import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.InfoTooltipIcon
 import com.windrr.boat.ui.component.PriceVisualTransformation
 import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.ColorBrandPrimary
@@ -365,13 +365,11 @@ private fun ReceiptEditForm(
 
     // ── 실물 영수증 보관 여부 ──
     var keepReceipt by remember { mutableStateOf(receipt.requiresPhysicalReceipt) }
-    var showKeepReceiptHelp by remember { mutableStateOf(false) }
 
     // ── 보증 정보 ──
     var brand by remember { mutableStateOf(receipt.brandName.orEmpty().take(BRAND_MAX)) }
     var price by remember { mutableStateOf(receipt.totalAmount?.toString().orEmpty()) }
     var serial by remember { mutableStateOf(receipt.serialNumber.orEmpty().take(SERIAL_MAX)) }
-    var showSerialHelp by rememberSaveable { mutableStateOf(false) }
 
     val warrantyMonths: Int? = when (selectedWarranty) {
         0 -> 6; 1 -> 12; 2 -> 24; 3 -> 36
@@ -604,7 +602,7 @@ private fun ReceiptEditForm(
                         color = ColorGray900,
                     )
                     Spacer(Modifier.width(6.dp))
-                    EditHelpBadge(onClick = { showKeepReceiptHelp = true })
+                    InfoTooltipIcon(tooltipText = stringResource(R.string.manual_as_guide))
                 }
                 Spacer(Modifier.height(Margin12))
                 EditRadioRow(
@@ -651,7 +649,7 @@ private fun ReceiptEditForm(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     EditFieldLabel(stringResource(R.string.manual_serial), required = false)
                     Spacer(Modifier.width(4.dp))
-                    EditHelpBadge(onClick = { showSerialHelp = true })
+                    InfoTooltipIcon(tooltipText = stringResource(R.string.manual_serial_help))
                 }
                 Spacer(Modifier.height(Margin8))
                 OutlinedTextField(
@@ -753,26 +751,6 @@ private fun ReceiptEditForm(
         )
     }
 
-    if (showKeepReceiptHelp) {
-        BoatDialog(
-            title = stringResource(R.string.manual_keep_receipt_title),
-            message = stringResource(R.string.manual_as_guide),
-            confirmText = stringResource(R.string.common_confirm),
-            onConfirm = { showKeepReceiptHelp = false },
-            onDismiss = { showKeepReceiptHelp = false },
-            showDismissButton = false,
-        )
-    }
-
-    if (showSerialHelp) {
-        BoatDialog(
-            message = stringResource(R.string.receipt_detail_serial_help),
-            confirmText = stringResource(R.string.common_confirm),
-            onConfirm = { showSerialHelp = false },
-            onDismiss = { showSerialHelp = false },
-            showDismissButton = false,
-        )
-    }
 }
 
 // ── 서브 컴포저블 (이 화면 전용, ReceiptManualInputScreen과 이름 충돌 방지를 위해 Edit 접두) ──
@@ -1046,15 +1024,5 @@ private fun EditRadioRow(label: String, selected: Boolean, onClick: () -> Unit) 
             colors = RadioButtonDefaults.colors(selectedColor = ColorBrandPrimary, unselectedColor = ColorGray300),
         )
         Text(text = label, fontSize = 15.sp, color = ColorGray900)
-    }
-}
-
-@Composable
-private fun EditHelpBadge(onClick: () -> Unit) {
-    Box(
-        modifier = Modifier.size(18.dp).clip(CircleShape).border(1.dp, ColorGray400, CircleShape).clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text = "?", fontSize = 11.sp, color = ColorGray500, fontWeight = FontWeight.Bold)
     }
 }

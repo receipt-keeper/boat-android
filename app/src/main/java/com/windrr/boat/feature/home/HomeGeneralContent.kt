@@ -136,7 +136,7 @@ fun HomeGeneralContent(
                 contentPadding = PaddingValues(horizontal = Margin20),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                items(expiring, key = { it.id }) { item ->
+                items(expiring, key = { it.receiptId }) { item ->
                     ExpiringWarrantyCard(item = item, onClick = { onExpiringClick(item) })
                 }
             }

@@ -1,6 +1,8 @@
 package com.windrr.boat.feature.notification
 
 import com.windrr.boat.data.remote.model.NotificationDto
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 /**
  * 알림 목록 화면용 표시 모델.
@@ -37,13 +39,38 @@ private fun String?.toDisplayDate(): String {
     return if (parts.size == 3) "${parts[0]}.${parts[1]}.${parts[2]}" else datePart
 }
 
+/**
+ * 알림 시간 표시 정책(UX 제안):
+ * 1분 미만 "방금 전" / 1시간 미만 "N분 전" / 24시간 미만 "N시간 전" /
+ * 7일 미만 "N일 전" / 7일 이상 "yyyy.MM.dd"
+ */
+private fun String?.toRelativeDisplayTime(): String {
+    if (this.isNullOrBlank()) return ""
+    val createdMs = runCatching {
+        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.KOREA).parse(this)?.time
+    }.getOrNull() ?: return toDisplayDate()
+
+    val diffMs = (System.currentTimeMillis() - createdMs).coerceAtLeast(0)
+    val minute = 60_000L
+    val hour = 60 * minute
+    val day = 24 * hour
+
+    return when {
+        diffMs < minute -> "방금 전"
+        diffMs < hour -> "${diffMs / minute}분 전"
+        diffMs < day -> "${diffMs / hour}시간 전"
+        diffMs < 7 * day -> "${diffMs / day}일 전"
+        else -> toDisplayDate()
+    }
+}
+
 fun NotificationDto.toAppNotification(): AppNotification = AppNotification(
     id = notificationId,
     productName = metadata["productName"]?.takeIf { it.isNotBlank() }
         ?: title?.takeIf { it.isNotBlank() }
         ?: "알림",
     message = message.orEmpty(),
-    date = createdAt.toDisplayDate(),
+    date = createdAt.toRelativeDisplayTime(),
     subCategory = metadata["subCategory"],
     resourceType = resourceType,
     resourceId = resourceId,

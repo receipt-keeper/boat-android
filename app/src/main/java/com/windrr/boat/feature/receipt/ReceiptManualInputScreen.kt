@@ -5,8 +5,6 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,11 +19,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -49,7 +45,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -69,7 +64,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -82,15 +76,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntRect
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupPositionProvider
-import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -111,6 +98,7 @@ import com.windrr.boat.feature.gallery.GalleryViewModel
 import com.windrr.boat.feature.home.ReceiptAddSheet
 import com.windrr.boat.ui.component.BoatInputField
 import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.InfoTooltipIcon
 import com.windrr.boat.ui.component.PriceVisualTransformation
 import com.windrr.boat.ui.component.SyncLoadingOverlay
 import com.windrr.boat.ui.component.rememberBoatToastState
@@ -962,87 +950,6 @@ private fun KeepReceiptRadioRow(label: String, selected: Boolean, onClick: () ->
     }
 }
 
-/** 정보 아이콘 — 클릭 시 아이콘 위에 말풍선 툴팁을 띄운다. */
-@Composable
-private fun InfoTooltipIcon(tooltipText: String) {
-    var showTooltip by remember { mutableStateOf(false) }
-    val gapPx = with(LocalDensity.current) { 6.dp.roundToPx() }
-
-    Box(
-        modifier = Modifier
-            .size(18.dp)
-            .clickable(onClick = { showTooltip = true }),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.info_question_icon),
-            contentDescription = null,
-            tint = Color.Unspecified,
-            modifier = Modifier.size(17.dp),
-        )
-
-        if (showTooltip) {
-            Popup(
-                popupPositionProvider = remember(gapPx) { TooltipPositionProvider(gapPx) },
-                onDismissRequest = { showTooltip = false },
-                properties = PopupProperties(focusable = true),
-            ) {
-                TooltipBubble(text = tooltipText)
-            }
-        }
-    }
-}
-
-/** 흰 말풍선 카드 + 하단 삼각 포인터 */
-@Composable
-private fun TooltipBubble(text: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Surface(
-            shape = RoundedLg,
-            color = ColorWhite,
-            border = BorderStroke(1.dp, ColorGray200),
-            shadowElevation = 4.dp,
-        ) {
-            Text(
-                text = text,
-                modifier = Modifier
-                    .widthIn(max = 240.dp)
-                    .padding(horizontal = Margin12, vertical = 10.dp),
-                fontSize = 12.sp,
-                color = ColorGray700,
-                lineHeight = 17.sp,
-            )
-        }
-        Canvas(
-            modifier = Modifier
-                .size(width = 14.dp, height = 7.dp)
-                .offset(y = (-1).dp),
-        ) {
-            val path = Path().apply {
-                moveTo(0f, 0f)
-                lineTo(size.width, 0f)
-                lineTo(size.width / 2f, size.height)
-                close()
-            }
-            drawPath(path, color = ColorWhite)
-        }
-    }
-}
-
-/** 앵커(정보 아이콘) 바로 위, 가로 중앙에 툴팁을 배치한다. */
-private class TooltipPositionProvider(private val gapPx: Int) : PopupPositionProvider {
-    override fun calculatePosition(
-        anchorBounds: IntRect,
-        windowSize: IntSize,
-        layoutDirection: LayoutDirection,
-        popupContentSize: IntSize,
-    ): IntOffset {
-        val x = (anchorBounds.left + anchorBounds.right) / 2 - popupContentSize.width / 2
-        val clampedX = x.coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0))
-        val y = anchorBounds.top - popupContentSize.height - gapPx
-        return IntOffset(clampedX, y)
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
