@@ -1,11 +1,12 @@
 package com.windrr.boat.feature.receipt
 
 import android.Manifest
-import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,11 +21,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,6 +49,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -64,6 +69,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -76,8 +82,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -95,7 +108,6 @@ import com.windrr.boat.data.repository.ReceiptRepository
 import com.windrr.boat.feature.gallery.GalleryIntent
 import com.windrr.boat.feature.gallery.GalleryState
 import com.windrr.boat.feature.gallery.GalleryViewModel
-import com.windrr.boat.feature.home.HomeActivity
 import com.windrr.boat.feature.home.ReceiptAddSheet
 import com.windrr.boat.ui.component.BoatInputField
 import com.windrr.boat.ui.component.BoatToastHost
@@ -285,7 +297,6 @@ fun ReceiptManualInputScreen(
     var keepReceipt         by remember { mutableStateOf<Boolean?>(null) } // 필요함/필요하지 않음 (미선택 시 null)
     var showDatePicker      by remember { mutableStateOf(false) }
     var showAddSheet        by remember { mutableStateOf(false) }
-    var showKeepReceiptHelp by remember { mutableStateOf(false) }
     var productInfoExpanded by remember { mutableStateOf(true) }
     var warrantyInfoExpanded by remember { mutableStateOf(true) }
 
@@ -336,12 +347,10 @@ fun ReceiptManualInputScreen(
                         receiptFileIds = fileIds,
                     )
                     repository.createReceipt(request).fold(
-                        onSuccess = {
+                        onSuccess = { item ->
                             isSubmitting = false
                             context.startActivity(
-                                Intent(context, HomeActivity::class.java).apply {
-                                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                                }
+                                ReceiptRegisterCompleteActivity.intent(context, item.receiptId)
                             )
                         },
                         onFailure = {
@@ -367,7 +376,9 @@ fun ReceiptManualInputScreen(
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
-                            text = stringResource(R.string.manual_title),
+                            text = stringResource(
+                                if (ocrData != null) R.string.manual_title_ocr else R.string.manual_title
+                            ),
                             fontSize = 17.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = ColorGray900,
@@ -405,14 +416,28 @@ fun ReceiptManualInputScreen(
                     contentPadding = PaddingValues(horizontal = Margin20),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    item {
-                        AddImageTile(onClick = { showAddSheet = true })
-                    }
-                    items(photos, key = { it.toString() }) { uri ->
-                        ImageThumbnail(
-                            uri = uri,
-                            onRemove = { galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri)) },
-                        )
+                    // OCR 분석 진입: 이미 등록된 사진이 먼저 보이고 추가 버튼은 맨 뒤.
+                    // 수동 입력 진입: 사진이 없으므로 추가 버튼이 맨 앞.
+                    if (ocrData != null) {
+                        items(photos, key = { it.toString() }) { uri ->
+                            ImageThumbnail(
+                                uri = uri,
+                                onRemove = { galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri)) },
+                            )
+                        }
+                        item {
+                            AddImageTile(onClick = { showAddSheet = true })
+                        }
+                    } else {
+                        item {
+                            AddImageTile(onClick = { showAddSheet = true })
+                        }
+                        items(photos, key = { it.toString() }) { uri ->
+                            ImageThumbnail(
+                                uri = uri,
+                                onRemove = { galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri)) },
+                            )
+                        }
                     }
                 }
 
@@ -437,14 +462,20 @@ fun ReceiptManualInputScreen(
                         },
                     )
                     Spacer(Modifier.height(Margin16))
-                    // 소분류(대표 기기명) 아이콘 — 가로 스크롤
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
+                    // 소분류(대표 기기명) 아이콘 — 가로 스크롤. OCR로 미리 선택된 항목이 있으면 보이도록 스크롤.
+                    val subCategoryListState = rememberLazyListState()
+                    LaunchedEffect(selectedCategory) {
+                        val idx = SUBCATEGORIES[selectedCategory].orEmpty()
+                            .indexOf(selectedSubCategory)
+                            .coerceAtLeast(0)
+                        subCategoryListState.scrollToItem(idx)
+                    }
+                    LazyRow(
+                        state = subCategoryListState,
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        SUBCATEGORIES[selectedCategory].orEmpty().forEach { sub ->
+                        items(SUBCATEGORIES[selectedCategory].orEmpty()) { sub ->
                             SubCategoryItem(
                                 label = sub,
                                 iconRes = DeviceImage.resolve(selectedCategory.displayName, sub),
@@ -602,7 +633,7 @@ fun ReceiptManualInputScreen(
                             color = ColorGray900,
                         )
                         Spacer(Modifier.width(6.dp))
-                        HelpBadge(onClick = { showKeepReceiptHelp = true })
+                        InfoTooltipIcon(tooltipText = stringResource(R.string.manual_as_guide))
                     }
                     Spacer(Modifier.height(Margin12))
                     KeepReceiptRadioRow(
@@ -641,11 +672,20 @@ fun ReceiptManualInputScreen(
                         visualTransformation = PriceVisualTransformation(),
                     )
                     Spacer(Modifier.height(Margin16))
-                    BoatInputField(
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        FieldLabel(stringResource(R.string.manual_serial), required = false)
+                        Spacer(Modifier.width(4.dp))
+                        InfoTooltipIcon(tooltipText = stringResource(R.string.manual_serial_help))
+                    }
+                    Spacer(Modifier.height(Margin8))
+                    OutlinedTextField(
                         value = serial,
                         onValueChange = { serial = it },
-                        label = stringResource(R.string.manual_serial),
-                        placeholder = stringResource(R.string.manual_serial_hint),
+                        placeholder = { Text(stringResource(R.string.manual_serial_hint), color = ColorGray400, fontSize = 15.sp) },
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        singleLine = true,
+                        shape = RoundedLg,
+                        colors = formFieldColors(),
                     )
                 }
 
@@ -693,16 +733,6 @@ fun ReceiptManualInputScreen(
         )
     }
 
-    if (showKeepReceiptHelp) {
-        com.windrr.boat.ui.component.BoatDialog(
-            title = stringResource(R.string.manual_keep_receipt_title),
-            message = stringResource(R.string.manual_as_guide),
-            confirmText = stringResource(R.string.common_confirm),
-            onConfirm = { showKeepReceiptHelp = false },
-            onDismiss = { showKeepReceiptHelp = false },
-            showDismissButton = false,
-        )
-    }
 }
 
 // ── 서브 컴포저블 ─────────────────────────────────────────────────────────────
@@ -932,18 +962,85 @@ private fun KeepReceiptRadioRow(label: String, selected: Boolean, onClick: () ->
     }
 }
 
-/** 원형 "?" 도움말 뱃지 */
+/** 정보 아이콘 — 클릭 시 아이콘 위에 말풍선 툴팁을 띄운다. */
 @Composable
-private fun HelpBadge(onClick: () -> Unit) {
+private fun InfoTooltipIcon(tooltipText: String) {
+    var showTooltip by remember { mutableStateOf(false) }
+    val gapPx = with(LocalDensity.current) { 6.dp.roundToPx() }
+
     Box(
         modifier = Modifier
             .size(18.dp)
-            .clip(CircleShape)
-            .border(1.dp, ColorGray400, CircleShape)
-            .clickable(onClick = onClick),
+            .clickable(onClick = { showTooltip = true }),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = "?", fontSize = 11.sp, color = ColorGray500, fontWeight = FontWeight.Bold)
+        Icon(
+            painter = painterResource(R.drawable.info_question_icon),
+            contentDescription = null,
+            tint = Color.Unspecified,
+            modifier = Modifier.size(17.dp),
+        )
+
+        if (showTooltip) {
+            Popup(
+                popupPositionProvider = remember(gapPx) { TooltipPositionProvider(gapPx) },
+                onDismissRequest = { showTooltip = false },
+                properties = PopupProperties(focusable = true),
+            ) {
+                TooltipBubble(text = tooltipText)
+            }
+        }
+    }
+}
+
+/** 흰 말풍선 카드 + 하단 삼각 포인터 */
+@Composable
+private fun TooltipBubble(text: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Surface(
+            shape = RoundedLg,
+            color = ColorWhite,
+            border = BorderStroke(1.dp, ColorGray200),
+            shadowElevation = 4.dp,
+        ) {
+            Text(
+                text = text,
+                modifier = Modifier
+                    .widthIn(max = 240.dp)
+                    .padding(horizontal = Margin12, vertical = 10.dp),
+                fontSize = 12.sp,
+                color = ColorGray700,
+                lineHeight = 17.sp,
+            )
+        }
+        Canvas(
+            modifier = Modifier
+                .size(width = 14.dp, height = 7.dp)
+                .offset(y = (-1).dp),
+        ) {
+            val path = Path().apply {
+                moveTo(0f, 0f)
+                lineTo(size.width, 0f)
+                lineTo(size.width / 2f, size.height)
+                close()
+            }
+            drawPath(path, color = ColorWhite)
+        }
+    }
+}
+
+/** 앵커(정보 아이콘) 바로 위, 가로 중앙에 툴팁을 배치한다. */
+private class TooltipPositionProvider(private val gapPx: Int) : PopupPositionProvider {
+    override fun calculatePosition(
+        anchorBounds: IntRect,
+        windowSize: IntSize,
+        layoutDirection: LayoutDirection,
+        popupContentSize: IntSize,
+    ): IntOffset {
+        val x = (anchorBounds.left + anchorBounds.right) / 2 - popupContentSize.width / 2
+        val clampedX = x.coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0))
+        val y = anchorBounds.top - popupContentSize.height - gapPx
+        return IntOffset(clampedX, y)
     }
 }
 
