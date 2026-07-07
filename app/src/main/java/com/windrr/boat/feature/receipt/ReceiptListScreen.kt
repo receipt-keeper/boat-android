@@ -33,6 +33,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -40,6 +41,7 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -66,6 +68,7 @@ import com.windrr.boat.R
 import com.windrr.boat.core.ocr.DeviceImage
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.remote.model.ReceiptItem
+import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatFilterChip
 import com.windrr.boat.ui.component.BoatHeader
 import com.windrr.boat.ui.component.BoatToastHost
@@ -80,9 +83,11 @@ import com.windrr.boat.ui.theme.ColorGray500
 import com.windrr.boat.ui.theme.ColorGray600
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorGray50
+import com.windrr.boat.ui.theme.ColorSystemError
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin12
 import com.windrr.boat.ui.theme.Margin20
+import com.windrr.boat.ui.theme.Margin8
 import com.windrr.boat.ui.theme.Rounded2xl
 import com.windrr.boat.ui.theme.RoundedLg
 import com.windrr.boat.ui.theme.RoundedMd
@@ -250,6 +255,11 @@ fun ReceiptListScreen(
                                             ReceiptDetailActivity.intent(context, item.receiptId)
                                         )
                                     },
+                                    onEdit = {
+                                        context.startActivity(
+                                            ReceiptEditActivity.intent(context, item.receiptId)
+                                        )
+                                    },
                                     onDelete = {
                                         viewModel.handleIntent(ReceiptListIntent.DeleteReceipt(item.receiptId))
                                     },
@@ -267,7 +277,10 @@ fun ReceiptListScreen(
 
 
 @Composable
-private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onDelete: () -> Unit) {
+private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
+    var showMenuSheet by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -308,39 +321,15 @@ private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onDelete: () -> 
                         Spacer(Modifier.width(8.dp))
                         WarrantyDayBadge(warrantyDDay = item.warrantyDDay)
 
-                        var menuExpanded by remember { mutableStateOf(false) }
-                        Box {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = null,
-                                tint = ColorGray400,
-                                modifier = Modifier
-                                    .padding(start = 4.dp)
-                                    .size(24.dp)
-                                    .clickable { menuExpanded = true },
-                            )
-                            DropdownMenu(
-                                expanded = menuExpanded,
-                                onDismissRequest = { menuExpanded = false },
-                                containerColor = ColorWhite,
-                                shape = Rounded2xl,
-                            ) {
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            text = stringResource(R.string.receipt_delete),
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color = Color(0xFFFF4444),
-                                        )
-                                    },
-                                    onClick = {
-                                        menuExpanded = false
-                                        onDelete()
-                                    },
-                                )
-                            }
-                        }
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.common_more),
+                            tint = ColorGray400,
+                            modifier = Modifier
+                                .padding(start = 4.dp)
+                                .size(24.dp)
+                                .clickable { showMenuSheet = true },
+                        )
                     }
 
                     // 💡 교정 2: "AS 만료일 | 2026. 07. 16" 형식으로 타이포그래피 정교화
@@ -386,6 +375,110 @@ private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onDelete: () -> 
                 }
             }
         }
+    }
+
+    // ── 케밥 메뉴 (수정하기 / 삭제하기 / 닫기) ──
+    if (showMenuSheet) {
+        ReceiptListMenuSheet(
+            onDismiss = { showMenuSheet = false },
+            onEdit = {
+                showMenuSheet = false
+                onEdit()
+            },
+            onDelete = {
+                showMenuSheet = false
+                showDeleteConfirm = true
+            },
+        )
+    }
+
+    // ── 삭제 확인 다이얼로그 ──
+    if (showDeleteConfirm) {
+        BoatDialog(
+            title = stringResource(R.string.receipt_delete_confirm_title),
+            message = stringResource(R.string.receipt_delete_confirm_message),
+            confirmText = stringResource(R.string.receipt_delete),
+            confirmTextColor = ColorSystemError,
+            dismissText = stringResource(R.string.common_cancel),
+            onConfirm = {
+                showDeleteConfirm = false
+                onDelete()
+            },
+            onDismiss = { showDeleteConfirm = false },
+        )
+    }
+}
+
+/** 케밥 클릭 시 뜨는 액션 바텀시트 — 수정하기/삭제하기 카드 + 별도 닫기 버튼 (상세 화면과 동일 구성) */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ReceiptListMenuSheet(
+    onDismiss: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = Color.Transparent,
+        dragHandle = null,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Margin20)
+                .padding(bottom = Margin20),
+            verticalArrangement = Arrangement.spacedBy(Margin8),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(Rounded2xl)
+                    .background(ColorWhite),
+            ) {
+                MenuSheetRow(
+                    text = stringResource(R.string.receipt_detail_menu_edit),
+                    color = ColorBrandPrimary,
+                    onClick = onEdit,
+                )
+                HorizontalDivider(color = ColorGray100)
+                MenuSheetRow(
+                    text = stringResource(R.string.receipt_delete),
+                    color = ColorSystemError,
+                    onClick = onDelete,
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(Rounded2xl)
+                    .background(ColorWhite)
+                    .clickable(onClick = onDismiss)
+                    .padding(vertical = 18.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = stringResource(R.string.receipt_detail_menu_close),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = ColorGray900,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MenuSheetRow(text: String, color: Color, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 18.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = color)
     }
 }
 
