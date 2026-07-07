@@ -5,9 +5,12 @@ import com.windrr.boat.data.remote.model.CreateReceiptResponse
 import com.windrr.boat.data.remote.model.DeleteReceiptResponse
 import com.windrr.boat.data.remote.model.ReceiptDetailResponse
 import com.windrr.boat.data.remote.model.ReceiptListResponse
+import com.windrr.boat.data.remote.model.UpdateReceiptRequest
+import com.windrr.boat.data.remote.model.UpdateReceiptResponse
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -31,6 +34,16 @@ interface ReceiptApiService {
     /** 영수증 상세 조회 — 제품명/구매일/무상 AS 기간/메모/첨부 이미지 등 전체 필드 반환. */
     @GET("api/v1/receipts/{receipt_id}")
     suspend fun getReceiptDetail(@Path("receipt_id") receiptId: String): ReceiptDetailResponse
+
+    /**
+     * 영수증 수정 — 제품 정보와 첨부 이미지 목록(receiptFileIds)을 수정한다.
+     * 첨부 이미지는 수정 후에도 1장 이상 5장 이하여야 한다.
+     */
+    @PATCH("api/v1/receipts/{receipt_id}")
+    suspend fun updateReceipt(
+        @Path("receipt_id") receiptId: String,
+        @Body request: UpdateReceiptRequest,
+    ): UpdateReceiptResponse
 
     /**
      * 영수증 목록 조회 (커서 기반 페이징)

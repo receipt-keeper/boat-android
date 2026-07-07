@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -17,24 +18,35 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,15 +62,21 @@ import com.windrr.boat.R
 import com.windrr.boat.core.ocr.DeviceImage
 import com.windrr.boat.core.util.toPriceString
 import com.windrr.boat.data.remote.model.ReceiptItem
+import com.windrr.boat.ui.component.BoatDialog
+import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.SyncLoadingOverlay
+import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandQuinary
 import com.windrr.boat.ui.theme.ColorBrandSenary
 import com.windrr.boat.ui.theme.ColorGray100
 import com.windrr.boat.ui.theme.ColorGray200
+import com.windrr.boat.ui.theme.ColorGray300
 import com.windrr.boat.ui.theme.ColorGray400
+import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray500
 import com.windrr.boat.ui.theme.ColorGray900
-import com.windrr.boat.ui.theme.ColorGray50
+import com.windrr.boat.ui.theme.ColorSystemError
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin12
 import com.windrr.boat.ui.theme.Margin16
@@ -69,6 +87,7 @@ import com.windrr.boat.ui.theme.Rounded2xl
 import com.windrr.boat.ui.theme.RoundedFull
 import com.windrr.boat.ui.theme.RoundedLg
 import com.windrr.boat.ui.theme.RoundedXl
+import kotlinx.coroutines.delay
 
 /** "2024-04-12" → "2024.04.12" */
 private fun String?.toDotDate(): String {
@@ -87,68 +106,198 @@ fun ReceiptDetailScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
+    val toastState = rememberBoatToastState()
+    var showMenuSheet by rememberSaveable { mutableStateOf(false) }
+    var showDeleteConfirm by rememberSaveable { mutableStateOf(false) }
+    val deletedMessage = stringResource(R.string.receipt_deleted_toast)
+    val deleteFailedMessage = stringResource(R.string.receipt_delete_failed)
 
     LaunchedEffect(receiptId) { viewModel.load(receiptId) }
 
-    Scaffold(
-        modifier = modifier,
-        containerColor = ColorWhite,
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {},
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_arrow_back),
-                            contentDescription = stringResource(R.string.common_back),
-                            tint = Color.Unspecified,
-                        )
-                    }
-                },
-                actions = {
-                    // TODO: 수정 화면 연동 (현재는 자리표시)
-                    TextButton(onClick = { /* TODO: 수정 */ }) {
-                        Text(
-                            text = stringResource(R.string.receipt_detail_edit),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = ColorBrandPrimary,
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = ColorWhite),
-            )
-        },
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentAlignment = Alignment.Center,
-        ) {
-            when {
-                state.isLoading -> CircularProgressIndicator(color = ColorBrandPrimary)
-                state.receipt == null -> {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = state.error ?: stringResource(R.string.receipt_detail_load_failed),
-                            fontSize = 14.sp,
-                            color = ColorGray500,
-                        )
-                        TextButton(onClick = { viewModel.load(receiptId) }) {
-                            Text(stringResource(R.string.receipt_list_retry), color = ColorBrandPrimary)
+    // 삭제 성공 — 토스트 표시 후 잠시 뒤 이전 화면(목록)으로 복귀
+    LaunchedEffect(state.deleted) {
+        if (state.deleted) {
+            toastState.show(deletedMessage)
+            delay(1000)
+            onBack()
+        }
+    }
+    LaunchedEffect(state.deleteError) {
+        if (state.deleteError != null) {
+            toastState.showError(deleteFailedMessage)
+            viewModel.consumeDeleteError()
+        }
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        Scaffold(
+            containerColor = ColorWhite,
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {},
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_arrow_back),
+                                contentDescription = stringResource(R.string.common_back),
+                                tint = Color.Unspecified,
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { showMenuSheet = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = stringResource(R.string.common_more),
+                                tint = ColorGray900,
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = ColorWhite),
+                )
+            },
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center,
+            ) {
+                when {
+                    state.isLoading -> CircularProgressIndicator(color = ColorBrandPrimary)
+                    state.receipt == null -> {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = state.error ?: stringResource(R.string.receipt_detail_load_failed),
+                                fontSize = 14.sp,
+                                color = ColorGray500,
+                            )
+                            TextButton(onClick = { viewModel.load(receiptId) }) {
+                                Text(stringResource(R.string.receipt_list_retry), color = ColorBrandPrimary)
+                            }
                         }
                     }
+                    else -> ReceiptDetailContent(receipt = state.receipt!!)
                 }
-                else -> ReceiptDetailContent(receipt = state.receipt!!)
+            }
+        }
+
+        BoatToastHost(state = toastState)
+        if (state.isDeleting) {
+            SyncLoadingOverlay(message = stringResource(R.string.loading_delete_message))
+        }
+    }
+
+    // ── 케밥 메뉴 (수정하기 / 삭제하기 / 닫기) ──
+    if (showMenuSheet) {
+        ReceiptDetailMenuSheet(
+            onDismiss = { showMenuSheet = false },
+            onEdit = {
+                showMenuSheet = false
+                context.startActivity(ReceiptEditActivity.intent(context, receiptId))
+            },
+            onDelete = {
+                showMenuSheet = false
+                showDeleteConfirm = true
+            },
+        )
+    }
+
+    // ── 삭제 확인 다이얼로그 ──
+    if (showDeleteConfirm) {
+        BoatDialog(
+            title = stringResource(R.string.receipt_delete_confirm_title),
+            message = stringResource(R.string.receipt_delete_confirm_message),
+            confirmText = stringResource(R.string.receipt_delete),
+            confirmTextColor = ColorSystemError,
+            dismissText = stringResource(R.string.common_cancel),
+            onConfirm = {
+                showDeleteConfirm = false
+                viewModel.delete(receiptId)
+            },
+            onDismiss = { showDeleteConfirm = false },
+        )
+    }
+}
+
+/** 케밥 클릭 시 뜨는 액션 바텀시트 — 수정하기/삭제하기 카드 + 별도 닫기 버튼 */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ReceiptDetailMenuSheet(
+    onDismiss: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = Color.Transparent,
+        dragHandle = null,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Margin20)
+                .padding(bottom = Margin20),
+            verticalArrangement = Arrangement.spacedBy(Margin8),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(Rounded2xl)
+                    .background(ColorWhite),
+            ) {
+                MenuSheetRow(
+                    text = stringResource(R.string.receipt_detail_menu_edit),
+                    color = ColorBrandPrimary,
+                    onClick = onEdit,
+                )
+                HorizontalDivider(color = ColorGray100)
+                MenuSheetRow(
+                    text = stringResource(R.string.receipt_delete),
+                    color = ColorSystemError,
+                    onClick = onDelete,
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(Rounded2xl)
+                    .background(ColorWhite)
+                    .clickable(onClick = onDismiss)
+                    .padding(vertical = 18.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = stringResource(R.string.receipt_detail_menu_close),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = ColorGray900,
+                )
             }
         }
     }
 }
 
 @Composable
+private fun MenuSheetRow(text: String, color: Color, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 18.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = color)
+    }
+}
+
+@Composable
 private fun ReceiptDetailContent(receipt: ReceiptItem) {
     val context = LocalContext.current
+    var showSerialHelp by rememberSaveable { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -183,14 +332,12 @@ private fun ReceiptDetailContent(receipt: ReceiptItem) {
                 label = stringResource(R.string.manual_purchase_date),
                 value = receipt.paymentDate.toDotDate(),
             )
-            // 무상 AS 만료일 — 값 우측에 D-day 뱃지
             DetailField(
                 label = stringResource(R.string.receipt_detail_expiry),
                 value = receipt.expiresOn.toDotDate(),
                 trailing = { WarrantyDDayBadge(receipt.warrantyDDay) },
             )
 
-            // 메모
             Spacer(Modifier.height(Margin16))
             FieldLabel(stringResource(R.string.manual_memo))
             Spacer(Modifier.height(Margin8))
@@ -211,25 +358,28 @@ private fun ReceiptDetailContent(receipt: ReceiptItem) {
             }
         }
 
-        // ── 실물 영수증 필요 ──
-        if (receipt.requiresPhysicalReceipt) {
-            SectionBand()
-            Column(modifier = Modifier.padding(horizontal = Margin20, vertical = Margin20)) {
+        // ── 실물 영수증 보관 여부 (읽기 전용 표시) ──
+        SectionBand()
+        Column(modifier = Modifier.padding(horizontal = Margin20, vertical = Margin20)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = stringResource(R.string.receipt_detail_physical_title),
+                    text = stringResource(R.string.manual_keep_receipt_title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = ColorGray900,
                 )
-                Spacer(Modifier.height(Margin12))
-                Text(
-                    text = stringResource(R.string.receipt_detail_physical_desc),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = ColorBrandPrimary,
-                    lineHeight = 22.sp,
-                )
+                Spacer(Modifier.width(6.dp))
+                HelpBadge(onClick = {})
             }
+            Spacer(Modifier.height(Margin12))
+            ReadOnlyRadioRow(
+                label = stringResource(R.string.manual_keep_receipt_yes),
+                selected = receipt.requiresPhysicalReceipt,
+            )
+            ReadOnlyRadioRow(
+                label = stringResource(R.string.manual_keep_receipt_no),
+                selected = !receipt.requiresPhysicalReceipt,
+            )
         }
 
         // ── 보증 정보 ──
@@ -250,10 +400,21 @@ private fun ReceiptDetailContent(receipt: ReceiptItem) {
                 label = stringResource(R.string.manual_price),
                 value = receipt.totalAmount?.let { "${it.toPriceString()} 원" } ?: "-",
             )
-            DetailField(
-                label = stringResource(R.string.manual_serial),
-                value = receipt.serialNumber?.takeIf { it.isNotBlank() } ?: "-",
-            )
+            // 시리얼 넘버 — 라벨 옆 도움말 뱃지
+            Column(modifier = Modifier.padding(vertical = Margin12)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    FieldLabel(stringResource(R.string.manual_serial))
+                    Spacer(Modifier.width(4.dp))
+                    HelpBadge(onClick = { showSerialHelp = true })
+                }
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = receipt.serialNumber?.takeIf { it.isNotBlank() } ?: "-",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = ColorGray900,
+                )
+            }
         }
 
         // ── 원본 영수증 ──
@@ -277,54 +438,79 @@ private fun ReceiptDetailContent(receipt: ReceiptItem) {
             } else {
                 // 파일 이미지 서빙 엔드포인트가 확정되면 fileId를 실제 이미지로 교체.
                 // TODO: GET 파일 이미지(인증 포함) 연동 — 현재는 플레이스홀더 썸네일
+                // TODO: 원본 사진 개별 삭제 API 확정 후 X 버튼에 실제 삭제 연동
                 LazyRow(
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = Margin20),
+                    contentPadding = PaddingValues(horizontal = Margin20),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     items(receipt.receiptFileIds) { _ ->
-                        Box(
-                            modifier = Modifier
-                                .size(100.dp)
-                                .clip(RoundedXl)
-                                .background(ColorGray100)
-                                .border(1.dp, ColorGray200, RoundedXl),
-                        )
+                        Box(modifier = Modifier.size(100.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedXl)
+                                    .background(ColorGray100)
+                                    .border(1.dp, ColorGray200, RoundedXl),
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(6.dp)
+                                    .size(22.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.Black.copy(alpha = 0.4f)),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(text = "✕", color = ColorWhite, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 }
             }
-        }
 
-        // ── 하단 CTA ──
-        Spacer(Modifier.height(Margin24))
-        val supportUrl = receipt.supportUrl
-        androidx.compose.material3.Button(
-            onClick = {
-                if (!supportUrl.isNullOrBlank()) {
-                    runCatching {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(supportUrl)))
+            Spacer(Modifier.height(Margin20))
+            // ── 하단 CTA — 연한 파랑 링크 스타일 ──
+            val supportUrl = receipt.supportUrl
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Margin20)
+                    .clip(RoundedXl)
+                    .background(ColorBrandSenary)
+                    .clickable(enabled = !supportUrl.isNullOrBlank()) {
+                        if (!supportUrl.isNullOrBlank()) {
+                            runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(supportUrl))) }
+                        }
                     }
-                }
-            },
-            enabled = !supportUrl.isNullOrBlank(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Margin20)
-                .height(56.dp),
-            shape = RoundedXl,
-            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                containerColor = ColorBrandPrimary,
-                contentColor = ColorWhite,
-                disabledContainerColor = ColorGray200,
-                disabledContentColor = ColorGray500,
-            ),
-        ) {
-            Text(
-                text = stringResource(R.string.receipt_detail_support_cta),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
+                    .padding(horizontal = Margin16, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.receipt_detail_support_cta),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = ColorBrandPrimary,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    painter = painterResource(R.drawable.ic_chevron_right),
+                    contentDescription = null,
+                    tint = ColorBrandPrimary,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
         }
         Spacer(Modifier.height(Margin24))
+    }
+
+    if (showSerialHelp) {
+        BoatDialog(
+            message = stringResource(R.string.receipt_detail_serial_help),
+            confirmText = stringResource(R.string.common_confirm),
+            onConfirm = { showSerialHelp = false },
+            onDismiss = { showSerialHelp = false },
+            showDismissButton = false,
+        )
     }
 }
 
@@ -370,6 +556,42 @@ private fun SectionBand() {
             .height(8.dp)
             .background(ColorGray50),
     )
+}
+
+/** 읽기 전용 라디오 행 — 상세 화면에서 이미 저장된 선택값만 보여준다(수정 불가). */
+@Composable
+private fun ReadOnlyRadioRow(label: String, selected: Boolean) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = null,
+            colors = RadioButtonDefaults.colors(
+                selectedColor = ColorBrandPrimary,
+                unselectedColor = ColorGray300,
+            ),
+        )
+        Text(text = label, fontSize = 15.sp, color = ColorGray900)
+    }
+}
+
+/** 원형 "?" 도움말 뱃지 */
+@Composable
+private fun HelpBadge(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(18.dp)
+            .clip(CircleShape)
+            .border(1.dp, ColorGray400, CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = "?", fontSize = 11.sp, color = ColorGray500, fontWeight = FontWeight.Bold)
+    }
 }
 
 /** 무상 AS 잔여일 뱃지 — 여유(파랑) / 만료(회색) */

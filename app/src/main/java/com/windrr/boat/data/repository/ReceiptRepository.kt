@@ -8,6 +8,7 @@ import com.windrr.boat.data.remote.model.CreateReceiptRequest
 import com.windrr.boat.data.remote.model.ReceiptItem
 import com.windrr.boat.data.remote.model.ReceiptListData
 import com.windrr.boat.data.remote.model.ReceiptPagination
+import com.windrr.boat.data.remote.model.UpdateReceiptRequest
 import okhttp3.MultipartBody
 
 /**
@@ -83,6 +84,13 @@ class ReceiptRepository(
     suspend fun deleteReceipt(receiptId: String): Result<Unit> = runCatching {
         receiptApi.deleteReceipt(receiptId)
         dao.deleteById(receiptId)
+    }
+
+    /** 영수증 수정 후 로컬 캐시 갱신 */
+    suspend fun updateReceipt(receiptId: String, request: UpdateReceiptRequest): Result<ReceiptItem> = runCatching {
+        val item = receiptApi.updateReceipt(receiptId, request).data
+        dao.upsert(item.toEntity())
+        item
     }
 
     /**

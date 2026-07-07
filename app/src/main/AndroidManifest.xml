@@ -65,6 +65,11 @@
             android:theme="@style/Theme.Boat" />
 
         <activity
+            android:name=".feature.receipt.ReceiptEditActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Boat" />
+
+        <activity
             android:name=".feature.notification.NotificationListActivity"
             android:exported="false"
             android:theme="@style/Theme.Boat" />

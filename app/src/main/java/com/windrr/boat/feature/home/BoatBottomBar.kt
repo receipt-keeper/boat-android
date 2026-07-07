@@ -43,17 +43,17 @@ import dev.chrisbanes.haze.hazeEffect
 import com.windrr.boat.R
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandSenary
-import com.windrr.boat.ui.theme.ColorGray400
+import com.windrr.boat.ui.theme.ColorGray700
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin12
 import com.windrr.boat.ui.theme.Margin20
 
-// ── 치수 상수 ─────────────────────────────────────────────────────────────────
-private val BarHeight = 64.dp            // 알약 바 높이
-private val BarCorner = 28.dp            // 알약 바 모서리
-private val FabSize = 60.dp              // "+" 원형 버튼 지름 (바 높이와 거의 동일)
-private val TabHighlightCorner = 18.dp   // 선택 탭 하이라이트 모서리
+// ── 치수 상수 (디자인 가이드: 높이 62px, 풀 라운드, space-between) ────────────────
+private val BarHeight = 62.dp                          // 알약 바 높이
+private val BarShape = RoundedCornerShape(percent = 50) // 풀 라운드(스타디움) — 높이 기준 반원 끝
+private val FabSize = 62.dp                            // "+" 원형 버튼 지름 (바 높이와 동일)
+private val TabHighlightShape = RoundedCornerShape(percent = 50) // 선택 탭 하이라이트도 스타디움
 private val TabIconSize = 24.dp
 
 /**
@@ -104,22 +104,21 @@ fun BoatFloatingBottomBar(
                 .height(BarHeight)
                 .shadow(
                     elevation = 16.dp,
-                    shape = RoundedCornerShape(BarCorner),
+                    shape = BarShape,
                     ambientColor = Color.Black.copy(alpha = 0.12f),
                     spotColor = Color.Black.copy(alpha = 0.18f),
                 )
-                .clip(RoundedCornerShape(BarCorner))
+                .clip(BarShape)
                 .hazeEffect(state = hazeState, style = glassStyle)
-                .border(1.dp, ColorWhite.copy(alpha = 0.7f), RoundedCornerShape(BarCorner))
-                .padding(horizontal = 8.dp),
+                .border(1.dp, ColorWhite.copy(alpha = 0.7f), BarShape)
+                .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween, // 디자인: 양쪽 정렬 space-between
         ) {
             MainTab.entries.forEach { tab ->
                 FloatingTabItem(
                     tab = tab,
                     selected = currentRoute == tab.route,
-                    modifier = Modifier.weight(1f),
                     onClick = {
                         if (currentRoute != tab.route) {
                             navController.navigate(tab.route) {
@@ -142,7 +141,7 @@ fun BoatFloatingBottomBar(
     }
 }
 
-/** 탭 1개 — 선택 시 연한 파랑 하이라이트가 아이콘+라벨을 감싸며 바 안에 담긴다. */
+/** 탭 1개 — 선택 시 연한 파랑 하이라이트가 아이콘+라벨을 감싸며 바 높이에 꽉 차게 담긴다. */
 @Composable
 private fun FloatingTabItem(
     tab: MainTab,
@@ -150,36 +149,37 @@ private fun FloatingTabItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val tint = if (selected) ColorBrandPrimary else ColorGray400
+    // 디자인: 선택=브랜드 블루, 미선택=진한 아이콘(Gray900) + 다크그레이 라벨(Gray700)
+    val iconTint = if (selected) ColorBrandPrimary else ColorGray900
+    val labelColor = if (selected) ColorBrandPrimary else ColorGray700
     val noRipple = remember { MutableInteractionSource() }
 
-    // 각 탭은 바 높이를 꽉 채우되, 하이라이트는 내부 콘텐츠 크기에 맞춰 그린다.
     Box(
         modifier = modifier
             .fillMaxHeight()
-            .clip(RoundedCornerShape(TabHighlightCorner))
+            .clip(TabHighlightShape)
             .clickable(interactionSource = noRipple, indication = null, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Column(
             modifier = Modifier
-                .clip(RoundedCornerShape(TabHighlightCorner))
+                .clip(TabHighlightShape)
                 .then(if (selected) Modifier.background(ColorBrandSenary) else Modifier)
-                .padding(horizontal = 18.dp, vertical = 8.dp),
+                .padding(horizontal = 20.dp, vertical = 9.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
                 painter = painterResource(tab.iconRes),
                 contentDescription = stringResource(tab.labelRes),
-                tint = tint,
+                tint = iconTint,
                 modifier = Modifier.size(TabIconSize),
             )
             Spacer(Modifier.height(3.dp))
             Text(
                 text = stringResource(tab.labelRes),
                 fontSize = 11.sp,
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                color = tint,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                color = labelColor,
             )
         }
     }

@@ -1,11 +1,11 @@
 package com.windrr.boat.feature.receipt
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,33 +14,36 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -53,14 +56,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -71,13 +78,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import com.windrr.boat.R
 import com.windrr.boat.core.log.BoatLog
 import com.windrr.boat.core.ocr.DeviceCategory
 import com.windrr.boat.core.ocr.DeviceImage
+import com.windrr.boat.core.util.createImageCaptureUri
 import com.windrr.boat.core.util.toMultipartPart
 import com.windrr.boat.data.remote.model.CreateReceiptRequest
 import com.windrr.boat.data.remote.model.OcrData
@@ -86,6 +96,7 @@ import com.windrr.boat.feature.gallery.GalleryIntent
 import com.windrr.boat.feature.gallery.GalleryState
 import com.windrr.boat.feature.gallery.GalleryViewModel
 import com.windrr.boat.feature.home.HomeActivity
+import com.windrr.boat.feature.home.ReceiptAddSheet
 import com.windrr.boat.ui.component.BoatInputField
 import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.PriceVisualTransformation
@@ -98,6 +109,7 @@ import kotlinx.coroutines.launch
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandQuinary
 import com.windrr.boat.ui.theme.ColorBrandSenary
+import com.windrr.boat.ui.theme.ColorBrandTertiary
 import com.windrr.boat.ui.theme.ColorGray100
 import com.windrr.boat.ui.theme.ColorGray200
 import com.windrr.boat.ui.theme.ColorGray300
@@ -139,6 +151,20 @@ private val WARRANTY_OPTION_RES = listOf(
 
 private val PRESET_MONTHS = listOf(6, 12, 24, 36)
 
+private const val ETC = "기타"
+
+/** 대분류 → 소분류(대표 기기명) 노출 순서 (디자인 가이드 기준) */
+private val SUBCATEGORIES: Map<DeviceCategory, List<String>> = mapOf(
+    DeviceCategory.KITCHEN to listOf("전자레인지", "냉장고", "밥솥", "오븐", "정수기", ETC),
+    DeviceCategory.LAUNDRY to listOf("세탁기", "건조기", "청소기", "로봇청소기", ETC),
+    DeviceCategory.LIVING to listOf("에어컨", "선풍기", "공기청정기", "가습기", ETC),
+    DeviceCategory.IT to listOf(
+        "노트북", "핸드폰", "무선이어폰", "스마트워치", "데스크탑/TV",
+        "카메라", "스피커", "게임기", "헤드셋", ETC,
+    ),
+    DeviceCategory.OTHER to listOf(ETC),
+)
+
 // ── 유틸 ─────────────────────────────────────────────────────────────────────
 
 private fun String.normalizeDate(): String = replace("-", ".")
@@ -158,11 +184,11 @@ private fun calculateExpiryDate(purchaseDateDisplay: String, months: Int): Strin
 // ── 메인 화면 ─────────────────────────────────────────────────────────────────
 
 /**
- * 영수증 입력하기 화면.
+ * 영수증 직접 입력 화면.
  * OCR 성공 후 [ocrData]를 받아 각 필드를 프리필. OCR 실패(수동 진입) 시 [ocrData] = null.
  * 필수(*): 제품명 / 구매일 / 무상 AS 만료기간
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun ReceiptManualInputScreen(
     onBack: () -> Unit,
@@ -171,6 +197,7 @@ fun ReceiptManualInputScreen(
     ocrData: OcrData? = null,
     galleryViewModel: GalleryViewModel = viewModel(),
 ) {
+    val context = LocalContext.current
     val galleryState by galleryViewModel.state.collectAsState()
     val photos = galleryState.photos
     val remainingSlots = (GalleryState.MAX_PHOTOS - photos.size).coerceAtLeast(0)
@@ -184,6 +211,7 @@ fun ReceiptManualInputScreen(
         }
     }
 
+    // ── 이미지 추가 (갤러리/카메라) ───────────────────────
     val singlePickLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { uri -> if (uri != null) galleryViewModel.handleIntent(GalleryIntent.AddPhotos(listOf(uri))) }
@@ -194,6 +222,25 @@ fun ReceiptManualInputScreen(
         ) { uris -> if (uris.isNotEmpty()) galleryViewModel.handleIntent(GalleryIntent.AddPhotos(uris)) }
     }
 
+    var cameraImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        val uri = cameraImageUri
+        if (success && uri != null) galleryViewModel.handleIntent(GalleryIntent.AddPhotos(listOf(uri)))
+    }
+
+    fun launchCamera() {
+        val uri = context.createImageCaptureUri()
+        cameraImageUri = uri
+        cameraLauncher.launch(uri)
+    }
+    val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA) { granted ->
+        if (granted) launchCamera()
+    }
+    fun onTakePhoto() {
+        if (cameraPermission.status.isGranted) launchCamera() else cameraPermission.launchPermissionRequest()
+    }
     fun onPickImages() {
         val req = PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
         when {
@@ -218,11 +265,14 @@ fun ReceiptManualInputScreen(
         val m = ocrData?.periodMonths
         if (m != null && !PRESET_MONTHS.contains(m)) m.toString() else ""
     }
+    val initCategory = remember(ocrData) {
+        ocrData?.category?.let { c -> DeviceCategory.entries.find { it.displayName == c } }
+            ?: DeviceCategory.KITCHEN   // 디자인: 기본 선택 = 첫 카테고리
+    }
 
     // ── 폼 상태 ──────────────────────────────────────────
-    var selectedCategory    by remember { mutableStateOf(ocrData?.category?.let { c -> DeviceCategory.entries.find { it.displayName == c } }) }
-    // 소분류는 입력 UI가 없지만, OCR이 내려준 값을 그대로 등록 요청까지 보존해야 한다
-    val subCategory         = remember(ocrData) { ocrData?.subCategory }
+    var selectedCategory    by remember { mutableStateOf(initCategory) }
+    var selectedSubCategory by remember { mutableStateOf(ocrData?.subCategory) }
     var productName         by remember { mutableStateOf(ocrData?.itemName.orEmpty()) }
     var purchaseDate        by remember { mutableStateOf(ocrData?.paymentDate?.normalizeDate().orEmpty()) }
     var selectedWarranty    by remember { mutableStateOf(initWarrantyIdx) }
@@ -232,8 +282,12 @@ fun ReceiptManualInputScreen(
     var brand               by remember { mutableStateOf(ocrData?.brandName.orEmpty()) }
     var price               by remember { mutableStateOf(ocrData?.totalAmount?.toString().orEmpty()) }
     var serial              by remember { mutableStateOf("") }
-    var keepReceipt         by remember { mutableStateOf(true) }
+    var keepReceipt         by remember { mutableStateOf<Boolean?>(null) } // 필요함/필요하지 않음 (미선택 시 null)
     var showDatePicker      by remember { mutableStateOf(false) }
+    var showAddSheet        by remember { mutableStateOf(false) }
+    var showKeepReceiptHelp by remember { mutableStateOf(false) }
+    var productInfoExpanded by remember { mutableStateOf(true) }
+    var warrantyInfoExpanded by remember { mutableStateOf(true) }
 
     // ── 파생 상태 ─────────────────────────────────────────
     val warrantyMonths: Int? = when (selectedWarranty) {
@@ -252,8 +306,7 @@ fun ReceiptManualInputScreen(
 
     val canSubmit = productName.isNotBlank() && purchaseDate.isNotBlank() && warrantyMonths != null
 
-    // ── 등록 (파일 업로드 → 영수증 생성 → 로컬 캐시) ─────────
-    val context = LocalContext.current
+    // ── 등록 ──────────────────────────────────────────────
     val scope = rememberCoroutineScope()
     val toastState = rememberBoatToastState()
     val repository = remember { ReceiptRepository() }
@@ -264,14 +317,11 @@ fun ReceiptManualInputScreen(
         if (isSubmitting || !canSubmit) return
         scope.launch {
             isSubmitting = true
-            // 1) 첨부 이미지 업로드 → fileId 수집 (병렬로 읽어 지연 최소화)
             val parts = coroutineScope {
-                photos.map { uri -> async { uri.toMultipartPart(context, "files") } }
-                    .awaitAll()
+                photos.map { uri -> async { uri.toMultipartPart(context, "files") } }.awaitAll()
             }
             repository.uploadFiles(parts).fold(
                 onSuccess = { fileIds ->
-                    // 2) 입력값 + fileId로 영수증 생성
                     val request = CreateReceiptRequest(
                         itemName = productName.trim(),
                         brandName = brand.trim().ifBlank { null },
@@ -279,20 +329,18 @@ fun ReceiptManualInputScreen(
                         paymentDate = purchaseDate.replace(".", "-").trim().ifBlank { null },
                         totalAmount = price.toIntOrNull(),
                         periodMonths = warrantyMonths,
-                        category = selectedCategory?.displayName,
-                        subCategory = subCategory,
+                        category = selectedCategory.displayName,
+                        subCategory = selectedSubCategory,
                         memo = memo.trim().ifBlank { null },
-                        requiresPhysicalReceipt = keepReceipt,
+                        requiresPhysicalReceipt = keepReceipt ?: false,
                         receiptFileIds = fileIds,
                     )
                     repository.createReceipt(request).fold(
                         onSuccess = {
                             isSubmitting = false
-                            // 홈으로 복귀 — 등록/OCR 화면 정리, 목록은 onResume에서 갱신
                             context.startActivity(
                                 Intent(context, HomeActivity::class.java).apply {
-                                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                                            Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                                 }
                             )
                         },
@@ -313,215 +361,183 @@ fun ReceiptManualInputScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-    Scaffold(
-        containerColor = ColorGray50,
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.manual_title),
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = ColorGray900,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_arrow_back),
-                            contentDescription = stringResource(R.string.common_back),
-                            tint = Color.Unspecified,
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = ColorGray50),
-            )
-        },
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = Margin20),
-        ) {
-
-            // ── 등록된 이미지 확인 ────────────────────────
-            SectionTitle(stringResource(R.string.manual_image_section))
-            Spacer(Modifier.height(Margin12))
-            if (photos.isNotEmpty()) {
-                val pagerState = rememberPagerState(pageCount = { photos.size })
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(4f / 3f)
-                        .clip(Rounded2xl),
-                ) {
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier.fillMaxSize(),
-                    ) { page ->
-                        AsyncImage(
-                            model = photos[page],
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    }
-                    // 페이지 인디케이터
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(10.dp)
-                            .clip(RoundedFull)
-                            .background(Color.Black.copy(alpha = 0.5f))
-                            .padding(horizontal = 10.dp, vertical = 4.dp),
-                    ) {
+        Scaffold(
+            containerColor = ColorGray50,
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
                         Text(
-                            text = "${pagerState.currentPage + 1} / ${photos.size}",
-                            color = ColorWhite,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
+                            text = stringResource(R.string.manual_title),
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = ColorGray900,
                         )
-                    }
-                }
-            } else {
-                // 사진 없는 경우 — 추가 유도 플레이스홀더
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(Rounded2xl)
-                        .background(ColorGray100)
-                        .border(1.dp, ColorGray200, Rounded2xl)
-                        .clickable { onPickImages() },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("+", fontSize = 28.sp, color = ColorGray400, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(4.dp))
-                        Text(stringResource(R.string.manual_image_add), fontSize = 13.sp, color = ColorGray400)
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(Margin20))
-            // ── 메인 입력 카드 ────────────────────────────
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_arrow_back),
+                                contentDescription = stringResource(R.string.common_back),
+                                tint = Color.Unspecified,
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = ColorGray50),
+                )
+            },
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(Rounded2xl)
-                    .background(ColorWhite)
-                    .padding(Margin16),
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState()),
             ) {
-                // 카테고리
-                Row(
+                Spacer(Modifier.height(Margin8))
+
+                // ── 등록된 이미지 확인 ────────────────────
+                SectionTitle(
+                    stringResource(R.string.manual_image_section),
+                    Modifier.padding(horizontal = Margin20),
+                )
+                Spacer(Modifier.height(Margin12))
+                LazyRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = Margin20),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    DeviceCategory.entries.forEach { cat ->
-                        CategoryItem(
-                            label = cat.displayName,
-                            iconRes = DeviceImage.categoryDefault(cat),
-                            selected = selectedCategory == cat,
-                            onClick = { selectedCategory = cat },
-                            modifier = Modifier.weight(1f),
+                    item {
+                        AddImageTile(onClick = { showAddSheet = true })
+                    }
+                    items(photos, key = { it.toString() }) { uri ->
+                        ImageThumbnail(
+                            uri = uri,
+                            onRemove = { galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri)) },
                         )
                     }
                 }
 
                 Spacer(Modifier.height(Margin20))
-                BoatInputField(
-                    value = productName,
-                    onValueChange = { productName = it },
-                    label = stringResource(R.string.manual_product_name),
-                    required = true,
-                    placeholder = stringResource(R.string.manual_product_name_hint),
-                )
 
-                // 구매일
-                Spacer(Modifier.height(Margin16))
-                FieldLabel(stringResource(R.string.manual_purchase_date), required = true)
-                Spacer(Modifier.height(Margin8))
-                FieldBox(onClick = { showDatePicker = true }) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (purchaseDate.isNotBlank()) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_calendar),
-                                contentDescription = null,
-                                tint = ColorGray700,
-                                modifier = Modifier.size(20.dp),
+                // ── 카테고리 ──────────────────────────────
+                SectionCard {
+                    Text(
+                        text = stringResource(R.string.manual_category),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ColorGray900,
+                    )
+                    Spacer(Modifier.height(Margin12))
+                    CategoryDropdown(
+                        selected = selectedCategory,
+                        onSelect = {
+                            if (it != selectedCategory) {
+                                selectedCategory = it
+                                selectedSubCategory = null // 카테고리 바뀌면 소분류 초기화
+                            }
+                        },
+                    )
+                    Spacer(Modifier.height(Margin16))
+                    // 소분류(대표 기기명) 아이콘 — 가로 스크롤
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        SUBCATEGORIES[selectedCategory].orEmpty().forEach { sub ->
+                            SubCategoryItem(
+                                label = sub,
+                                iconRes = DeviceImage.resolve(selectedCategory.displayName, sub),
+                                selected = selectedSubCategory == sub,
+                                onClick = { selectedSubCategory = if (selectedSubCategory == sub) null else sub },
                             )
-                            Spacer(Modifier.width(Margin8))
                         }
-                        Text(
-                            text = purchaseDate.ifBlank { stringResource(R.string.manual_purchase_date_hint) },
-                            fontSize = 15.sp,
-                            color = if (purchaseDate.isBlank()) ColorGray400 else ColorGray900,
-                        )
                     }
                 }
 
-                // 무상 AS 만료기간
-                Spacer(Modifier.height(Margin16))
-                FieldLabel(stringResource(R.string.manual_warranty), required = true)
-                Spacer(Modifier.height(Margin8))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                Spacer(Modifier.height(Margin20))
+
+                // ── 제품 정보 (접기) ──────────────────────
+                CollapsibleCard(
+                    title = stringResource(R.string.manual_product_section),
+                    expanded = productInfoExpanded,
+                    onToggle = { productInfoExpanded = !productInfoExpanded },
                 ) {
-                    WARRANTY_OPTION_RES.forEachIndexed { idx, res ->
-                        WarrantyChip(
-                            label = stringResource(res),
-                            selected = selectedWarranty == idx,
-                            onClick = { selectedWarranty = idx },
-                        )
-                    }
-                }
-                Spacer(Modifier.height(Margin8))
-                when {
-                    selectedWarranty == null -> {
-                        // 미선택 안내
-                        HintBox(stringResource(R.string.manual_warranty_hint))
-                    }
-                    selectedWarranty == 4 -> {
-                        // 직접입력 — 숫자 + 단위 토글
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            OutlinedTextField(
-                                value = customWarrantyValue,
-                                onValueChange = { v ->
-                                    customWarrantyValue = v.filter { it.isDigit() }.take(4)
-                                },
-                                placeholder = { Text("0", color = ColorGray400, fontSize = 15.sp) },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                singleLine = true,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(52.dp),
-                                shape = RoundedLg,
-                                colors = formFieldColors(),
-                            )
-                            WarrantyUnitChip(
-                                label = "개월",
-                                selected = customWarrantyUnit == WarrantyUnit.MONTH,
-                                onClick = { customWarrantyUnit = WarrantyUnit.MONTH },
-                            )
-                            WarrantyUnitChip(
-                                label = "년",
-                                selected = customWarrantyUnit == WarrantyUnit.YEAR,
-                                onClick = { customWarrantyUnit = WarrantyUnit.YEAR },
+                    BoatInputField(
+                        value = productName,
+                        onValueChange = { productName = it },
+                        label = stringResource(R.string.manual_product_name),
+                        required = true,
+                        placeholder = stringResource(R.string.manual_product_name_hint),
+                    )
+
+                    Spacer(Modifier.height(Margin16))
+                    FieldLabel(stringResource(R.string.manual_purchase_date), required = true)
+                    Spacer(Modifier.height(Margin8))
+                    FieldBox(onClick = { showDatePicker = true }) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (purchaseDate.isNotBlank()) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_calendar),
+                                    contentDescription = null,
+                                    tint = ColorGray700,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                                Spacer(Modifier.width(Margin8))
+                            }
+                            Text(
+                                text = purchaseDate.ifBlank { stringResource(R.string.manual_purchase_date_hint) },
+                                fontSize = 15.sp,
+                                color = if (purchaseDate.isBlank()) ColorGray400 else ColorGray900,
                             )
                         }
                     }
-                    else -> {
-                        // 프리셋 선택 — 값 표시 박스
-                        FieldBox(onClick = {}) {
+
+                    Spacer(Modifier.height(Margin16))
+                    FieldLabel(stringResource(R.string.manual_warranty), required = true)
+                    Spacer(Modifier.height(Margin8))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        WARRANTY_OPTION_RES.forEachIndexed { idx, res ->
+                            WarrantyChip(
+                                label = stringResource(res),
+                                selected = selectedWarranty == idx,
+                                onClick = { selectedWarranty = idx },
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(Margin8))
+                    when {
+                        selectedWarranty == null -> HintBox(stringResource(R.string.manual_warranty_hint))
+                        selectedWarranty == 4 -> {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                OutlinedTextField(
+                                    value = customWarrantyValue,
+                                    onValueChange = { v -> customWarrantyValue = v.filter { it.isDigit() }.take(4) },
+                                    placeholder = { Text("0", color = ColorGray400, fontSize = 15.sp) },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    singleLine = true,
+                                    modifier = Modifier.weight(1f).height(52.dp),
+                                    shape = RoundedLg,
+                                    colors = formFieldColors(),
+                                )
+                                WarrantyUnitChip("개월", customWarrantyUnit == WarrantyUnit.MONTH) {
+                                    customWarrantyUnit = WarrantyUnit.MONTH
+                                }
+                                WarrantyUnitChip("년", customWarrantyUnit == WarrantyUnit.YEAR) {
+                                    customWarrantyUnit = WarrantyUnit.YEAR
+                                }
+                            }
+                        }
+                        else -> FieldBox(onClick = {}) {
                             Text(
                                 text = stringResource(WARRANTY_OPTION_RES[selectedWarranty!!]),
                                 fontSize = 15.sp,
@@ -529,160 +545,131 @@ fun ReceiptManualInputScreen(
                             )
                         }
                     }
-                }
 
-                // 무상 AS 만료일 계산 배너
-                if (expiryDate != null) {
-                    Spacer(Modifier.height(Margin8))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedLg)
-                            .background(ColorBrandSenary)
-                            .padding(horizontal = Margin12, vertical = 12.dp),
-                    ) {
-                        Text(
-                            text = buildAnnotatedString {
-                                withStyle(SpanStyle(color = ColorBrandPrimary, fontSize = 14.sp)) {
-                                    append("무상 AS 만료일  ")
-                                }
-                                withStyle(SpanStyle(color = ColorBrandPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)) {
-                                    append(expiryDate)
-                                }
-                            },
-                        )
+                    if (expiryDate != null) {
+                        Spacer(Modifier.height(Margin8))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedLg)
+                                .background(ColorBrandSenary)
+                                .padding(horizontal = Margin12, vertical = 12.dp),
+                        ) {
+                            Text(
+                                text = buildAnnotatedString {
+                                    withStyle(SpanStyle(color = ColorBrandPrimary, fontSize = 14.sp)) {
+                                        append("무상 AS 만료일  ")
+                                    }
+                                    withStyle(SpanStyle(color = ColorBrandPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)) {
+                                        append(expiryDate)
+                                    }
+                                },
+                            )
+                        }
                     }
+
+                    Spacer(Modifier.height(Margin16))
+                    FieldLabel(stringResource(R.string.manual_memo), required = false)
+                    Spacer(Modifier.height(Margin8))
+                    OutlinedTextField(
+                        value = memo,
+                        onValueChange = { if (it.length <= 100) memo = it },
+                        placeholder = { Text(stringResource(R.string.manual_memo_hint), color = ColorGray400, fontSize = 15.sp) },
+                        modifier = Modifier.fillMaxWidth().height(120.dp),
+                        shape = RoundedLg,
+                        colors = formFieldColors(),
+                        supportingText = {
+                            Text(
+                                text = stringResource(R.string.manual_memo_counter),
+                                fontSize = 12.sp,
+                                color = ColorGray400,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.End,
+                            )
+                        },
+                    )
                 }
 
-                // 메모
-                Spacer(Modifier.height(Margin16))
-                FieldLabel(stringResource(R.string.manual_memo), required = false)
-                Spacer(Modifier.height(Margin8))
-                OutlinedTextField(
-                    value = memo,
-                    onValueChange = { if (it.length <= 100) memo = it },
-                    placeholder = {
+                Spacer(Modifier.height(Margin20))
+
+                // ── 실물 영수증 보관 여부 (라디오) ─────────
+                Column(modifier = Modifier.padding(horizontal = Margin20)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            stringResource(R.string.manual_memo_hint),
-                            color = ColorGray400,
-                            fontSize = 15.sp,
+                            text = stringResource(R.string.manual_keep_receipt_title),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ColorGray900,
                         )
-                    },
+                        Spacer(Modifier.width(6.dp))
+                        HelpBadge(onClick = { showKeepReceiptHelp = true })
+                    }
+                    Spacer(Modifier.height(Margin12))
+                    KeepReceiptRadioRow(
+                        label = stringResource(R.string.manual_keep_receipt_yes),
+                        selected = keepReceipt == true,
+                        onClick = { keepReceipt = true },
+                    )
+                    KeepReceiptRadioRow(
+                        label = stringResource(R.string.manual_keep_receipt_no),
+                        selected = keepReceipt == false,
+                        onClick = { keepReceipt = false },
+                    )
+                }
+
+                Spacer(Modifier.height(Margin20))
+
+                // ── 보증 정보 (접기) ──────────────────────
+                CollapsibleCard(
+                    title = stringResource(R.string.manual_warranty_section),
+                    expanded = warrantyInfoExpanded,
+                    onToggle = { warrantyInfoExpanded = !warrantyInfoExpanded },
+                ) {
+                    BoatInputField(
+                        value = brand,
+                        onValueChange = { brand = it },
+                        label = stringResource(R.string.manual_brand),
+                        placeholder = stringResource(R.string.manual_brand_hint),
+                    )
+                    Spacer(Modifier.height(Margin16))
+                    BoatInputField(
+                        value = price,
+                        onValueChange = { price = it.filter { c -> c.isDigit() } },
+                        label = stringResource(R.string.manual_price),
+                        placeholder = stringResource(R.string.manual_price_hint),
+                        keyboardType = KeyboardType.Number,
+                        visualTransformation = PriceVisualTransformation(),
+                    )
+                    Spacer(Modifier.height(Margin16))
+                    BoatInputField(
+                        value = serial,
+                        onValueChange = { serial = it },
+                        label = stringResource(R.string.manual_serial),
+                        placeholder = stringResource(R.string.manual_serial_hint),
+                    )
+                }
+
+                Spacer(Modifier.height(Margin24))
+                Button(
+                    onClick = { submit() },
+                    enabled = canSubmit && !isSubmitting,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(120.dp),
-                    shape = RoundedLg,
-                    colors = formFieldColors(),
-                    supportingText = {
-                        Text(
-                            text = stringResource(R.string.manual_memo_counter),
-                            fontSize = 12.sp,
-                            color = ColorGray400,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.End,
-                        )
-                    },
-                )
-            }
-
-            Spacer(Modifier.height(Margin20))
-            // ── 보증 정보 ──────────────────────────────────
-            SectionTitle(stringResource(R.string.manual_warranty_section))
-            Spacer(Modifier.height(Margin12))
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(Rounded2xl)
-                    .background(ColorWhite)
-                    .padding(Margin16),
-            ) {
-                BoatInputField(
-                    value = brand,
-                    onValueChange = { brand = it },
-                    label = stringResource(R.string.manual_brand),
-                    placeholder = stringResource(R.string.manual_brand_hint),
-                )
-                Spacer(Modifier.height(Margin16))
-                BoatInputField(
-                    value = price,
-                    onValueChange = { price = it.filter { c -> c.isDigit() } },
-                    label = stringResource(R.string.manual_price),
-                    placeholder = stringResource(R.string.manual_price_hint),
-                    keyboardType = KeyboardType.Number,
-                    visualTransformation = PriceVisualTransformation(),
-                )
-                Spacer(Modifier.height(Margin16))
-                BoatInputField(
-                    value = serial,
-                    onValueChange = { serial = it },
-                    label = stringResource(R.string.manual_serial),
-                    placeholder = stringResource(R.string.manual_serial_hint),
-                )
-            }
-
-            Spacer(Modifier.height(Margin20))
-            // ── 무상 AS 안내 ───────────────────────────────
-            SectionTitle(stringResource(R.string.manual_as_section))
-            Spacer(Modifier.height(Margin12))
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(Rounded2xl)
-                    .background(ColorWhite)
-                    .padding(Margin16),
-            ) {
-                Text(
-                    text = stringResource(R.string.manual_as_guide),
-                    fontSize = 13.sp,
-                    color = ColorGray600,
-                    lineHeight = 20.sp,
-                )
-                Spacer(Modifier.height(Margin12))
-                Row(
-                    modifier = Modifier.clickable { keepReceipt = !keepReceipt },
-                    verticalAlignment = Alignment.CenterVertically,
+                        .padding(horizontal = Margin20)
+                        .height(56.dp),
+                    shape = RoundedXl,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ColorBrandPrimary,
+                        contentColor = ColorWhite,
+                        disabledContainerColor = ColorGray200,
+                        disabledContentColor = ColorGray500,
+                    ),
                 ) {
-                    Checkbox(
-                        checked = keepReceipt,
-                        onCheckedChange = { keepReceipt = it },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = ColorBrandPrimary,
-                            uncheckedColor = ColorGray300,
-                            checkmarkColor = ColorWhite,
-                        ),
-                    )
-                    Text(
-                        text = stringResource(R.string.manual_as_keep_receipt),
-                        fontSize = 14.sp,
-                        color = ColorGray700,
-                    )
+                    Text(stringResource(R.string.manual_submit), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
+                Spacer(Modifier.height(Margin24))
             }
-
-            Spacer(Modifier.height(Margin24))
-            Button(
-                onClick = { submit() },
-                enabled = canSubmit && !isSubmitting,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedXl,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ColorBrandPrimary,
-                    contentColor = ColorWhite,
-                    disabledContainerColor = ColorGray200,
-                    disabledContentColor = ColorGray500,
-                ),
-            ) {
-                Text(
-                    stringResource(R.string.manual_submit),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
-            }
-            Spacer(Modifier.height(Margin16))
         }
-    }
 
         BoatToastHost(state = toastState)
         if (isSubmitting) {
@@ -690,18 +677,275 @@ fun ReceiptManualInputScreen(
         }
     }
 
+    // ── 이미지 추가 메뉴 (홈 FAB와 동일한 2-옵션 메뉴 재사용) ──
+    if (showAddSheet) {
+        ReceiptAddSheet(
+            onDismiss = { showAddSheet = false },
+            onCamera = { showAddSheet = false; onTakePhoto() },
+            onGallery = { showAddSheet = false; onPickImages() },
+        )
+    }
+
     if (showDatePicker) {
         PurchaseDatePicker(
             onDismiss = { showDatePicker = false },
-            onConfirm = { dateText ->
-                purchaseDate = dateText
-                showDatePicker = false
-            },
+            onConfirm = { dateText -> purchaseDate = dateText; showDatePicker = false },
+        )
+    }
+
+    if (showKeepReceiptHelp) {
+        com.windrr.boat.ui.component.BoatDialog(
+            title = stringResource(R.string.manual_keep_receipt_title),
+            message = stringResource(R.string.manual_as_guide),
+            confirmText = stringResource(R.string.common_confirm),
+            onConfirm = { showKeepReceiptHelp = false },
+            onDismiss = { showKeepReceiptHelp = false },
+            showDismissButton = false,
         )
     }
 }
 
 // ── 서브 컴포저블 ─────────────────────────────────────────────────────────────
+
+/** 흰색 섹션 카드 (좌우 20 마진) */
+@Composable
+private fun SectionCard(content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Margin20)
+            .clip(Rounded2xl)
+            .background(ColorWhite)
+            .padding(Margin16),
+        content = content,
+    )
+}
+
+/** 헤더(제목 + 접기 chevron) + 펼침 시 콘텐츠를 담는 흰색 카드 */
+@Composable
+private fun CollapsibleCard(
+    title: String,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Margin20)
+            .clip(Rounded2xl)
+            .background(ColorWhite)
+            .padding(Margin16),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onToggle),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(text = title, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = ColorGray900)
+            Spacer(Modifier.weight(1f))
+            Icon(
+                painter = painterResource(R.drawable.ic_chevron_right),
+                contentDescription = null,
+                tint = ColorGray400,
+                // 펼침=위(^, 270°), 접힘=아래(v, 90°)
+                modifier = Modifier
+                    .size(20.dp)
+                    .rotate(if (expanded) 270f else 90f),
+            )
+        }
+        if (expanded) {
+            Spacer(Modifier.height(Margin16))
+            content()
+        }
+    }
+}
+
+/** 카테고리 드롭다운 — 앵커 폭에 맞춘 펼침 목록, 선택 항목은 파란 강조 */
+@Composable
+private fun CategoryDropdown(
+    selected: DeviceCategory,
+    onSelect: (DeviceCategory) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var anchorWidthPx by remember { mutableStateOf(0) }
+    val density = LocalDensity.current
+
+    Box(modifier = Modifier.onSizeChanged { anchorWidthPx = it.width }) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+                .clip(RoundedLg)
+                .border(1.dp, if (expanded) ColorBrandPrimary else ColorGray300, RoundedLg)
+                .clickable { expanded = true }
+                .padding(horizontal = Margin16),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = selected.displayName,
+                fontSize = 15.sp,
+                color = ColorGray900,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                painter = painterResource(R.drawable.ic_chevron_right),
+                contentDescription = null,
+                tint = ColorGray600,
+                modifier = Modifier
+                    .size(18.dp)
+                    .rotate(if (expanded) 270f else 90f),
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            containerColor = ColorWhite,
+            shape = RoundedLg,
+            modifier = if (anchorWidthPx > 0) {
+                Modifier.width(with(density) { anchorWidthPx.toDp() })
+            } else Modifier,
+        ) {
+            DeviceCategory.entries.forEach { cat ->
+                val isSelected = cat == selected
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = cat.displayName,
+                            fontSize = 15.sp,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (isSelected) ColorBrandPrimary else ColorGray900,
+                        )
+                    },
+                    onClick = { onSelect(cat); expanded = false },
+                    modifier = if (isSelected) Modifier.background(ColorBrandSenary) else Modifier,
+                )
+            }
+        }
+    }
+}
+
+/** 소분류(대표 기기명) 아이콘 아이템 */
+@Composable
+private fun SubCategoryItem(
+    label: String,
+    iconRes: Int,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .width(64.dp)
+            .clickable(onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedXl)
+                .background(if (selected) ColorBrandQuinary else ColorGray100)
+                .then(if (selected) Modifier.border(1.5.dp, ColorBrandPrimary, RoundedXl) else Modifier),
+            contentAlignment = Alignment.Center,
+        ) {
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(44.dp),
+            )
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = if (selected) ColorBrandPrimary else ColorGray600,
+            maxLines = 1,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+/** 이미지 추가 타일 (흰 배경 + 파란 테두리 + "+ 추가하기") */
+@Composable
+private fun AddImageTile(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(100.dp)
+            .clip(RoundedXl)
+            .background(ColorWhite)
+            .border(1.dp, ColorBrandTertiary, RoundedXl)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("+", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = ColorBrandPrimary)
+            Spacer(Modifier.height(2.dp))
+            Text(stringResource(R.string.manual_image_add), fontSize = 12.sp, color = ColorBrandPrimary)
+        }
+    }
+}
+
+/** 업로드 이미지 썸네일 + 우상단 X 삭제 */
+@Composable
+private fun ImageThumbnail(uri: Uri, onRemove: () -> Unit) {
+    Box(modifier = Modifier.size(100.dp)) {
+        AsyncImage(
+            model = uri,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize().clip(RoundedXl),
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(6.dp)
+                .size(24.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.4f))
+                .clickable(onClick = onRemove),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(text = "✕", color = ColorWhite, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+/** 실물 영수증 보관 라디오 행 */
+@Composable
+private fun KeepReceiptRadioRow(label: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = onClick,
+            colors = RadioButtonDefaults.colors(
+                selectedColor = ColorBrandPrimary,
+                unselectedColor = ColorGray300,
+            ),
+        )
+        Text(text = label, fontSize = 15.sp, color = ColorGray900)
+    }
+}
+
+/** 원형 "?" 도움말 뱃지 */
+@Composable
+private fun HelpBadge(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(18.dp)
+            .clip(CircleShape)
+            .border(1.dp, ColorGray400, CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = "?", fontSize = 11.sp, color = ColorGray500, fontWeight = FontWeight.Bold)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -731,8 +975,8 @@ private fun PurchaseDatePicker(onDismiss: () -> Unit, onConfirm: (String) -> Uni
 }
 
 @Composable
-private fun SectionTitle(text: String) {
-    Text(text = text, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = ColorGray900)
+private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
+    Text(text = text, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = ColorGray900, modifier = modifier)
 }
 
 @Composable
@@ -810,42 +1054,4 @@ private fun WarrantyUnitChip(label: String, selected: Boolean, onClick: () -> Un
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
     )
-}
-
-@Composable
-private fun CategoryItem(
-    label: String,
-    @DrawableRes iconRes: Int,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier.clickable(onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(52.dp)
-                .clip(RoundedXl)
-                .background(if (selected) ColorBrandQuinary else ColorGray100)
-                .then(
-                    if (selected) Modifier.border(1.5.dp, ColorBrandPrimary, RoundedXl) else Modifier
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            Image(
-                painter = painterResource(iconRes),
-                contentDescription = null,
-                modifier = Modifier.size(40.dp),
-            )
-        }
-        Spacer(Modifier.height(6.dp))
-        Text(
-            text = label,
-            fontSize = 11.sp,
-            color = if (selected) ColorBrandPrimary else ColorGray600,
-            maxLines = 1,
-        )
-    }
 }

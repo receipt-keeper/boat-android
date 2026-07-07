@@ -2,6 +2,7 @@ package com.windrr.boat.feature.receipt
 
 import android.content.Intent
 import androidx.annotation.StringRes
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
@@ -31,6 +33,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
@@ -156,7 +159,10 @@ fun ReceiptListScreen(
                     onSearchClick = onSearchClick,
                     onNotificationClick = {
                         context.startActivity(
-                            Intent(context, com.windrr.boat.feature.notification.NotificationListActivity::class.java)
+                            Intent(
+                                context,
+                                com.windrr.boat.feature.notification.NotificationListActivity::class.java
+                            )
                         )
                     },
                 )
@@ -199,6 +205,7 @@ fun ReceiptListScreen(
                     state.isLoading -> {
                         CircularProgressIndicator(color = ColorBrandPrimary)
                     }
+
                     state.error != null -> {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
@@ -214,6 +221,7 @@ fun ReceiptListScreen(
                             }
                         }
                     }
+
                     state.receipts.isEmpty() -> {
                         Text(
                             text = stringResource(R.string.receipt_empty),
@@ -221,6 +229,7 @@ fun ReceiptListScreen(
                             color = ColorGray500,
                         )
                     }
+
                     else -> {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
@@ -256,27 +265,25 @@ fun ReceiptListScreen(
     }
 }
 
-// ── 영수증 카드 ───────────────────────────────────────────────────────────────
 
 @Composable
 private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onDelete: () -> Unit) {
-    Card(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedXl,
-        colors = CardDefaults.cardColors(containerColor = ColorWhite),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        color = ColorWhite,
+        border = BorderStroke(1.dp, ColorGray100),
+        shadowElevation = 0.dp,
     ) {
         Column {
-            // 상단: 썸네일 + [이름·D-day 뱃지·더보기 / 만료일]
-            // 뱃지·케밥을 제목과 같은 줄에 두어 만료일 행이 전체 폭을 사용하도록 함 (iOS 구조와 일치)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 ReceiptItemThumbnail(
                     imageUrl = item.imageUrl,
@@ -288,7 +295,6 @@ private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onDelete: () -> 
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    // 제목 + D-day 뱃지 + 케밥 (한 줄)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = item.itemName,
@@ -307,10 +313,10 @@ private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onDelete: () -> 
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
                                 contentDescription = null,
-                                tint = ColorGray500,
+                                tint = ColorGray400,
                                 modifier = Modifier
                                     .padding(start = 4.dp)
-                                    .size(20.dp)
+                                    .size(24.dp)
                                     .clickable { menuExpanded = true },
                             )
                             DropdownMenu(
@@ -337,16 +343,16 @@ private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onDelete: () -> 
                         }
                     }
 
-                    // 만료일 | 날짜 (전체 폭 사용 → 줄바꿈 없음)
+                    // 💡 교정 2: "AS 만료일 | 2026. 07. 16" 형식으로 타이포그래피 정교화
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = stringResource(R.string.receipt_expiry_date_label),
+                            text = "AS 만료일", // R.string.receipt_expiry_date_label 로 유지 가능
                             fontSize = 13.sp,
-                            color = ColorGray500,
+                            color = ColorGray400,
                             maxLines = 1,
                             softWrap = false,
                         )
-                        Text(text = "  |  ", fontSize = 13.sp, color = ColorGray300)
+                        Text(text = "  |  ", fontSize = 13.sp, color = ColorGray200)
                         Text(
                             text = item.expiresOn?.formatDate() ?: "-",
                             fontSize = 13.sp,
@@ -359,22 +365,25 @@ private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onDelete: () -> 
                 }
             }
 
-            HorizontalDivider(color = ColorGray200)
-
-            // 하단: 메모
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(ColorGray50)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-            ) {
-                Text(
-                    text = item.memo?.ifBlank { "-" } ?: "-",
-                    fontSize = 14.sp,
-                    color = ColorGray500,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            if (!item.memo.isNullOrBlank()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(ColorGray50)
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                ) {
+                    Text(
+                        text = item.memo,
+                        fontSize = 12.sp,
+                        color = ColorGray500,
+                        lineHeight = 16.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }
@@ -396,9 +405,9 @@ private fun ReceiptItemThumbnail(
     }
     Box(
         modifier = Modifier
-            .size(56.dp)
-            .clip(RoundedLg)
-            .background(ColorGray100),
+            .size(64.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(ColorGray50),
         contentAlignment = Alignment.Center,
     ) {
         if (resolvedUrl != null) {
@@ -409,7 +418,6 @@ private fun ReceiptItemThumbnail(
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
-            // 업로드 이미지가 없으면 카테고리/기기 기본 이미지로 폴백
             Image(
                 painter = painterResource(DeviceImage.resolve(category, subCategory)),
                 contentDescription = null,
@@ -507,20 +515,31 @@ private fun CountSortRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        // 전체 | N
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = stringResource(R.string.receipt_filter_all), fontSize = 14.sp, color = ColorGray600)
+            Text(
+                text = stringResource(R.string.receipt_filter_all),
+                fontSize = 14.sp,
+                color = ColorGray600
+            )
             Text(text = "  |  ", fontSize = 14.sp, color = ColorGray300)
-            Text(text = "$count", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = ColorBrandPrimary)
+            Text(
+                text = "$count",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = ColorBrandPrimary
+            )
         }
 
-        // 정렬 버튼 + 드롭다운
         Box {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable { sortExpanded = true },
             ) {
-                Text(text = stringResource(selectedSort.labelRes), fontSize = 14.sp, color = ColorGray600)
+                Text(
+                    text = stringResource(selectedSort.labelRes),
+                    fontSize = 14.sp,
+                    color = ColorGray600
+                )
                 Icon(
                     painter = painterResource(R.drawable.ic_chevron_right),
                     contentDescription = null,

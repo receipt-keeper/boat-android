@@ -68,9 +68,14 @@
     <string name="token_empty_later">다음에 할게요</string>
 
     <!-- 영수증 수동 입력 화면 -->
-    <string name="manual_title">영수증 입력하기</string>
+    <string name="manual_title">영수증 직접 입력</string>
     <string name="manual_image_section">등록된 이미지 확인</string>
-    <string name="manual_image_add">등록하기</string>
+    <string name="manual_image_add">추가하기</string>
+    <string name="manual_category">카테고리</string>
+    <string name="manual_product_section">제품 정보</string>
+    <string name="manual_keep_receipt_title">실물 영수증 보관 여부</string>
+    <string name="manual_keep_receipt_yes">필요함</string>
+    <string name="manual_keep_receipt_no">필요하지 않음</string>
     <string name="manual_product_name">제품명</string>
     <string name="manual_product_name_hint">제품명을 입력하세요.</string>
     <string name="manual_purchase_date">구매일</string>
@@ -125,15 +130,28 @@
     <string name="receipt_expired">만료</string>
 
     <!-- 영수증 상세 -->
-    <string name="receipt_detail_edit">수정</string>
     <string name="receipt_detail_expiry">무상 AS 만료일</string>
     <string name="receipt_detail_load_failed">영수증을 불러오지 못했어요.</string>
     <string name="receipt_detail_memo_empty">등록된 메모가 없습니다.</string>
-    <string name="receipt_detail_physical_title">실물 영수증 필요</string>
-    <string name="receipt_detail_physical_desc">AS 센터 방문 시, 실물 영수증을 꼭 지참하세요!</string>
     <string name="receipt_detail_original">원본 영수증</string>
     <string name="receipt_detail_original_empty">첨부된 원본 영수증이 없습니다.</string>
-    <string name="receipt_detail_support_cta">공식 AS 센터에서 접수하기</string>
+    <string name="receipt_detail_support_cta">공식 서비스센터 찾기</string>
+    <string name="receipt_detail_serial_help">제품 뒷면이나 하단 라벨에서 확인할 수 있어요.</string>
+    <string name="receipt_detail_menu_edit">수정하기</string>
+    <string name="receipt_detail_menu_close">닫기</string>
+
+    <!-- 영수증 수정 -->
+    <string name="edit_title">영수증 수정</string>
+    <string name="edit_submit">수정 완료</string>
+    <string name="edit_max_length">최대 %1$d자까지 입력할 수 있습니다.</string>
+    <string name="edit_submitted_toast">영수증이 수정되었습니다.</string>
+    <string name="edit_photo_required_hint">사진을 1장 이상 첨부해 주세요.</string>
+    <string name="edit_submit_failed">영수증 수정에 실패했어요.\n잠시 후 다시 시도해 주세요.</string>
+    <string name="loading_edit_submit_message">영수증을 수정하는 중이에요.</string>
+    <string name="receipt_delete_confirm_title">이 영수증을 삭제할까요?</string>
+    <string name="receipt_delete_confirm_message">관련 정보도 함께 사라지며, 삭제된 데이터는 복구되지 않아요</string>
+    <string name="receipt_deleted_toast">영수증이 삭제되었습니다.</string>
+    <string name="loading_delete_message">영수증을 삭제하는 중이에요.</string>
 
     <!-- 마이페이지 -->
     <string name="mypage_title">마이페이지</string>
@@ -158,10 +176,19 @@
     <string name="common_cancel">취소</string>
     <string name="common_logout">로그아웃</string>
     <string name="common_back">뒤로</string>
+    <string name="common_more">더보기</string>
 
     <!-- 알림 목록 화면 -->
     <string name="notif_list_title">알림</string>
     <string name="notif_list_empty">알림이 없습니다.</string>
+    <string name="notif_tab_all">전체</string>
+    <string name="notif_tab_unread">안읽음</string>
+    <string name="notif_tab_read">읽음</string>
+    <string name="notif_filter_all">전체</string>
+    <string name="notif_filter_receipt">영수증</string>
+    <string name="notif_filter_system">시스템</string>
+    <string name="notif_sort_recent">최신 순</string>
+    <string name="notif_sort_oldest">오래된 순</string>
 
     <!-- 알림 설정 화면 -->
     <string name="notif_settings_title">알림</string>
