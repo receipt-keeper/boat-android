@@ -46,11 +46,13 @@ private val MenuWidth = 214.dp
 private val MenuItemHeight = 76.dp
 private val MenuIconSize = 28.dp
 
-// 카드를 FAB 위로 띄우는 하단 여백 (BottomBar 80 + FAB margin 16 + FAB 56 + gap 12 ≈ 164dp)
-private val MenuBottomOffset = 164.dp
+// 카드를 FAB 위로 띄우는 하단 여백
+// BoatBottomBar의 vertical margin 12dp + BarHeight 62dp + gap 12dp = 86dp
+private val MenuBottomOffset = 86.dp
 
-// 카드 오른쪽 변을 FAB 중심에 맞추는 오른쪽 여백 (FAB end margin 16 + FAB 반지름 28 = 44dp)
-private val MenuEndOffset = 44.dp
+// 카드 오른쪽 변을 FAB 중심에 맞추는 오른쪽 여백
+// BoatBottomBar의 horizontal margin 20dp + FabSize 62dp/2 = 51dp
+private val MenuEndOffset = 20.dp
 
 /**
  * 영수증 등록 FAB 메뉴 오버레이.

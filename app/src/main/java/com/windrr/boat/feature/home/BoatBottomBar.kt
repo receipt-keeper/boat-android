@@ -23,8 +23,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -73,6 +75,7 @@ fun BoatFloatingBottomBar(
     navController: NavController,
     hazeState: HazeState,
     showAddButton: Boolean,
+    isAddMenuOpen: Boolean,
     onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -136,7 +139,12 @@ fun BoatFloatingBottomBar(
         // ── 분리된 "+" 버튼 ──
         if (showAddButton) {
             Spacer(Modifier.width(Margin12))
-            AddFloatingButton(hazeState = hazeState, style = glassStyle, onClick = onAddClick)
+            AddFloatingButton(
+                hazeState = hazeState,
+                style = glassStyle,
+                isMenuOpen = isAddMenuOpen,
+                onClick = onAddClick
+            )
         }
     }
 }
@@ -190,8 +198,14 @@ private fun FloatingTabItem(
 private fun AddFloatingButton(
     hazeState: HazeState,
     style: HazeStyle,
+    isMenuOpen: Boolean,
     onClick: () -> Unit,
 ) {
+    val rotation by animateFloatAsState(
+        targetValue = if (isMenuOpen) 45f else 0f,
+        label = "FabRotation"
+    )
+
     Box(
         modifier = Modifier
             .size(FabSize)
@@ -211,6 +225,7 @@ private fun AddFloatingButton(
             painter = painterResource(R.drawable.ic_plus),
             contentDescription = stringResource(R.string.receipt_add),
             tint = ColorGray900,
+            modifier = Modifier.rotate(rotation)
         )
     }
 }

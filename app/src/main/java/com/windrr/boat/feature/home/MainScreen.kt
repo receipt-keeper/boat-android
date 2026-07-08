@@ -154,17 +154,6 @@ fun MainScreen(
             }
         }
 
-        // 플로팅 글래스모피즘 하단 바 — 검색 화면에서는 숨김, 콘텐츠는 이 바 아래로 그대로 스크롤됨
-        if (currentRoute != "search") {
-            BoatFloatingBottomBar(
-                navController = navController,
-                hazeState = hazeState,
-                showAddButton = true,
-                onAddClick = { showAddMenu = true },
-                modifier = Modifier.align(Alignment.BottomCenter),
-            )
-        }
-
         if (showAddMenu) {
             ReceiptAddSheet(
                 onDismiss = { showAddMenu = false },
@@ -180,6 +169,18 @@ fun MainScreen(
                         ReceiptRegisterActivity.intent(context, ReceiptRegisterActivity.LAUNCH_GALLERY)
                     )
                 },
+            )
+        }
+
+        // 플로팅 글래스모피즘 하단 바 — 검색 화면에서는 숨김, 콘텐츠는 이 바 아래로 그대로 스크롤됨
+        if (currentRoute != "search") {
+            BoatFloatingBottomBar(
+                navController = navController,
+                hazeState = hazeState,
+                showAddButton = true,
+                isAddMenuOpen = showAddMenu,
+                onAddClick = { showAddMenu = !showAddMenu },
+                modifier = Modifier.align(Alignment.BottomCenter),
             )
         }
     }
