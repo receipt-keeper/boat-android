@@ -84,6 +84,14 @@
             android:exported="false"
             android:theme="@style/Theme.Boat" />
 
+        <!-- 푸시 알림 탭 트램폴린 — 화면 없이 읽음 처리 + 딥링크 이동만 수행 -->
+        <activity
+            android:name=".feature.notification.PushNotificationRouterActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:noHistory="true" />
+
         <!-- AS 만료 알람 수신 -->
         <receiver
             android:name=".core.notification.AlarmReceiver"

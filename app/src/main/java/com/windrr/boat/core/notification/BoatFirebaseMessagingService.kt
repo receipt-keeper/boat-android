@@ -14,7 +14,8 @@ import kotlinx.coroutines.launch
  * FCM 수신 처리.
  *
  * 디바이스 식별/등록은 FCM registration token 기반이며 [FcmDeviceManager]가 담당한다.
- * TODO: data 페이로드 스펙(알림 타입/딥링크 대상 등)이 확정되면 [onMessageReceived]의 딥링크 라우팅을 확장.
+ * 탭 시 딥링크/읽음 처리는 data.notificationId/resourceType/resourceId/kind를 그대로
+ * [NotificationHelper.showGeneralPush]에 전달해 [com.windrr.boat.feature.notification.PushNotificationRouterActivity]가 처리한다.
  */
 class BoatFirebaseMessagingService : FirebaseMessagingService() {
 
@@ -64,13 +65,26 @@ class BoatFirebaseMessagingService : FirebaseMessagingService() {
             return
         }
 
+        // 딥링크/읽음 처리용 필드 — 탭 시 PushNotificationRouterActivity가 사용
+        val serverNotificationId = message.data["notificationId"]
+        val resourceType = message.data["resourceType"]
+        val resourceId = message.data["resourceId"]
+        val kind = message.data["kind"]
+
         // 4) 실제 표시 시도
-        BoatLog.i("[FCM] 알림 표시 시도 — title='$title'")
+        BoatLog.i(
+            "[FCM] 알림 표시 시도 — title='$title', notificationId=$serverNotificationId, " +
+                "resourceType=$resourceType, resourceId=$resourceId, kind=$kind"
+        )
         NotificationHelper.showGeneralPush(
             context = applicationContext,
             title = title,
             body = body,
             notificationId = System.currentTimeMillis().toInt(),
+            serverNotificationId = serverNotificationId,
+            resourceType = resourceType,
+            resourceId = resourceId,
+            kind = kind,
         )
         BoatLog.i("[FCM] 알림 표시 호출 완료 (notify)")
     }

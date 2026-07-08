@@ -8,6 +8,7 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.windrr.boat.MainActivity
 import com.windrr.boat.R
+import com.windrr.boat.feature.notification.PushNotificationRouterActivity
 
 object NotificationHelper {
 
@@ -38,17 +39,31 @@ object NotificationHelper {
 
     /**
      * FCM 등 서버 푸시 표시용 범용 알림.
-     * 탭 시 MainActivity로 이동 — data 페이로드 기반 세부 딥링크는 스펙 확정 후 확장.
+     * 탭 시 [com.windrr.boat.feature.notification.PushNotificationRouterActivity]를 거쳐
+     * 읽음 처리 + resourceType/resourceId 기반 딥링크로 이동한다.
+     *
+     * @param serverNotificationId 서버 알림 UUID(data.notificationId) — 탭 시 읽음 처리(PATCH)에 사용. 없으면 생략.
+     * @param resourceType 참조 리소스 유형(data.resourceType) — 예: "receipt"
+     * @param resourceId 참조 리소스 ID(data.resourceId) — 예: 영수증 ID
+     * @param kind 알림 종류(data.kind) — 특정 종류만 별도 라우팅할 때 사용
      */
     fun showGeneralPush(
         context: Context,
         title: String,
         body: String,
         notificationId: Int,
+        serverNotificationId: String? = null,
+        resourceType: String? = null,
+        resourceId: String? = null,
+        kind: String? = null,
     ) {
-        val tapIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
+        val tapIntent = PushNotificationRouterActivity.intent(
+            context = context,
+            notificationId = serverNotificationId,
+            resourceType = resourceType,
+            resourceId = resourceId,
+            kind = kind,
+        )
         val pendingIntent = PendingIntent.getActivity(
             context, notificationId, tapIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE

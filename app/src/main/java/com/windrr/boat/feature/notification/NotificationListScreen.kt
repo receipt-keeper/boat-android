@@ -58,13 +58,14 @@ fun NotificationListScreen(
     LaunchedEffect(Unit) { viewModel.load() }
 
     // 앱이 처리할 수 있는 resourceType만 라우팅, 그 외/없음은 목록에 머문다.
+    // 실제 푸시 탭(PushNotificationRouterActivity)과 동일한 규칙을 쓴다 — resolveNotificationRoute 참고.
     fun route(item: AppNotification) {
-        when {
-            item.resourceType == "receipt" && !item.resourceId.isNullOrBlank() ->
-                context.startActivity(ReceiptDetailActivity.intent(context, item.resourceId))
-            item.kind == "registration_prompt" ->
+        when (val target = resolveNotificationRoute(item.resourceType, item.resourceId, item.kind)) {
+            is NotificationRoute.ReceiptDetail ->
+                context.startActivity(ReceiptDetailActivity.intent(context, target.receiptId))
+            NotificationRoute.ReceiptRegister ->
                 context.startActivity(ReceiptRegisterActivity.intent(context))
-            // 그 외: 특정 리소스를 가리키지 않는 알림 → 목록에 머무름(별도 이동 없음)
+            NotificationRoute.None -> Unit
         }
     }
 
