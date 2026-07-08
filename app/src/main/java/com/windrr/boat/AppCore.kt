@@ -1,11 +1,16 @@
 package com.windrr.boat
 
 import android.app.Application
+import coil3.ImageLoader
+import coil3.PlatformContext
+import coil3.SingletonImageLoader
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import coil3.util.DebugLogger
 import com.windrr.boat.core.crash.CrashReporter
 import com.windrr.boat.core.notification.NotificationHelper
 import com.windrr.boat.data.remote.ApiClient
 
-class AppCore : Application() {
+class AppCore : Application(), SingletonImageLoader.Factory {
 
     companion object {
         lateinit var instance: AppCore
@@ -26,5 +31,21 @@ class AppCore : Application() {
         CrashReporter.setCollectionEnabled(true)
 
         NotificationHelper.createChannels(this)
+    }
+
+    /**
+     * Coil의 전역 ImageLoader가 ApiClient의 인증 OkHttpClient를 쓰도록 지정.
+     * 영수증 첨부 이미지(contentPath) 등 Authorization 헤더가 필요한 이미지를 AsyncImage로 바로 로드하기 위함.
+     */
+    override fun newImageLoader(context: PlatformContext): ImageLoader {
+        return ImageLoader.Builder(context)
+            .components {
+                add(OkHttpNetworkFetcherFactory(callFactory = { ApiClient.okHttpClient }))
+            }
+            .apply {
+                // TODO: 첨부 이미지 로딩 원인 파악되면 제거 — Coil의 fetch/decode 성공·실패를 Logcat(태그 Coil)에 남긴다.
+                if (BuildConfig.DEBUG) logger(DebugLogger())
+            }
+            .build()
     }
 }

@@ -197,7 +197,6 @@ private fun SearchResultCard(item: ReceiptItem, onClick: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             ReceiptItemThumbnail(
-                imageUrl = item.imageUrl,
                 category = item.category,
                 subCategory = item.subCategory,
             )

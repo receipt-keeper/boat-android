@@ -54,7 +54,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -63,10 +62,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.compose.AsyncImage
 import com.windrr.boat.R
 import com.windrr.boat.core.ocr.DeviceImage
-import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.remote.model.ReceiptItem
 import com.windrr.boat.feature.notification.NotificationBadgeViewModel
 import com.windrr.boat.ui.component.BoatDialog
@@ -304,7 +301,6 @@ private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onEdit: () -> Un
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 ReceiptItemThumbnail(
-                    imageUrl = item.imageUrl,
                     category = item.category,
                     subCategory = item.subCategory,
                 )
@@ -489,18 +485,13 @@ private fun MenuSheetRow(text: String, color: Color, onClick: () -> Unit) {
 
 /**
  * 영수증 대표 이미지 썸네일 (56x56).
- * imageUrl(사용자 업로드 사진)이 있으면 그 이미지를, 없으면 카테고리/기기 기본 이미지를 표시.
+ * 실제 업로드 사진이 아닌 카테고리/소분류 기본 이미지를 표시한다.
  */
 @Composable
 internal fun ReceiptItemThumbnail(
-    imageUrl: String?,
     category: String?,
     subCategory: String?,
 ) {
-    val resolvedUrl = imageUrl?.let {
-        if (it.startsWith("http")) it
-        else "${ApiClient.BASE_URL_PROD}${it.trimStart('/')}"
-    }
     Box(
         modifier = Modifier
             .size(64.dp)
@@ -508,20 +499,11 @@ internal fun ReceiptItemThumbnail(
             .background(ColorGray50),
         contentAlignment = Alignment.Center,
     ) {
-        if (resolvedUrl != null) {
-            AsyncImage(
-                model = resolvedUrl,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
-        } else {
-            Image(
-                painter = painterResource(DeviceImage.resolve(category, subCategory)),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
+        Image(
+            painter = painterResource(DeviceImage.resolve(category, subCategory)),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+        )
     }
 }
 

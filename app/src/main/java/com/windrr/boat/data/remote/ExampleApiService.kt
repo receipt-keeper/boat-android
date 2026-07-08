@@ -1,7 +1,6 @@
 package com.windrr.boat.data.remote
 
 import com.windrr.boat.data.remote.model.BaseResponse
-import com.windrr.boat.data.remote.model.OcrTestCreditsResponse
 import com.windrr.boat.data.remote.model.TestPushRequest
 import com.windrr.boat.data.remote.model.TestPushResponse
 import retrofit2.http.Body
@@ -13,13 +12,8 @@ interface ExampleApiService {
     @GET("api/v1/example/server-error")
     suspend fun serverError(): BaseResponse<Unit>
 
-    /**
-     * OCR 크레딧 소진 시 테스트를 위해 5회를 임시로 재지급하는 example 모듈 보조 API.
-     * TODO: 정식 충전/이벤트 지급 API가 나오면 [com.windrr.boat.feature.receipt.NoTokenBottomSheet]의
-     *       "충전하기" 호출을 이 임시 API 대신 정식 API로 교체해야 한다.
-     */
-    @POST("api/v1/example/ocr-test-credits")
-    suspend fun grantOcrTestCredits(): OcrTestCreditsResponse
+    // OCR 월간 충전은 example API(ocr-test-credits) 대신 정식 프로모션 API로 이관됨:
+    //   PromotionApiService.getPromotion / redeemPromotion
 
     /** 로그인 사용자의 등록된 모든 디바이스로 테스트 푸시 발송 (연동 확인용 임시 API). */
     @POST("api/v1/example/push")

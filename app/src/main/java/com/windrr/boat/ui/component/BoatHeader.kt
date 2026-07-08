@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -37,8 +38,9 @@ import com.windrr.boat.ui.theme.Margin20
 private val HeaderHeight = 56.dp
 
 /**
- * 공통 헤더 — 좌측 로고, 우측 검색/알림 아이콘.
+ * 공통 헤더 — 좌측 로고(또는 뒤로가기), 우측 검색/알림 아이콘.
  * 여러 화면에서 재사용한다. (로고는 추후 이미지 에셋으로 교체 예정)
+ * [onBackClick]이 주어지면 좌측이 로고/타이틀 대신 뒤로가기 아이콘으로 대체된다(서브 화면용).
  */
 @Composable
 fun BoatHeader(
@@ -47,6 +49,7 @@ fun BoatHeader(
     hasUnreadNotification: Boolean = false,
     onSearchClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {},
+    onBackClick: (() -> Unit)? = null,
 ) {
     Row(
         modifier = modifier
@@ -55,7 +58,14 @@ fun BoatHeader(
             .padding(horizontal = Margin20),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (title != null) {
+        if (onBackClick != null) {
+            HeaderActionIcon(
+                icon = R.drawable.ic_arrow_back,
+                description = R.string.common_back,
+                tint = Color.Unspecified,
+                onClick = onBackClick,
+            )
+        } else if (title != null) {
             Text(
                 text = title,
                 fontSize = 20.sp,
@@ -88,6 +98,7 @@ private fun HeaderActionIcon(
     @DrawableRes icon: Int,
     @StringRes description: Int,
     showBadge: Boolean = false,
+    tint: Color = ColorGray900,
     onClick: () -> Unit,
 ) {
     val noRipple = remember { MutableInteractionSource() }
@@ -96,7 +107,7 @@ private fun HeaderActionIcon(
         Icon(
             painter = painterResource(icon),
             contentDescription = stringResource(description),
-            tint = ColorGray900,
+            tint = tint,
             modifier = Modifier
                 .clickable(interactionSource = noRipple, indication = null, onClick = onClick),
         )

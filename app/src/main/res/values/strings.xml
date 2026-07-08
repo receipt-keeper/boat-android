@@ -50,9 +50,12 @@
     <string name="home_days_ago">%1$d일 전</string>
 
     <!-- 영수증 등록 화면 -->
-    <string name="receipt_register_uploaded">업로드된 영수증</string>
+    <string name="receipt_register_title">영수증 등록</string>
+    <string name="receipt_register_analysis_count">분석횟수 %1$d회</string>
+    <string name="receipt_register_attachments">영수증 첨부내역</string>
     <string name="receipt_register_camera">카메라로 촬영하기</string>
     <string name="receipt_register_gallery">갤러리에서 불러오기</string>
+    <string name="receipt_register_notice_title">유의사항</string>
     <string name="receipt_register_analyze">영수증 분석 시작하기</string>
     <string name="receipt_max_photos">영수증은 최대 %1$d장까지 등록할 수 있어요</string>
     <string name="receipt_check_network">네트워크 연결 상태를 확인해주세요.</string>
@@ -63,6 +66,8 @@
     <string name="token_empty_subtitle">오픈 기념으로 무료 연장을 드려요.</string>
     <string name="token_empty_recharge">5회 무료로 충전하기</string>
     <string name="token_empty_recharge_failed">충전에 실패했어요.\n잠시 후 다시 시도해 주세요.</string>
+    <string name="token_recharge_already">이번 달 무료 충전을 이미 받았어요.</string>
+    <string name="token_recharge_unavailable">지금은 받을 수 있는 무료 충전이 없어요.</string>
     <string name="token_empty_manual">영수증 직접 입력하기</string>
     <string name="token_empty_later">다음에 할게요</string>
 

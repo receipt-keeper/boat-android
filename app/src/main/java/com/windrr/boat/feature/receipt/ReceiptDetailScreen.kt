@@ -51,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -58,9 +59,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import com.windrr.boat.R
 import com.windrr.boat.core.ocr.DeviceImage
 import com.windrr.boat.core.util.toPriceString
+import com.windrr.boat.data.remote.ApiClient
+import com.windrr.boat.data.remote.model.ReceiptFile
 import com.windrr.boat.data.remote.model.ReceiptItem
 import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatToastHost
@@ -96,6 +100,13 @@ private fun String?.toDotDate(): String {
     val parts = split("-")
     return if (parts.size == 3) "${parts[0]}.${parts[1]}.${parts[2]}" else this
 }
+
+/**
+ * contentPath("/api/v1/files/{id}/content")에 BASE_URL을 붙여 절대 URL로 만든다.
+ * 인증(Authorization 헤더)은 Coil의 전역 ImageLoader가 자동으로 붙인다(AppCore 참고).
+ */
+private fun ReceiptFile.toContentUrl(): String =
+    "${ApiClient.BASE_URL_PROD}${contentPath.trimStart('/')}"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -428,7 +439,7 @@ private fun ReceiptDetailContent(receipt: ReceiptItem) {
                 modifier = Modifier.padding(horizontal = Margin20),
             )
             Spacer(Modifier.height(Margin16))
-            if (receipt.receiptFileIds.isEmpty()) {
+            if (receipt.receiptFiles.isEmpty()) {
                 Text(
                     text = stringResource(R.string.receipt_detail_original_empty),
                     fontSize = 14.sp,
@@ -436,16 +447,17 @@ private fun ReceiptDetailContent(receipt: ReceiptItem) {
                     modifier = Modifier.padding(horizontal = Margin20),
                 )
             } else {
-                // 파일 이미지 서빙 엔드포인트가 확정되면 fileId를 실제 이미지로 교체.
-                // TODO: GET 파일 이미지(인증 포함) 연동 — 현재는 플레이스홀더 썸네일
                 // TODO: 원본 사진 개별 삭제 API 확정 후 X 버튼에 실제 삭제 연동
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = Margin20),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    items(receipt.receiptFileIds) { _ ->
+                    items(receipt.receiptFiles, key = { it.fileId }) { file ->
                         Box(modifier = Modifier.size(100.dp)) {
-                            Box(
+                            AsyncImage(
+                                model = file.toContentUrl(),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clip(RoundedXl)

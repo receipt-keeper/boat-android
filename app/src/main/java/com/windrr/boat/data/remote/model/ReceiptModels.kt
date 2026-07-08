@@ -26,11 +26,19 @@ data class ReceiptItem(
     val memo: String?,
     val requiresPhysicalReceipt: Boolean,
     val receiptFileIds: List<String>,
+    /** 첨부 이미지 실 조회용 — contentPath에 인증 헤더를 붙여 GET하면 실제 이미지를 받는다. */
+    val receiptFiles: List<ReceiptFile> = emptyList(),
     val imageUrl: String?,
     val warrantyDDay: Int?,
     val serialNumber: String?,
     val supportUrl: String?,
     val registeredAt: String?,
+)
+
+/** 첨부 파일 — [contentPath]는 BASE_URL을 붙이고 Authorization 헤더로 인증해 GET하면 실제 파일을 받는다. */
+data class ReceiptFile(
+    val fileId: String,
+    val contentPath: String,
 )
 
 data class ReceiptPagination(

@@ -1,6 +1,5 @@
 package com.windrr.boat.feature.home
 
-import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.remote.model.ReceiptItem
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -15,7 +14,8 @@ data class ExpiringWarranty(
     val purchaseDate: String,
     val warrantyUntil: String,
     val dDay: Int,
-    val thumbnailUrl: String? = null,
+    val category: String? = null,
+    val subCategory: String? = null,
 )
 
 /**
@@ -26,7 +26,8 @@ data class RecentReceipt(
     val productName: String,
     val purchaseDate: String,
     val daysAgo: Int,
-    val thumbnailUrl: String? = null,
+    val category: String? = null,
+    val subCategory: String? = null,
 )
 
 fun ReceiptItem.toExpiringWarranty() = ExpiringWarranty(
@@ -38,7 +39,8 @@ fun ReceiptItem.toExpiringWarranty() = ExpiringWarranty(
     purchaseDate = paymentDate.toDotDate(),
     warrantyUntil = expiresOn?.let { "~${it.toDotDate()}" } ?: "-",
     dDay = warrantyDDay ?: 0,
-    thumbnailUrl = imageUrl.resolveImageUrl(),
+    category = category,
+    subCategory = subCategory,
 )
 
 fun ReceiptItem.toRecentReceipt() = RecentReceipt(
@@ -46,7 +48,8 @@ fun ReceiptItem.toRecentReceipt() = RecentReceipt(
     productName = itemName,
     purchaseDate = paymentDate.toDotDate(),
     daysAgo = registeredAt.daysAgo(),
-    thumbnailUrl = imageUrl.resolveImageUrl(),
+    category = category,
+    subCategory = subCategory,
 )
 
 /** "2026-06-29" → "2026.06.29" */
@@ -54,11 +57,6 @@ private fun String?.toDotDate(): String {
     if (this.isNullOrBlank()) return "-"
     val parts = split("-")
     return if (parts.size == 3) "${parts[0]}.${parts[1]}.${parts[2]}" else this
-}
-
-private fun String?.resolveImageUrl(): String? {
-    if (this.isNullOrBlank()) return null
-    return if (startsWith("http")) this else "${ApiClient.BASE_URL_PROD}${trimStart('/')}"
 }
 
 /** "2026-06-29T12:00:00" → 오늘까지 경과 일수 */

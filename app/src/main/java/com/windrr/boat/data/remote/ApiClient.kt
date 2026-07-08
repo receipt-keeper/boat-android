@@ -8,6 +8,7 @@ import com.windrr.boat.data.local.TokenDataStore
 import com.windrr.boat.data.local.UserDataStore
 import com.windrr.boat.data.local.db.BoatDatabase
 import com.windrr.boat.data.local.db.ReceiptDao
+import com.windrr.boat.data.remote.interceptor.FileContentDebugInterceptor
 import com.windrr.boat.data.remote.interceptor.TokenAuthenticator
 import com.windrr.boat.data.remote.interceptor.TokenInterceptor
 import okhttp3.OkHttpClient
@@ -94,11 +95,19 @@ object ApiClient {
             .create(AuthApiService::class.java)
     }
 
-    private val okHttpClient: OkHttpClient by lazy {
+    /**
+     * 인증 헤더가 자동으로 붙는 클라이언트. Retrofit뿐 아니라 Coil 이미지 로딩(AppCore)에서도
+     * 그대로 재사용한다 — 첨부 이미지(contentPath) 등 인증이 필요한 이미지를 불러오기 위함.
+     */
+    val okHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
             .addInterceptor(TokenInterceptor(tokenDataStore))                   // 토큰 헤더 자동 주입
             .authenticator(TokenAuthenticator(tokenDataStore, refreshApiService)) // 401 시 토큰 갱신 후 재시도
             .addInterceptor(loggingInterceptor)
+            .apply {
+                // TODO: 첨부 이미지 응답 형태 확인되면 제거
+                if (BuildConfig.DEBUG) addInterceptor(FileContentDebugInterceptor())
+            }
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -122,6 +131,8 @@ object ApiClient {
     val creditsApiService: CreditsApiService by lazy { create(CreditsApiService::class.java) }
 
     val usageApiService: UsageApiService by lazy { create(UsageApiService::class.java) }
+
+    val promotionApiService: PromotionApiService by lazy { create(PromotionApiService::class.java) }
 
     val fileApiService: FileApiService by lazy { create(FileApiService::class.java) }
 

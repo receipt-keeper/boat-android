@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -31,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -41,8 +41,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Image
-import coil3.compose.AsyncImage
 import com.windrr.boat.R
+import com.windrr.boat.core.ocr.DeviceImage
 import com.windrr.boat.ui.component.FreeAnalysisBanner
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandSenary
@@ -219,7 +219,7 @@ private fun ExpiringWarrantyCard(
                     .background(ColorWhite),
                 contentAlignment = Alignment.Center,
             ) {
-                Thumbnail(url = item.thumbnailUrl, sizeDp = 88, bg = Color.Transparent)
+                Thumbnail(category = item.category, subCategory = item.subCategory, sizeDp = 88, bg = Color.Transparent)
             }
 
             Spacer(Modifier.width(16.dp))
@@ -328,7 +328,7 @@ private fun RecentReceiptItem(
         color = ColorWhite,
     ) {
         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Thumbnail(url = item.thumbnailUrl, sizeDp = 48)
+            Thumbnail(category = item.category, subCategory = item.subCategory, sizeDp = 48)
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -398,21 +398,20 @@ private fun ExpiringEmptyBanner(modifier: Modifier = Modifier) {
 
 private val ColorLabel = Color(0xFF616161)
 
-/** 제품 썸네일 — URL 있으면 이미지, 없으면 라이트블루 placeholder */
+/** 제품 썸네일 — 실제 업로드 사진이 아닌 카테고리/소분류 기본 이미지를 보여준다. */
 @Composable
-private fun Thumbnail(url: String?, sizeDp: Int, bg: Color = ColorBrandSenary) {
-    val m = Modifier
-        .size(sizeDp.dp)
-        .clip(RoundedXl)
-        .background(bg)
-    if (url != null) {
-        AsyncImage(
-            model = url,
+private fun Thumbnail(category: String?, subCategory: String?, sizeDp: Int, bg: Color = ColorBrandSenary) {
+    Box(
+        modifier = Modifier
+            .size(sizeDp.dp)
+            .clip(RoundedXl)
+            .background(bg),
+        contentAlignment = Alignment.Center,
+    ) {
+        Image(
+            painter = painterResource(DeviceImage.resolve(category, subCategory)),
             contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = m
+            modifier = Modifier.fillMaxSize(),
         )
-    } else {
-        Box(modifier = m)
     }
 }

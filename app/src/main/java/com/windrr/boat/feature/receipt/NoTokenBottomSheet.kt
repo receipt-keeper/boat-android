@@ -39,6 +39,8 @@ import com.windrr.boat.ui.theme.RoundedXl
 /**
  * 무료 분석 토큰 소진 시 노출되는 BottomSheet.
  * 충전 / 직접 입력 / 다음에 하기 액션 제공.
+ *
+ * [canRecharge]가 false면(이미 이번 달 수령했거나 노출할 프로모션이 없을 때) 충전 버튼을 숨긴다.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,6 +48,7 @@ fun NoTokenBottomSheet(
     onDismiss: () -> Unit,
     onRecharge: () -> Unit,
     onManualInput: () -> Unit,
+    canRecharge: Boolean = true,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -85,25 +88,26 @@ fun NoTokenBottomSheet(
             )
 
             Spacer(Modifier.height(Margin24))
-            Button(
-                onClick = onRecharge,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedXl,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ColorBrandPrimary,
-                    contentColor = ColorWhite,
-                ),
-            ) {
-                Text(
-                    text = stringResource(R.string.token_empty_recharge),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
+            if (canRecharge) {
+                Button(
+                    onClick = onRecharge,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedXl,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ColorBrandPrimary,
+                        contentColor = ColorWhite,
+                    ),
+                ) {
+                    Text(
+                        text = stringResource(R.string.token_empty_recharge),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+                Spacer(Modifier.height(Margin8))
             }
-
-            Spacer(Modifier.height(Margin8))
             OutlinedButton(
                 onClick = onManualInput,
                 modifier = Modifier
