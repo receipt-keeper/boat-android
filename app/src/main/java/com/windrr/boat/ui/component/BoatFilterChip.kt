@@ -2,6 +2,7 @@ package com.windrr.boat.ui.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -14,6 +15,17 @@ import androidx.compose.ui.unit.sp
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandQuaternary
 import com.windrr.boat.ui.theme.ColorWhite
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 /**
  * 카테고리 필터 칩 — 선택 시 brand 채움(흰 글씨), 미선택 시 연한 brand 배경(파란 글씨).
@@ -31,16 +43,30 @@ fun BoatFilterChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Text(
-        text = label,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Medium,
-        maxLines = 1,
-        color = if (selected) ColorWhite else ColorBrandPrimary,
+    // 💡 [교정 1] 알약(Pill) 형태의 완벽한 둥근 모서리 강제
+    val shape = RoundedCornerShape(percent = 50)
+
+    // 💡 [교정 2] 상태에 따른 색상 토큰 분리 (배경, 텍스트, 테두리)
+    // 프로젝트 디자인 토큰(ColorBrandPrimary 등)에 맞춰 헥스 코드를 치환하여 사용하십시오.
+    val bgColor = if (selected) Color(0xFF3B82F6) else Color.White
+    val textColor = if (selected) Color.White else Color(0xFF3B82F6)
+    val borderColor = if (selected) Color.Transparent else Color(0xFFBFDBFE) // 옅은 파란색 테두리
+
+    Box(
         modifier = modifier
-            .clip(RoundedCornerShape(percent = 50))
-            .background(if (selected) ColorBrandPrimary else ColorBrandQuaternary)
+            .clip(shape)
+            .background(bgColor)
+            .border(width = 1.dp, color = borderColor, shape = shape)
             .clickable(onClick = onClick)
             .padding(horizontal = 18.dp, vertical = 10.dp),
-    )
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = textColor,
+            maxLines = 1,
+        )
+    }
 }

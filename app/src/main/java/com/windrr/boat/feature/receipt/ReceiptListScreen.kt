@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -515,21 +516,50 @@ internal fun ReceiptItemThumbnail(
  */
 @Composable
 internal fun WarrantyDayBadge(warrantyDDay: Int?) {
-    val (label, color) = when {
-        warrantyDDay == null || warrantyDDay <= 0 -> "만료" to ColorGray400
-        warrantyDDay <= 30 -> "D-$warrantyDDay" to Color(0xFFFF4444)
-        else -> "D-$warrantyDDay" to ColorBrandPrimary
+    val label: String
+    val textColor: Color
+    val bgColor: Color
+    val borderColor: Color
+
+    // 💡 [교정 1] 스크린샷 기반: 글자색 > 테두리색 > 배경색 순으로 미세한 명도 차이(Tint) 할당
+    when {
+        warrantyDDay == null || warrantyDDay <= 0 -> {
+            label = "만료"
+            textColor = Color(0xFFA1A1AA)   // 짙은 회색
+            bgColor = Color(0xFFF4F4F5)     // 아주 옅은 회색
+            borderColor = Color(0xFFE4E4E7) // 중간 옅은 회색
+        }
+        warrantyDDay <= 30 -> {
+            label = "D-$warrantyDDay"
+            textColor = Color(0xFFEF4444)   // 짙은 빨간색
+            bgColor = Color(0xFFFEF2F2)     // 아주 옅은 빨간색
+            borderColor = Color(0xFFFECACA) // 중간 옅은 빨간색
+        }
+        else -> {
+            label = "D-$warrantyDDay"
+            textColor = Color(0xFF3B82F6)   // 짙은 파란색
+            bgColor = Color(0xFFEFF6FF)     // 아주 옅은 파란색
+            borderColor = Color(0xFFBFDBFE) // 중간 옅은 파란색
+        }
     }
+
+    val shape = RoundedCornerShape(4.dp)
+
     Box(
         modifier = Modifier
-            .border(1.dp, color, RoundedMd)
-            .padding(horizontal = 8.dp, vertical = 3.dp),
+            // 💡 [교정 2] 세로 패딩(vertical padding)을 제거하고 고정 높이(26.dp) 및 최소 너비(58.dp) 할당
+            .height(26.dp)
+            .widthIn(min = 58.dp)
+            .background(color = bgColor, shape = shape)
+            .border(width = 1.dp, color = borderColor, shape = shape)
+            .padding(horizontal = 8.dp),
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = label,
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
-            color = color,
+            color = textColor,
         )
     }
 }
