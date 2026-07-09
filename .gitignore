@@ -25,3 +25,4 @@ keystore.properties
 
 # Firebase 서비스 계정 (CI에서만 생성, 절대 커밋 금지)
 firebase-service-account.json
+.hotswan/
