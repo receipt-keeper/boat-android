@@ -117,6 +117,7 @@ dependencies {
     // Coil
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)   // Coil 3 원격(http) 이미지 로딩에 필수
+    implementation(libs.coil.gif)              // GIF 지원
 
     // Haze — 글래스모피즘 backdrop blur (하단 플로팅 바)
     implementation(libs.haze)

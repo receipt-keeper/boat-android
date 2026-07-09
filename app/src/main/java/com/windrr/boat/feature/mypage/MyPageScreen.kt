@@ -39,8 +39,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.windrr.boat.R
 import com.windrr.boat.feature.notification.NotificationBadgeViewModel
 import com.windrr.boat.feature.receipt.ReceiptRegisterActivity

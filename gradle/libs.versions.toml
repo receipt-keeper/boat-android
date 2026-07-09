@@ -41,6 +41,7 @@ camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "
 # coil-network-okhttp: Coil 3부터 네트워킹이 별도 아티팩트로 분리됨. 없으면 원격(http) 이미지가 조용히 로드 실패.
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+coil-gif = { group = "io.coil-kt.coil3", name = "coil-gif", version.ref = "coil" }
 
 # Navigation
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }

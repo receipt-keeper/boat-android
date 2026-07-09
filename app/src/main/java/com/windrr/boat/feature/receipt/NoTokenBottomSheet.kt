@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.windrr.boat.R
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandTertiary
@@ -109,10 +110,9 @@ private fun NoTokenPromoContent(
     onManualInput: () -> Unit,
 ) {
     Column(modifier = Modifier.padding(horizontal = Margin20)) {
-        Icon(
-            painter = painterResource(R.drawable.ai_color),
+        AsyncImage(
+            model = R.drawable.ai_color,
             contentDescription = null,
-            tint = Color.Unspecified,
             modifier = Modifier.size(40.dp),
         )
 
@@ -209,10 +209,9 @@ private fun NoTokenSimpleContent(onManualInput: () -> Unit) {
             .padding(horizontal = Margin20),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Icon(
-            painter = painterResource(R.drawable.ai_color),
+        AsyncImage(
+            model = R.drawable.ai_color,
             contentDescription = null,
-            tint = Color.Unspecified,
             modifier = Modifier.size(56.dp),
         )
 

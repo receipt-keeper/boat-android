@@ -1,21 +1,36 @@
 package com.windrr.boat.feature.mypage
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.windrr.boat.R
 
 /** "영수증 분석" 배너 "보기" 클릭 시 뜨는 무료 분석 이벤트 안내 BottomSheet. */
@@ -60,10 +75,9 @@ fun AnalysisPromoBottomSheet(
             Column(modifier = Modifier.padding(horizontal = 20.dp)) {
 
                 // 스크린샷 텐션에 맞춰 아이콘 크기(48dp) 및 간격 최적화
-                Icon(
-                    painter = painterResource(R.drawable.ai_color),
+                AsyncImage(
+                    model = R.drawable.ai_color,
                     contentDescription = null,
-                    tint = Color.Unspecified,
                     modifier = Modifier.size(48.dp),
                 )
 

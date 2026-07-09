@@ -1,11 +1,14 @@
 package com.windrr.boat
 
 import android.app.Application
+import coil3.gif.AnimatedImageDecoder
+import coil3.gif.GifDecoder
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.util.DebugLogger
+import android.os.Build
 import com.windrr.boat.core.crash.CrashReporter
 import com.windrr.boat.core.notification.NotificationHelper
 import com.windrr.boat.data.remote.ApiClient
@@ -41,6 +44,12 @@ class AppCore : Application(), SingletonImageLoader.Factory {
         return ImageLoader.Builder(context)
             .components {
                 add(OkHttpNetworkFetcherFactory(callFactory = { ApiClient.okHttpClient }))
+                // GIF 지원 추가
+                if (Build.VERSION.SDK_INT >= 28) {
+                    add(AnimatedImageDecoder.Factory())
+                } else {
+                    add(GifDecoder.Factory())
+                }
             }
             .apply {
                 // TODO: 첨부 이미지 로딩 원인 파악되면 제거 — Coil의 fetch/decode 성공·실패를 Logcat(태그 Coil)에 남긴다.
