@@ -40,7 +40,7 @@
     <string name="home_expiring_caption">한달 안에 끝나요!</string>
     <string name="home_expiring_title">AS만료 예정</string>
     <string name="home_expiring_count">%1$d 건</string>
-    <string name="home_expiring_empty">등록된 영수증이 안전하게\n관리되고 있습니다.</string>
+    <string name="home_expiring_empty">AS 만료 예정인 제품의 영수증이 없습니다.</string>
     <string name="home_recent_title">최근 등록된 영수증</string>
     <string name="home_more">더보기</string>
     <string name="home_label_vendor">구매처</string>
@@ -62,14 +62,16 @@
 
     <!-- 무료 분석 토큰 소진 BottomSheet -->
     <string name="token_empty_image">임시</string>
-    <string name="token_empty_title">영수증 무료 분석\n횟수를 다 쓰셨네요!</string>
-    <string name="token_empty_subtitle">오픈 기념으로 무료 연장을 드려요.</string>
+    <string name="token_empty_title">영수증 분석 횟수를 다 쓰셨네요!</string>
+    <string name="token_empty_subtitle">오픈 기념으로 무료 연장해 드려요.</string>
+    <string name="token_empty_subtitle_no_promo">영수증을 직접 입력하면 계속\n보증 기간을 관리할 수 있어요.</string>
+    <string name="token_empty_notice_title">확인해 주세요</string>
+    <string name="token_empty_notice_body">이벤트로 제공되는 무료 분석 5회는 지급일 기준 30일 이내에 사용해야 하며 기간이 지나면 자동으로 소멸됩니다.</string>
     <string name="token_empty_recharge">5회 무료로 충전하기</string>
     <string name="token_empty_recharge_failed">충전에 실패했어요.\n잠시 후 다시 시도해 주세요.</string>
     <string name="token_recharge_already">이번 달 무료 충전을 이미 받았어요.</string>
     <string name="token_recharge_unavailable">지금은 받을 수 있는 무료 충전이 없어요.</string>
     <string name="token_empty_manual">영수증 직접 입력하기</string>
-    <string name="token_empty_later">다음에 할게요</string>
 
     <!-- 영수증 수동 입력 화면 -->
     <string name="manual_title">영수증 직접 입력</string>

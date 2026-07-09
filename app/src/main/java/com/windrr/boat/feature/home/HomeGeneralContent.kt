@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -87,51 +88,55 @@ fun HomeGeneralContent(
             modifier = Modifier.padding(horizontal = Margin20),
         )
 
-        // ── AS 만료 예정 헤더 ─────────────────────────
-        Spacer(Modifier.height(Margin16))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Margin20),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.home_expiring_caption),
-                    fontSize = 13.sp,
-                    color = ColorGray500,
-                )
-                Spacer(Modifier.height(2.dp))
-                Row {
-                    Text(
-                        stringResource(R.string.home_expiring_title),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = ColorGray900
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        text = stringResource(R.string.home_expiring_count, expiring.size),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = ColorBrandPrimary,
-                    )
-                }
-            }
-            Icon(
-                painter = painterResource(R.drawable.ic_chevron_right),
-                contentDescription = null,
-                tint = ColorGray400,
-                modifier = Modifier
-                    .size(20.dp)
-                    .clickable(onClick = onExpiringMore),
-            )
-        }
-
+        // ── AS 만료 예정 ─────────────────────────────
         Spacer(Modifier.height(Margin16))
         if (expiring.isEmpty()) {
-            ExpiringEmptyBanner(modifier = Modifier.padding(horizontal = Margin20))
+            // 0건일 때는 캡션·타이틀·안내 메시지가 우는 보보와 함께 하나의 카드에 담긴다.
+            ExpiringEmptyBanner(
+                onMoreClick = onExpiringMore,
+                modifier = Modifier.padding(horizontal = Margin20),
+            )
         } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Margin20),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.home_expiring_caption),
+                        fontSize = 13.sp,
+                        color = ColorGray500,
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Row {
+                        Text(
+                            stringResource(R.string.home_expiring_title),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ColorGray900
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = stringResource(R.string.home_expiring_count, expiring.size),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ColorBrandPrimary,
+                        )
+                    }
+                }
+                Icon(
+                    painter = painterResource(R.drawable.ic_chevron_right),
+                    contentDescription = null,
+                    tint = ColorGray400,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable(onClick = onExpiringMore),
+                )
+            }
+
+            Spacer(Modifier.height(Margin16))
             LazyRow(
                 contentPadding = PaddingValues(horizontal = Margin20),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -363,36 +368,105 @@ private fun RecentReceiptItem(
     }
 }
 
-/** AS 만료 예정 0건일 때 표시되는 안전 배너 */
+/**
+ * AS 만료 예정 0건일 때 표시되는 배너 — 캡션·타이틀·안내 메시지를 파란 카드 하나에 담고,
+ * 우는 보보가 하단 안내 박스를 손으로 짚고 있는 것처럼 보이도록 몸통(img_crying_bobo)과
+ * 손+태그(img_crying_bobo_hand)를 같은 크기로 겹쳐 그린 뒤, 손 쪽만 더 아래로 내려 배치한다.
+ */
 @Composable
-private fun ExpiringEmptyBanner(modifier: Modifier = Modifier) {
+private fun ExpiringEmptyBanner(
+    onMoreClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Box(
         modifier = modifier
             .fillMaxWidth()
             .clip(Rounded2xl)
-            .background(ColorBrandSenary)
-            .border(1.dp, ColorGray200, Rounded2xl)
-            .padding(vertical = 28.dp),
-        contentAlignment = Alignment.Center,
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Color(0xFF3E82F7), Color(0xFF6FA1F8)),
+                )
+            )
+            .padding(Margin20),
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Image(
-                painter = painterResource(R.drawable.img_safe_banner),
-                contentDescription = null,
-                modifier = Modifier.size(72.dp),
-            )
-            Text(
-                text = stringResource(R.string.home_expiring_empty),
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium,
-                color = ColorBrandPrimary,
-                textAlign = TextAlign.Center,
-                lineHeight = 22.sp,
-            )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 84.dp), // 우측 보보 캐릭터와 겹치지 않도록 여유 확보
+                verticalAlignment = Alignment.Top,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.home_expiring_caption),
+                        fontSize = 13.sp,
+                        color = ColorWhite.copy(alpha = 0.85f),
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Row {
+                        Text(
+                            stringResource(R.string.home_expiring_title),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ColorWhite,
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = stringResource(R.string.home_expiring_count, 0),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ColorWhite,
+                        )
+                    }
+                }
+                Icon(
+                    painter = painterResource(R.drawable.ic_chevron_right),
+                    contentDescription = null,
+                    tint = ColorWhite,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable(onClick = onMoreClick),
+                )
+            }
+
+            Spacer(Modifier.height(52.dp)) // 보보가 내려와 앉는 공간
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedXl)
+                    .background(ColorWhite.copy(alpha = 0.18f))
+                    .padding(vertical = 18.dp, horizontal = 16.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = stringResource(R.string.home_expiring_empty),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = ColorWhite,
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
+
+        // 우는 보보 몸통 — 헤더 우측 상단
+        Image(
+            painter = painterResource(R.drawable.img_crying_bobo),
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(width = 92.dp, height = 129.dp)
+                .offset(y = (-6).dp),
+        )
+        // 손 + 보증 만료 태그 — 같은 크기지만 더 아래로 내려서 안내 박스 경계에 걸치게 한다
+        Image(
+            painter = painterResource(R.drawable.img_crying_bobo_hand),
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(width = 92.dp, height = 129.dp)
+                .offset(y = 40.dp),
+        )
     }
 }
 

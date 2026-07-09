@@ -3,20 +3,19 @@ package com.windrr.boat.feature.home
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,34 +32,34 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.windrr.boat.BuildConfig
 import com.windrr.boat.R
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.remote.ApiErrorParser
+import com.windrr.boat.data.remote.model.ReceiptItem
 import com.windrr.boat.data.remote.model.TestPushRequest
 import com.windrr.boat.feature.notification.NotificationBadgeViewModel
 import com.windrr.boat.feature.receipt.ReceiptDetailActivity
 import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
 import com.windrr.boat.ui.component.BoatHeader
 import com.windrr.boat.ui.component.BoatToastHost
-import com.windrr.boat.ui.component.FreeAnalysisBanner
 import com.windrr.boat.ui.component.rememberBoatToastState
+import com.windrr.boat.ui.theme.BoatTheme
 import com.windrr.boat.ui.theme.ColorBrandPrimary
-import com.windrr.boat.ui.theme.ColorBrandTertiary
-import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray500
 import com.windrr.boat.ui.theme.ColorWhite
-import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
 import com.windrr.boat.ui.theme.Margin8
+import com.windrr.boat.ui.theme.Rounded2xl
 import com.windrr.boat.ui.theme.RoundedXl
 import kotlinx.coroutines.launch
 
@@ -80,67 +79,129 @@ fun HomeScreen(
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
     val hasUnreadNotification by badgeViewModel.hasUnread.collectAsState()
-    var showTestPushDialog by rememberSaveable { mutableStateOf(false) }
     val toastState = rememberBoatToastState()
     val scope = rememberCoroutineScope()
 
-    // 홈 탭 진입(탭 전환 포함)마다 최신화 — 등록/삭제 후 반영.
     LaunchedEffect(Unit) {
         viewModel.refresh()
         badgeViewModel.refresh()
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    HomeScreenContent(
+        state = state,
+        hasUnreadNotification = hasUnreadNotification,
+        freeAnalysisTokens = freeAnalysisTokens,
+        onSearchClick = onSearchClick,
+        onNotificationClick = {
+            context.startActivity(
+                Intent(
+                    context,
+                    com.windrr.boat.feature.notification.NotificationListActivity::class.java
+                )
+            )
+        },
+        onSeeExpiringList = onSeeExpiringList,
+        onSeeRecentList = onSeeRecentList,
+        onExpiringClick = { item ->
+            context.startActivity(ReceiptDetailActivity.intent(context, item.receiptId))
+        },
+        onRecentClick = { item ->
+            context.startActivity(ReceiptDetailActivity.intent(context, item.receiptId))
+        },
+        onRegisterClick = {
+            context.startActivity(Intent(context, ReceiptRegisterActivity::class.java))
+        },
+        onTestPushClick = { title, body ->
+            scope.launch {
+                runCatching {
+                    ApiClient.exampleApiService.sendTestPush(
+                        TestPushRequest(
+                            title = title,
+                            body = body
+                        )
+                    )
+                }.onSuccess {
+                    toastState.show(
+                        "발송 완료 (대상 ${it.data.targetedDeviceCount}대, 무효 ${it.data.invalidDeviceCount}대)"
+                    )
+                }.onFailure {
+                    toastState.showError(ApiErrorParser.message(it))
+                }
+            }
+        },
+        toastState = toastState,
+        modifier = modifier
+    )
+}
+
+/**
+ * 상태(State)만 주입받아 그리는 Stateless 버전의 홈 콘텐츠.
+ * 프리뷰에서 다양한 상태를 시뮬레이션하기 위해 사용한다.
+ */
+@Composable
+fun HomeScreenContent(
+    state: HomeState,
+    hasUnreadNotification: Boolean,
+    freeAnalysisTokens: Int,
+    onSearchClick: () -> Unit,
+    onNotificationClick: () -> Unit,
+    onSeeExpiringList: () -> Unit,
+    onSeeRecentList: () -> Unit,
+    onExpiringClick: (ExpiringWarranty) -> Unit,
+    onRecentClick: (RecentReceipt) -> Unit,
+    onRegisterClick: () -> Unit,
+    onTestPushClick: (String, String) -> Unit,
+    toastState: com.windrr.boat.ui.component.BoatToastState,
+    modifier: Modifier = Modifier,
+) {
+    var showTestPushDialog by rememberSaveable { mutableStateOf(false) }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF3E82F7),
+                        Color(0xFFF5F7FA)
+                    ),
+                    startY = 0f,
+                    endY = 1000f
+                )
+            )
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(ColorGray50), // 홈 기본 배경 #F5F7FA
+                .padding(WindowInsets.statusBars.asPaddingValues())
         ) {
             BoatHeader(
                 hasUnreadNotification = hasUnreadNotification,
                 onSearchClick = onSearchClick,
-                onNotificationClick = {
-                    context.startActivity(
-                        Intent(context, com.windrr.boat.feature.notification.NotificationListActivity::class.java)
-                    )
-                },
+                onNotificationClick = onNotificationClick,
+                titleColor = ColorWhite,
+                iconTint = ColorWhite,
             )
-
-            // DEBUG 전용 테스트 푸시 버튼
-            if (BuildConfig.DEBUG) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = Margin20, vertical = 2.dp),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    TextButton(onClick = { showTestPushDialog = true }) {
-                        Text("[TEST] 푸시", fontSize = 12.sp, color = ColorBrandPrimary)
-                    }
-                }
-            }
-
             when {
-                state.isLoading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                state.isLoading -> Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
                     CircularProgressIndicator(color = ColorBrandPrimary)
                 }
-                // 등록된 영수증이 하나도 없으면 초기 홈(등록 유도 배너)을 보여준다.
+
                 !state.hasAnyReceipts -> HomeInitialContent(
-                    freeAnalysisTokens = freeAnalysisTokens,
-                    onRegisterClick = { context.startActivity(Intent(context, ReceiptRegisterActivity::class.java)) },
+                    onRegisterClick = onRegisterClick,
                 )
+
                 else -> HomeGeneralContent(
                     freeAnalysisTokens = freeAnalysisTokens,
                     expiring = state.expiring,
                     recent = state.recent,
                     onExpiringMore = onSeeExpiringList,
-                    onExpiringClick = { item ->
-                        context.startActivity(ReceiptDetailActivity.intent(context, item.receiptId))
-                    },
+                    onExpiringClick = onExpiringClick,
                     onRecentMore = onSeeRecentList,
-                    onRecentClick = { item ->
-                        context.startActivity(ReceiptDetailActivity.intent(context, item.receiptId))
-                    },
+                    onRecentClick = onRecentClick,
                 )
             }
         }
@@ -153,17 +214,7 @@ fun HomeScreen(
             onDismiss = { showTestPushDialog = false },
             onConfirm = { title, body ->
                 showTestPushDialog = false
-                scope.launch {
-                    runCatching {
-                        ApiClient.exampleApiService.sendTestPush(TestPushRequest(title = title, body = body))
-                    }.onSuccess {
-                        toastState.show(
-                            "발송 완료 (대상 ${it.data.targetedDeviceCount}대, 무효 ${it.data.invalidDeviceCount}대)"
-                        )
-                    }.onFailure {
-                        toastState.showError(ApiErrorParser.message(it))
-                    }
-                }
+                onTestPushClick(title, body)
             },
         )
     }
@@ -215,10 +266,9 @@ private fun TestPushDialog(
     )
 }
 
-/** 초기 홈 — 무료 분석 배너 + 등록 배너 + AS 배너 */
+/** 초기 홈 — 영수증 등록 CTA 배너 + 가전제품 소모품 배너 */
 @Composable
 private fun HomeInitialContent(
-    freeAnalysisTokens: Int,
     onRegisterClick: () -> Unit,
 ) {
     Column(
@@ -228,97 +278,89 @@ private fun HomeInitialContent(
             .padding(horizontal = Margin20),
     ) {
         Spacer(Modifier.height(Margin8))
-        FreeAnalysisBanner(remaining = freeAnalysisTokens)
-
-        Spacer(Modifier.height(Margin16))
         ReceiptRegisterBanner(onClick = onRegisterClick)
-
-        Spacer(Modifier.height(Margin16))
-        RepairServiceBanner(onClick = { /* TODO: 수리 서비스 연결 */ })
-
-        Spacer(Modifier.height(Margin16))
+        Spacer(Modifier.height(Margin20))
+        AccessoryBanner(onClick = { /* TODO: 소모품/액세서리 페이지 연결 */ })
+        Spacer(Modifier.height(Margin20))
     }
 }
 
-/** 영수증 등록 배너 — 파란 배경 + 영수증 이미지 */
+/**
+ * 영수증 등록 CTA 배너 — 제목·부제·보보 캐릭터가 하나로 합쳐진 단일 에셋(img_cta_banner)을 그대로 사용.
+ * 이미지에 텍스트가 포함되어 있어 화면 낭독기용 설명만 contentDescription으로 별도 제공한다.
+ */
 @Composable
 private fun ReceiptRegisterBanner(onClick: () -> Unit) {
-    Box(
+    Image(
+        painter = painterResource(R.drawable.img_cta_banner),
+        contentDescription = "영수증 등록하기 — 영수증을 등록하고 보증 기간과 구매 정보를 관리해 보세요.",
+        contentScale = ContentScale.FillWidth,
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 360.dp)
-            .clip(RoundedXl)
-            .background(ColorBrandPrimary)
+            .clip(Rounded2xl)
             .clickable(onClick = onClick),
-    ) {
-        Image(
-            painter = painterResource(R.drawable.img_receipt_upload),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter),
-        )
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(start = Margin20, top = 24.dp, end = Margin20),
-        ) {
-            Text(
-                text = stringResource(R.string.home_card_register_title),
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = ColorWhite,
-                lineHeight = 36.sp,
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.home_card_register_desc),
-                fontSize = 14.sp,
-                color = ColorWhite,
-                lineHeight = 20.sp,
-            )
-        }
-    }
+    )
 }
 
-/** 가전제품 AS 배너 — 흰 배경 + Brand/Tertiary 1dp 테두리 + 수리 서비스 이미지 */
+/** 가전제품 소모품/액세서리 배너 — 하단 배너 */
 @Composable
-private fun RepairServiceBanner(onClick: () -> Unit) {
+private fun AccessoryBanner(onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 120.dp)
+            .height(110.dp)
             .clip(RoundedXl)
-            .background(ColorWhite)
-            .border(1.dp, ColorBrandTertiary, RoundedXl)
+            .background(Color(0xFFE9F4FF))
             .clickable(onClick = onClick)
-            .padding(horizontal = Margin20, vertical = 20.dp),
+            .padding(horizontal = 24.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = stringResource(R.string.home_card_repair_title),
-                fontSize = 16.sp,
+                text = "가전제품 필수 아이템!",
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = ColorBrandPrimary,
-                maxLines = 1,
+                color = Color(0xFF333333),
             )
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(4.dp))
             Text(
-                text = stringResource(R.string.home_card_repair_desc),
+                text = "교체가 필요한 소모품과\n액세서리를 특가로 만나보세요.",
                 fontSize = 13.sp,
-                color = ColorGray500,
+                color = Color(0xFF777777),
                 lineHeight = 18.sp,
             )
         }
-        Spacer(Modifier.width(Margin16))
         Image(
-            painter = painterResource(R.drawable.img_banner_repair_service),
+            painter = painterResource(R.drawable.img_banner_accessories),
             contentDescription = null,
-            modifier = Modifier.size(88.dp),
+            modifier = Modifier.size(100.dp),
             contentScale = ContentScale.Fit,
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 800)
+@Composable
+fun HomeScreenInitialPreview() {
+    BoatTheme {
+        HomeScreenContent(
+            state = HomeState(
+                isLoading = false,
+                expiring = emptyList(),
+                recent = emptyList(),
+                hasAnyReceipts = false
+            ),
+            hasUnreadNotification = true,
+            freeAnalysisTokens = 5,
+            onSearchClick = {},
+            onNotificationClick = {},
+            onSeeExpiringList = {},
+            onSeeRecentList = {},
+            onExpiringClick = {},
+            onRecentClick = {},
+            onRegisterClick = {},
+            onTestPushClick = { _, _ -> },
+            toastState = rememberBoatToastState()
         )
     }
 }

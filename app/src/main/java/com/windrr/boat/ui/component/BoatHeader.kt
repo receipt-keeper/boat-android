@@ -47,6 +47,8 @@ fun BoatHeader(
     modifier: Modifier = Modifier,
     title: String? = null,
     hasUnreadNotification: Boolean = false,
+    titleColor: Color = ColorGray900,
+    iconTint: Color = ColorGray900,
     onSearchClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {},
     onBackClick: (() -> Unit)? = null,
@@ -62,7 +64,7 @@ fun BoatHeader(
             HeaderActionIcon(
                 icon = R.drawable.ic_arrow_back,
                 description = R.string.common_back,
-                tint = Color.Unspecified,
+                tint = iconTint,
                 onClick = onBackClick,
             )
         } else if (title != null) {
@@ -70,17 +72,18 @@ fun BoatHeader(
                 text = title,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = ColorGray900,
+                color = titleColor,
             )
         } else {
             // 앱 로고 — "Boat"(검정) + "Lab"(파란색)
-            Text(text = "Boat ", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = ColorGray900)
-            Text(text = "Lab",   fontSize = 20.sp, fontWeight = FontWeight.Bold, color = ColorBrandPrimary)
+            Text(text = "Boat ", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = titleColor)
+            Text(text = "Lab",   fontSize = 20.sp, fontWeight = FontWeight.Bold, color = if (titleColor == ColorWhite) ColorWhite else ColorBrandPrimary)
         }
         Spacer(Modifier.weight(1f))
         HeaderActionIcon(
             icon = R.drawable.ic_search,
             description = R.string.header_search,
+            tint = iconTint,
             onClick = onSearchClick,
         )
         Spacer(Modifier.width(Margin16))
@@ -88,6 +91,7 @@ fun BoatHeader(
             icon = R.drawable.ic_notification,
             description = R.string.header_notification,
             showBadge = hasUnreadNotification,
+            tint = iconTint,
             onClick = onNotificationClick,
         )
     }
