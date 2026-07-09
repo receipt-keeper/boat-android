@@ -8,7 +8,6 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -43,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -59,25 +59,19 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-import androidx.compose.runtime.rememberCoroutineScope
-import com.windrr.boat.core.log.BoatLog
-import com.windrr.boat.data.remote.ApiClient
-import com.windrr.boat.data.remote.model.PromotionState
-import com.windrr.boat.data.repository.PromotionRepository
-import java.util.UUID
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.windrr.boat.R
+import com.windrr.boat.core.log.BoatLog
 import com.windrr.boat.core.util.createImageCaptureUri
 import com.windrr.boat.core.util.toMultipartPart
+import com.windrr.boat.data.remote.ApiClient
+import com.windrr.boat.data.remote.model.PromotionState
+import com.windrr.boat.data.repository.PromotionRepository
 import com.windrr.boat.feature.gallery.GalleryIntent
 import com.windrr.boat.feature.gallery.GalleryState
 import com.windrr.boat.feature.gallery.GalleryViewModel
@@ -85,6 +79,7 @@ import com.windrr.boat.feature.notification.NotificationBadgeViewModel
 import com.windrr.boat.feature.notification.NotificationListActivity
 import com.windrr.boat.ui.component.BoatHeader
 import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.ImageViewerScreen
 import com.windrr.boat.ui.component.SyncLoadingOverlay
 import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.ColorBrandPrimary
@@ -104,6 +99,11 @@ import com.windrr.boat.ui.theme.Margin8
 import com.windrr.boat.ui.theme.Rounded2xl
 import com.windrr.boat.ui.theme.RoundedFull
 import com.windrr.boat.ui.theme.RoundedXl
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import java.util.UUID
 
 private val ThumbnailSize = 130.dp
 
@@ -144,6 +144,9 @@ fun ReceiptRegisterScreen(
     var isRecharging by rememberSaveable { mutableStateOf(false) }
     // 이번 달 충전 프로모션 수령 가능 여부 (조회 전 null → 조회 완료 시 결정). 시트 충전 버튼 노출 제어.
     var canRecharge by rememberSaveable { mutableStateOf(true) }
+    // 이미지 뷰어 표시 여부
+    var showImageViewer by rememberSaveable { mutableStateOf(false) }
+    var initialImageIndex by rememberSaveable { mutableStateOf(0) }
 
     val promotionRepository = remember { PromotionRepository() }
     // 프로모션 수령 멱등키 — 재시도 시 동일 값을 재사용해 중복 수령을 방지한다.
@@ -277,7 +280,13 @@ fun ReceiptRegisterScreen(
         ActivityResultContracts.TakePicture()
     ) { isSuccess ->
         val uri = cameraImageUri
-        if (isSuccess && uri != null) galleryViewModel.handleIntent(GalleryIntent.AddPhotos(listOf(uri)))
+        if (isSuccess && uri != null) galleryViewModel.handleIntent(
+            GalleryIntent.AddPhotos(
+                listOf(
+                    uri
+                )
+            )
+        )
     }
 
     fun launchCamera() {
@@ -290,22 +299,22 @@ fun ReceiptRegisterScreen(
         if (granted) launchCamera()
     }
 
-    fun showMaxReached() {
-        toastState.showError(context.getString(R.string.receipt_max_photos, GalleryState.MAX_PHOTOS))
+    fun showMaxReached(errorMessage: String) {
+        toastState.showError(errorMessage)
     }
 
-    fun onPickFromGallery() {
+    fun onPickFromGallery(errorMessage: String) {
         val request = PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
         when {
-            remainingSlots <= 0 -> showMaxReached()
+            remainingSlots <= 0 -> showMaxReached(errorMessage)
             remainingSlots == 1 -> singlePickLauncher.launch(request)   // 1장만 선택
             else -> multiPickLauncher.launch(request)                   // 남은 만큼만 선택
         }
     }
 
-    fun onTakePhoto() {
+    fun onTakePhoto(errorMessage: String) {
         if (remainingSlots <= 0) {
-            showMaxReached()
+            showMaxReached(errorMessage)
             return
         }
         if (cameraPermission.status.isGranted) launchCamera()
@@ -314,12 +323,13 @@ fun ReceiptRegisterScreen(
 
     // FAB 메뉴에서 진입한 경우 선택한 소스를 1회 자동 실행 (회전 후 재실행 방지)
     var autoLaunchHandled by rememberSaveable { mutableStateOf(false) }
+    val maxPhotosErrorMessage = stringResource(R.string.receipt_max_photos, GalleryState.MAX_PHOTOS)
     LaunchedEffect(Unit) {
         if (!autoLaunchHandled) {
             autoLaunchHandled = true
             when (autoLaunch) {
-                ReceiptRegisterActivity.LAUNCH_CAMERA -> onTakePhoto()
-                ReceiptRegisterActivity.LAUNCH_GALLERY -> onPickFromGallery()
+                ReceiptRegisterActivity.LAUNCH_CAMERA -> onTakePhoto(maxPhotosErrorMessage)
+                ReceiptRegisterActivity.LAUNCH_GALLERY -> onPickFromGallery(maxPhotosErrorMessage)
             }
         }
     }
@@ -372,13 +382,13 @@ fun ReceiptRegisterScreen(
                             UploadActionCard(
                                 icon = R.drawable.ic_camera,
                                 label = R.string.receipt_register_camera,
-                                onClick = { onTakePhoto() },
+                                onClick = { onTakePhoto(maxPhotosErrorMessage) },
                                 modifier = Modifier.weight(1f),
                             )
                             UploadActionCard(
                                 icon = R.drawable.ic_gallery,
                                 label = R.string.receipt_register_gallery,
-                                onClick = { onPickFromGallery() },
+                                onClick = { onPickFromGallery(maxPhotosErrorMessage) },
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -416,10 +426,21 @@ fun ReceiptRegisterScreen(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             items(photos) { uri ->
+                                val index = photos.indexOf(uri)
                                 ReceiptThumbnail(
                                     uri = uri,
                                     showError = isAnalysisFailed,
-                                    onRemove = { galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri)) },
+                                    onRemove = {
+                                        galleryViewModel.handleIntent(
+                                            GalleryIntent.RemovePhoto(
+                                                uri
+                                            )
+                                        )
+                                    },
+                                    onClick = {
+                                        initialImageIndex = index
+                                        showImageViewer = true
+                                    },
                                     modifier = Modifier.size(ThumbnailSize),
                                 )
                             }
@@ -429,12 +450,11 @@ fun ReceiptRegisterScreen(
                 }
 
                 Column(modifier = Modifier.padding(horizontal = Margin20)) {
+                    val networkErrorMessage = stringResource(R.string.receipt_check_network)
                     Button(
                         onClick = {
                             when {
-                                remoteCanAnalyze == null -> toastState.showError(
-                                    context.getString(R.string.receipt_check_network)
-                                )
+                                remoteCanAnalyze == null -> toastState.showError(networkErrorMessage)
                                 remoteCanAnalyze && freeAnalysisTokens > 0 -> analyzeReceipt()
                                 else -> openNoTokenSheet()
                             }
@@ -494,6 +514,15 @@ fun ReceiptRegisterScreen(
                 showAnalysisFailedSheet = false
                 analyzeReceipt()
             },
+        )
+    }
+
+    // ── 이미지 뷰어 ──
+    if (showImageViewer) {
+        ImageViewerScreen(
+            images = photos,
+            initialIndex = initialImageIndex,
+            onClose = { showImageViewer = false }
         )
     }
 }
@@ -665,10 +694,14 @@ private fun NoticeBulletRow(
 private fun ReceiptThumbnail(
     uri: Uri,
     onRemove: () -> Unit,
+    onClick: () -> Unit = {},
     showError: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier) {
+    Box(
+        modifier = modifier
+            .clickable(onClick = onClick)
+    ) {
         AsyncImage(
             model = uri,
             contentDescription = null,

@@ -68,6 +68,7 @@ import com.windrr.boat.data.remote.model.ReceiptFile
 import com.windrr.boat.data.remote.model.ReceiptItem
 import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.ImageViewerScreen
 import com.windrr.boat.ui.component.InfoTooltipIcon
 import com.windrr.boat.ui.component.SyncLoadingOverlay
 import com.windrr.boat.ui.component.rememberBoatToastState
@@ -121,6 +122,8 @@ fun ReceiptDetailScreen(
     val toastState = rememberBoatToastState()
     var showMenuSheet by rememberSaveable { mutableStateOf(false) }
     var showDeleteConfirm by rememberSaveable { mutableStateOf(false) }
+    var showImageViewer by rememberSaveable { mutableStateOf(false) }
+    var initialImageIndex by rememberSaveable { mutableStateOf(0) }
     val deletedMessage = stringResource(R.string.receipt_deleted_toast)
     val deleteFailedMessage = stringResource(R.string.receipt_delete_failed)
 
@@ -180,16 +183,27 @@ fun ReceiptDetailScreen(
                     state.receipt == null -> {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = state.error ?: stringResource(R.string.receipt_detail_load_failed),
+                                text = state.error
+                                    ?: stringResource(R.string.receipt_detail_load_failed),
                                 fontSize = 14.sp,
                                 color = ColorGray500,
                             )
                             TextButton(onClick = { viewModel.load(receiptId) }) {
-                                Text(stringResource(R.string.receipt_list_retry), color = ColorBrandPrimary)
+                                Text(
+                                    stringResource(R.string.receipt_list_retry),
+                                    color = ColorBrandPrimary
+                                )
                             }
                         }
                     }
-                    else -> ReceiptDetailContent(receipt = state.receipt!!)
+
+                    else -> ReceiptDetailContent(
+                        receipt = state.receipt!!,
+                        onImageClick = { index ->
+                            initialImageIndex = index
+                            showImageViewer = true
+                        }
+                    )
                 }
             }
         }
@@ -228,6 +242,15 @@ fun ReceiptDetailScreen(
                 viewModel.delete(receiptId)
             },
             onDismiss = { showDeleteConfirm = false },
+        )
+    }
+
+    // ── 이미지 뷰어 ──
+    if (showImageViewer && state.receipt != null) {
+        ImageViewerScreen(
+            receiptFiles = state.receipt!!.receiptFiles,
+            initialIndex = initialImageIndex,
+            onClose = { showImageViewer = false }
         )
     }
 }
@@ -306,7 +329,10 @@ private fun MenuSheetRow(text: String, color: Color, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ReceiptDetailContent(receipt: ReceiptItem) {
+private fun ReceiptDetailContent(
+    receipt: ReceiptItem,
+    onImageClick: (Int) -> Unit = {}
+) {
     val context = LocalContext.current
 
     Column(
@@ -327,7 +353,12 @@ private fun ReceiptDetailContent(receipt: ReceiptItem) {
             contentAlignment = Alignment.Center,
         ) {
             Image(
-                painter = painterResource(DeviceImage.resolve(receipt.category, receipt.subCategory)),
+                painter = painterResource(
+                    DeviceImage.resolve(
+                        receipt.category,
+                        receipt.subCategory
+                    )
+                ),
                 contentDescription = null,
                 modifier = Modifier.size(120.dp),
             )
@@ -453,7 +484,12 @@ private fun ReceiptDetailContent(receipt: ReceiptItem) {
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     items(receipt.receiptFiles, key = { it.fileId }) { file ->
-                        Box(modifier = Modifier.size(100.dp)) {
+                        val index = receipt.receiptFiles.indexOf(file)
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clickable { onImageClick(index) }
+                        ) {
                             AsyncImage(
                                 model = file.toContentUrl(),
                                 contentDescription = null,
@@ -473,7 +509,12 @@ private fun ReceiptDetailContent(receipt: ReceiptItem) {
                                     .background(Color.Black.copy(alpha = 0.4f)),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                Text(text = "✕", color = ColorWhite, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text(
+                                    text = "✕",
+                                    color = ColorWhite,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                         }
                     }
@@ -491,7 +532,14 @@ private fun ReceiptDetailContent(receipt: ReceiptItem) {
                     .background(ColorBrandSenary)
                     .clickable(enabled = !supportUrl.isNullOrBlank()) {
                         if (!supportUrl.isNullOrBlank()) {
-                            runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(supportUrl))) }
+                            runCatching {
+                                context.startActivity(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse(supportUrl)
+                                    )
+                                )
+                            }
                         }
                     }
                     .padding(horizontal = Margin16, vertical = 16.dp),
