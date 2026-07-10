@@ -92,7 +92,6 @@ import com.windrr.boat.ui.theme.Margin20
 import com.windrr.boat.ui.theme.Margin24
 import com.windrr.boat.ui.theme.Margin8
 import com.windrr.boat.ui.theme.Rounded2xl
-import com.windrr.boat.ui.theme.RoundedFull
 import com.windrr.boat.ui.theme.RoundedLg
 import com.windrr.boat.ui.theme.RoundedXl
 import kotlinx.coroutines.delay
@@ -484,7 +483,7 @@ private fun ReceiptDetailContent(
             DetailField(
                 label = stringResource(R.string.receipt_detail_expiry),
                 value = receipt.expiresOn.toDotDate(),
-                trailing = { WarrantyDDayBadge(receipt.warrantyDDay) },
+                trailing = { WarrantyDayBadge(receipt.warrantyDDay) },
             )
 
             Spacer(Modifier.height(Margin16))
@@ -710,20 +709,3 @@ private fun ReadOnlyRadioRow(label: String, selected: Boolean) {
 }
 
 
-/** 무상 AS 잔여일 뱃지 — 여유(파랑) / 만료(회색) */
-@Composable
-private fun WarrantyDDayBadge(dDay: Int?) {
-    val (label, color) = when {
-        dDay == null || dDay <= 0 -> stringResource(R.string.receipt_expired) to ColorGray400
-        else -> "D-$dDay" to ColorBrandPrimary
-    }
-    Box(
-        modifier = Modifier
-            .clip(RoundedFull)
-            .background(ColorBrandSenary.takeIf { color == ColorBrandPrimary } ?: ColorGray50)
-            .border(1.dp, color, RoundedFull)
-            .padding(horizontal = 12.dp, vertical = 5.dp),
-    ) {
-        Text(text = label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = color)
-    }
-}
