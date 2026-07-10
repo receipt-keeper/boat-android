@@ -411,7 +411,7 @@ private fun RecentReceiptItem(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        color = Color(0xFFF5F7FA), // 디자인 가이드의 옅은 쿨그레이 배경색
+        color = Color(0xFFF2F6FC), // 디자인 가이드 카드 배경색 (옅은 쿨블루) — 흰 배경 위에서 카드 경계가 드러남
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),

@@ -168,7 +168,7 @@ fun HomeScreenContent(
                 brush = Brush.verticalGradient(
                     colors = listOf(
                         Color(0xFF3E82F7),
-                        Color(0xFFF5F7FA)
+                        Color(0xFFFFFFFF)
                     ),
                     startY = 0f,
                     endY = 1000f
