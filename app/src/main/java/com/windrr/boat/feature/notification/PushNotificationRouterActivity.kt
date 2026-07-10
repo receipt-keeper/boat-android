@@ -30,6 +30,7 @@ class PushNotificationRouterActivity : ComponentActivity() {
         private const val EXTRA_RESOURCE_TYPE = "extra_resource_type"
         private const val EXTRA_RESOURCE_ID = "extra_resource_id"
         private const val EXTRA_KIND = "extra_kind"
+        private const val EXTRA_MESSAGE_TYPE = "extra_message_type"
 
         // Activity 종료 이후에도 읽음 처리 요청이 취소되지 않도록 액티비티 생명주기와 분리된 스코프를 쓴다.
         private val routerScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -40,12 +41,14 @@ class PushNotificationRouterActivity : ComponentActivity() {
             resourceType: String?,
             resourceId: String?,
             kind: String?,
+            messageType: String?,
         ): Intent = Intent(context, PushNotificationRouterActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(EXTRA_NOTIFICATION_ID, notificationId)
             putExtra(EXTRA_RESOURCE_TYPE, resourceType)
             putExtra(EXTRA_RESOURCE_ID, resourceId)
             putExtra(EXTRA_KIND, kind)
+            putExtra(EXTRA_MESSAGE_TYPE, messageType)
         }
     }
 
@@ -56,6 +59,7 @@ class PushNotificationRouterActivity : ComponentActivity() {
         val resourceType = intent.getStringExtra(EXTRA_RESOURCE_TYPE)
         val resourceId = intent.getStringExtra(EXTRA_RESOURCE_ID)
         val kind = intent.getStringExtra(EXTRA_KIND)
+        val messageType = intent.getStringExtra(EXTRA_MESSAGE_TYPE)
 
         if (!notificationId.isNullOrBlank()) {
             routerScope.launch {
@@ -71,11 +75,12 @@ class PushNotificationRouterActivity : ComponentActivity() {
             }
         )
 
-        when (val route = resolveNotificationRoute(resourceType, resourceId, kind)) {
+        when (val route = resolveNotificationRoute(resourceType, resourceId, kind, messageType)) {
             is NotificationRoute.ReceiptDetail ->
                 startActivity(ReceiptDetailActivity.intent(this, route.receiptId))
             NotificationRoute.ReceiptRegister ->
                 startActivity(ReceiptRegisterActivity.intent(this))
+            NotificationRoute.Home -> Unit // 이미 MainActivity로 이동했으므로 추가 동작 불필요
             NotificationRoute.None -> Unit
         }
 

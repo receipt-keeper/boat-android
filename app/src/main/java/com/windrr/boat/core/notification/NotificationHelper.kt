@@ -46,6 +46,7 @@ object NotificationHelper {
      * @param resourceType 참조 리소스 유형(data.resourceType) — 예: "receipt"
      * @param resourceId 참조 리소스 ID(data.resourceId) — 예: 영수증 ID
      * @param kind 알림 종류(data.kind) — 특정 종류만 별도 라우팅할 때 사용
+     * @param messageType 메시지 유형(data.messageType) — marketing 등 라우팅 결정에 사용
      */
     fun showGeneralPush(
         context: Context,
@@ -56,6 +57,7 @@ object NotificationHelper {
         resourceType: String? = null,
         resourceId: String? = null,
         kind: String? = null,
+        messageType: String? = null,
     ) {
         val tapIntent = PushNotificationRouterActivity.intent(
             context = context,
@@ -63,6 +65,7 @@ object NotificationHelper {
             resourceType = resourceType,
             resourceId = resourceId,
             kind = kind,
+            messageType = messageType,
         )
         val pendingIntent = PendingIntent.getActivity(
             context, notificationId, tapIntent,

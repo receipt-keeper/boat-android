@@ -60,11 +60,12 @@ fun NotificationListScreen(
     // 앱이 처리할 수 있는 resourceType만 라우팅, 그 외/없음은 목록에 머문다.
     // 실제 푸시 탭(PushNotificationRouterActivity)과 동일한 규칙을 쓴다 — resolveNotificationRoute 참고.
     fun route(item: AppNotification) {
-        when (val target = resolveNotificationRoute(item.resourceType, item.resourceId, item.kind)) {
+        when (val target = resolveNotificationRoute(item.resourceType, item.resourceId, item.kind, item.messageType)) {
             is NotificationRoute.ReceiptDetail ->
                 context.startActivity(ReceiptDetailActivity.intent(context, target.receiptId))
             NotificationRoute.ReceiptRegister ->
                 context.startActivity(ReceiptRegisterActivity.intent(context))
+            NotificationRoute.Home -> Unit // 홈 화면으로 이동 (이미 홈에 있거나 홈으로 이동 처리 필요 시 추가)
             NotificationRoute.None -> Unit
         }
     }

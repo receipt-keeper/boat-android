@@ -70,11 +70,12 @@ class BoatFirebaseMessagingService : FirebaseMessagingService() {
         val resourceType = message.data["resourceType"]
         val resourceId = message.data["resourceId"]
         val kind = message.data["kind"]
+        val messageType = message.data["messageType"]
 
         // 4) 실제 표시 시도
         BoatLog.i(
             "[FCM] 알림 표시 시도 — title='$title', notificationId=$serverNotificationId, " +
-                "resourceType=$resourceType, resourceId=$resourceId, kind=$kind"
+                "resourceType=$resourceType, resourceId=$resourceId, kind=$kind, messageType=$messageType"
         )
         NotificationHelper.showGeneralPush(
             context = applicationContext,
@@ -85,6 +86,7 @@ class BoatFirebaseMessagingService : FirebaseMessagingService() {
             resourceType = resourceType,
             resourceId = resourceId,
             kind = kind,
+            messageType = messageType,
         )
         BoatLog.i("[FCM] 알림 표시 호출 완료 (notify)")
     }

@@ -7,6 +7,7 @@ package com.windrr.boat.feature.notification
 sealed class NotificationRoute {
     data class ReceiptDetail(val receiptId: String) : NotificationRoute()
     data object ReceiptRegister : NotificationRoute()
+    data object Home : NotificationRoute()
     /** 특정 리소스를 가리키지 않는 알림 — 별도 이동 없음(목록은 머무름, 푸시는 홈으로만 이동). */
     data object None : NotificationRoute()
 }
@@ -15,8 +16,13 @@ fun resolveNotificationRoute(
     resourceType: String?,
     resourceId: String?,
     kind: String?,
+    messageType: String?,
 ): NotificationRoute = when {
     resourceType == "receipt" && !resourceId.isNullOrBlank() -> NotificationRoute.ReceiptDetail(resourceId)
     kind == "registration_prompt" -> NotificationRoute.ReceiptRegister
+    kind == "receipt_registration_reminder" ||
+        kind == "receipt_inactivity_reminder" ||
+        kind == "receipt_analysis_reminder" ||
+        messageType == "marketing" -> NotificationRoute.Home
     else -> NotificationRoute.None
 }
