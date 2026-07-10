@@ -1,11 +1,12 @@
 package com.windrr.boat.feature.home
 
 import android.annotation.SuppressLint
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,16 +14,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -30,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -39,21 +39,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Image
 import com.windrr.boat.R
 import com.windrr.boat.core.ocr.DeviceImage
-import com.windrr.boat.ui.component.FreeAnalysisBanner
+import com.windrr.boat.feature.receipt.WarrantyDayBadge
+import com.windrr.boat.ui.theme.BottomBarClearance
+import com.windrr.boat.ui.theme.ColorBadgeSafeBg
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandSenary
-import com.windrr.boat.ui.theme.ColorGray200
+import com.windrr.boat.ui.theme.ColorGray100
 import com.windrr.boat.ui.theme.ColorGray400
+import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray500
-import com.windrr.boat.ui.theme.ColorGray600
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
-import com.windrr.boat.ui.theme.BottomBarClearance
 import com.windrr.boat.ui.theme.Margin8
 import com.windrr.boat.ui.theme.Margin12
 import com.windrr.boat.ui.theme.Margin16
@@ -64,12 +66,12 @@ import com.windrr.boat.ui.theme.RoundedFull
 import com.windrr.boat.ui.theme.RoundedXl
 
 /**
- * 홈 일반 콘텐츠 — AS 만료 예정(가로형) + 최근 등록 영수증(세로형).
+ * 홈 일반 콘텐츠 — AS 만료 예정(가로형) + 가전 소모품 배너 + 최근 등록 영수증(세로형).
  */
 @Composable
 fun HomeGeneralContent(
-    freeAnalysisTokens: Int,
     expiring: List<ExpiringWarranty>,
+    expiringTotalCount: Int,
     recent: List<RecentReceipt>,
     onExpiringMore: () -> Unit = {},
     onExpiringClick: (ExpiringWarranty) -> Unit = {},
@@ -77,19 +79,12 @@ fun HomeGeneralContent(
     onRecentClick: (RecentReceipt) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    // 세로 스크롤은 상위(HomeScreenContent)에서 처리하므로 여기선 일반 Column.
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState()),
+        modifier = modifier.fillMaxWidth(),
     ) {
-        Spacer(Modifier.height(Margin8))
-        FreeAnalysisBanner(
-            remaining = freeAnalysisTokens,
-            modifier = Modifier.padding(horizontal = Margin20),
-        )
-
         // ── AS 만료 예정 ─────────────────────────────
-        Spacer(Modifier.height(Margin16))
+        Spacer(Modifier.height(Margin8))
         if (expiring.isEmpty()) {
             // 0건일 때는 캡션·타이틀·안내 메시지가 우는 보보와 함께 하나의 카드에 담긴다.
             ExpiringEmptyBanner(
@@ -97,55 +92,21 @@ fun HomeGeneralContent(
                 modifier = Modifier.padding(horizontal = Margin20),
             )
         } else {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = Margin20),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.home_expiring_caption),
-                        fontSize = 13.sp,
-                        color = ColorGray500,
-                    )
-                    Spacer(Modifier.height(2.dp))
-                    Row {
-                        Text(
-                            stringResource(R.string.home_expiring_title),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = ColorGray900
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            text = stringResource(R.string.home_expiring_count, expiring.size),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = ColorBrandPrimary,
-                        )
-                    }
-                }
-                Icon(
-                    painter = painterResource(R.drawable.ic_chevron_right),
-                    contentDescription = null,
-                    tint = ColorGray400,
-                    modifier = Modifier
-                        .size(20.dp)
-                        .clickable(onClick = onExpiringMore),
-                )
-            }
-
-            Spacer(Modifier.height(Margin16))
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = Margin20),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                items(expiring, key = { it.receiptId }) { item ->
-                    ExpiringWarrantyCard(item = item, onClick = { onExpiringClick(item) })
-                }
-            }
+            ExpiringWarrantySection(
+                expiring = expiring,
+                totalCount = expiringTotalCount,
+                onMoreClick = onExpiringMore,
+                onItemClick = onExpiringClick,
+                modifier = Modifier.padding(horizontal = Margin20),
+            )
         }
+
+        // ── 가전제품 소모품/액세서리 배너 ───────────────
+        Spacer(Modifier.height(Margin20))
+        AccessoryBanner(
+            onClick = { /* TODO: 소모품/액세서리 페이지 연결 */ },
+            modifier = Modifier.padding(horizontal = Margin20),
+        )
 
         // ── 최근 등록된 영수증 ────────────────────────
         Spacer(Modifier.height(Margin24))
@@ -166,20 +127,29 @@ fun HomeGeneralContent(
             }
             Spacer(Modifier.height(4.dp))
             // 더보기
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp)
+                    .height(48.dp)
                     .clip(RoundedXl)
-                    .background(ColorGray200) // #EEEEEE
+                    .background(ColorBadgeSafeBg)
                     .clickable(onClick = onRecentMore),
-                contentAlignment = Alignment.Center,
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     stringResource(R.string.home_more),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
-                    color = ColorGray600
+                    color = ColorBrandPrimary,
+                )
+                Icon(
+                    painter = painterResource(R.drawable.ic_chevron_right),
+                    contentDescription = null,
+                    tint = ColorBrandPrimary,
+                    modifier = Modifier
+                        .padding(start = 2.dp)
+                        .size(16.dp),
                 )
             }
         }
@@ -188,116 +158,219 @@ fun HomeGeneralContent(
     }
 }
 
-/** AS 만료 예정 가로형 카드 — 화면폭 기준 너비, D-day 뱃지가 우측 상단 테두리에 겹침 */
+/**
+ * AS 만료 예정(가로형) 섹션 — [ExpiringEmptyBanner]와 동일한 배치 공식.
+ * 파란 히어로 카드 하나에 헤더 + 가로 카드 캐러셀 + 인디케이터를 담고,
+ * 윙크하는 보보의 몸통(img_happy_bobo)과 손+태그(img_happy_bobo_hand)를 같은 크기·위치로 겹친 뒤
+ * 그 사이(z-order)에 카드 캐러셀을 그려서 손이 카드 위에 얹힌 것처럼 보이게 한다.
+ */
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
-private fun ExpiringWarrantyCard(
-    item: ExpiringWarranty,
-    onClick: () -> Unit,
+private fun ExpiringWarrantySection(
+    expiring: List<ExpiringWarranty>,
+    totalCount: Int,
+    onMoreClick: () -> Unit,
+    onItemClick: (ExpiringWarranty) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val badgeHeight = 32.dp
-    val badgeHalfHeight = badgeHeight / 2
-    val cardWidth = LocalConfiguration.current.screenWidthDp.dp - 52.dp
+    val listState = rememberLazyListState()
+    // offsetY로 캐릭터 세트 상하 위치 조정. 손 태그가 카드의 "보증종료" 텍스트를 가리지 않도록
+    // 캐릭터는 위로, 카드는 아래로(헤더-카드 간격 확대) 벌린다.
+    val bobo = MascotLayout(width = 90.dp, height = 127.dp, offsetY = 8.dp)
+    // 카드 너비 — 다음 카드가 파란 카드 우측에 살짝 걸쳐 보이도록(peek) 산정.
+    // 화면폭 - 좌우 화면 마진(40) - 캐러셀 좌측 여백(20) - 우측 peek 여백(28)
+    val cardWidth = LocalConfiguration.current.screenWidthDp.dp - 88.dp
 
     Box(
         modifier = modifier
-            .width(cardWidth)
-            .padding(top = badgeHalfHeight)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                // [교정 1] 탁한 그림자 완전 제거. 플랫 디자인의 1px 테두리만 유지.
-                .clip(Rounded2xl)
-                .background(ColorBrandSenary)
-                .border(1.dp, ColorBrandPrimary, Rounded2xl)
-                .clickable(onClick = onClick)
-                .padding(20.dp), // 스크린샷의 넉넉한 내부 여백 반영
-            verticalAlignment = Alignment.Top,
-        ) {
-            // [교정 2] 썸네일 크기 축소 (100dp -> 88dp) 및 그림자 제거
-            Box(
-                modifier = Modifier
-                    .size(88.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(ColorWhite),
-                contentAlignment = Alignment.Center,
-            ) {
-                Thumbnail(category = item.category, subCategory = item.subCategory, sizeDp = 88, bg = Color.Transparent)
-            }
-
-            Spacer(Modifier.width(16.dp))
-
-            // [교정 3] 강제 높이(heightIn) 및 SpaceBetween 제거. 콘텐츠에 맞춰 자연스럽게 흐르도록 수정
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.productName,
-                    fontSize = 18.sp, // 20sp에서 스탠다드 규격으로 축소
-                    fontWeight = FontWeight.Bold,
-                    color = ColorGray900,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+            .fillMaxWidth()
+            .clip(Rounded2xl)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Color(0xFF3E82F7), Color(0xFF6FA1F8)),
                 )
+            ),
+    ) {
+        // 1) 몸통 — 맨 아래. 카드와 겹치는 부분은 카드에 가려진다. (endPadding을 키워 캐릭터를 안쪽으로)
+        MascotImage(R.drawable.img_happy_bobo, bobo, endPadding = 44.dp)
 
-                Spacer(Modifier.height(14.dp)) // 타이틀과 정보 사이의 명확한 여백
-
-                // 라벨 그룹은 간격을 타이트하게 묶음
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    LabelValueRow(stringResource(R.string.home_label_vendor), item.vendor)
-                    LabelValueRow(stringResource(R.string.home_label_purchase), item.purchaseDate)
-                }
-
-                Spacer(Modifier.height(16.dp)) // 보증기간 뱃지와 분리
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(modifier = Modifier.fillMaxWidth().padding(top = Margin24, bottom = Margin20)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Margin20),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // 캐릭터 세트는 안쪽으로 들여놓고(chevron과 겹치지 않게), 타이틀은 캐릭터 아래로 넘어가지 않도록 우측 여백 확보
+                Column(modifier = Modifier.weight(1f).padding(end = 96.dp)) {
                     Text(
-                        text = stringResource(R.string.home_label_warranty),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = ColorBrandPrimary,
-                        modifier = Modifier
-                            .clip(RoundedFull)
-                            .background(ColorWhite)
-                            .padding(horizontal = 8.dp, vertical = 4.dp), // 내부 패딩 타이트하게 조절
+                        text = stringResource(R.string.home_expiring_caption),
+                        fontSize = 13.sp,
+                        color = ColorWhite.copy(alpha = 0.85f),
                     )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = item.warrantyUntil,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Medium, // SemiBold 제거. 스크린샷처럼 담백하게 유지
-                        color = ColorGray900,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                    Spacer(Modifier.height(2.dp))
+                    Row {
+                        Text(
+                            stringResource(R.string.home_expiring_title),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ColorWhite,
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = stringResource(R.string.home_expiring_count, totalCount),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ColorWhite,
+                        )
+                    }
+                }
+                Icon(
+                    painter = painterResource(R.drawable.ic_chevron_right),
+                    contentDescription = null,
+                    tint = ColorWhite,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable(onClick = onMoreClick),
+                )
+            }
+
+            Spacer(Modifier.height(30.dp)) // 헤더-카드 간격 확대 → 손 태그가 카드 텍스트를 덜 가리도록
+            // 2) 카드 캐러셀 — 몸통 위, 손 아래(z-order로 몸통의 하단부를 가린다)
+            LazyRow(
+                state = listState,
+                contentPadding = PaddingValues(horizontal = Margin20),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                items(expiring, key = { it.receiptId }) { item ->
+                    ExpiringWarrantyCard(
+                        item = item,
+                        width = cardWidth,
+                        onClick = { onItemClick(item) },
                     )
                 }
             }
+
+            Spacer(Modifier.height(14.dp))
+            CarouselIndicator(
+                count = expiring.size,
+                listState = listState,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
 
-        // D-Day 뱃지
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                // 스크린샷 비율상 우측 끝에서 살짝 더 들어와 있음
-                .padding(end = 24.dp)
-                .offset(y = -badgeHalfHeight)
-                .height(badgeHeight)
-                .clip(RoundedFull)
-                .background(ColorGray900)
-                .padding(horizontal = 16.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = stringResource(R.string.home_dday, item.dDay),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = ColorWhite,
+        // 3) 손 + 보증 태그 — 맨 위. 몸통과 완전히 동일한 크기·위치라야 이어져 보인다.
+        MascotImage(R.drawable.img_happy_bobo_hand, bobo, endPadding = 44.dp)
+    }
+}
+
+/** 몸통/손 레이어에 공통으로 쓰는 크기·오프셋. 두 레이어는 항상 이 값을 그대로 공유해야 한다. */
+private data class MascotLayout(val width: Dp, val height: Dp, val offsetY: Dp)
+
+@Composable
+private fun BoxScope.MascotImage(@DrawableRes drawable: Int, layout: MascotLayout, endPadding: Dp = Margin20) {
+    Image(
+        painter = painterResource(drawable),
+        contentDescription = null,
+        modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(end = endPadding)
+            .size(width = layout.width, height = layout.height)
+            .offset(y = layout.offsetY),
+    )
+}
+
+/** 캐러셀 페이지 인디케이터 — 현재 보이는 카드가 넓은 필(pill), 나머지는 작은 도트. */
+@Composable
+private fun CarouselIndicator(
+    count: Int,
+    listState: LazyListState,
+    modifier: Modifier = Modifier,
+) {
+    if (count == 0) return
+    val activeIndex = listState.firstVisibleItemIndex.coerceIn(0, count - 1)
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        repeat(count) { index ->
+            val active = index == activeIndex
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 3.dp)
+                    .size(width = if (active) 16.dp else 6.dp, height = 6.dp)
+                    .clip(RoundedFull)
+                    .background(if (active) ColorWhite else ColorWhite.copy(alpha = 0.4f)),
             )
         }
     }
 }
 
-/** 구매처/구매일 행 — 라벨·값 모두 #616161, 라벨 고정폭으로 값 시작점 정렬 */
+/**
+ * AS 만료 예정 가로형 카드 — 상단에 D-day 뱃지 + 보증종료일, 구분선, 하단에 썸네일/기기명/브랜드/구매일.
+ * D-day 뱃지는 목록 탭과 동일한 [WarrantyDayBadge] 컴포넌트를 그대로 재사용한다.
+ */
+@Composable
+private fun ExpiringWarrantyCard(
+    item: ExpiringWarranty,
+    width: Dp,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .width(width)
+            .clip(Rounded2xl)
+            .background(ColorWhite)
+            .clickable(onClick = onClick)
+            .padding(Margin16),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            WarrantyDayBadge(warrantyDDay = item.dDay)
+            Text(
+                text = stringResource(R.string.home_warranty_end_label, item.expiryLabel),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = ColorBrandPrimary,
+            )
+        }
+
+        Spacer(Modifier.height(14.dp))
+        HorizontalDivider(thickness = 1.dp, color = ColorGray100)
+        Spacer(Modifier.height(14.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Thumbnail(
+                category = item.category,
+                subCategory = item.subCategory,
+                sizeDp = 56,
+                bg = ColorBrandSenary,
+            )
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.productName,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = ColorGray900,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(Modifier.height(8.dp))
+                LabelValueRow(stringResource(R.string.home_label_brand), item.brand)
+                Spacer(Modifier.height(6.dp))
+                LabelValueRow(stringResource(R.string.home_label_purchase), item.purchaseDate)
+            }
+        }
+    }
+}
+
+/** 브랜드/구매일 행 — 라벨 고정폭으로 값 시작점 정렬 */
 @Composable
 private fun LabelValueRow(label: String, value: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -319,7 +392,7 @@ private fun LabelValueRow(label: String, value: String) {
     }
 }
 
-/** 최근 등록 영수증 세로형 아이템 */
+/** 최근 등록 영수증 세로형 아이템 — 옅은 블루 배경 카드. */
 @Composable
 private fun RecentReceiptItem(
     item: RecentReceipt,
@@ -330,7 +403,7 @@ private fun RecentReceiptItem(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = Rounded2xl,
-        color = ColorWhite,
+        color = ColorGray50,
     ) {
         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Thumbnail(category = item.category, subCategory = item.subCategory, sizeDp = 48)
@@ -348,7 +421,11 @@ private fun RecentReceiptItem(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = stringResource(R.string.home_days_ago, item.daysAgo),
+                        text = if (item.daysAgo <= 0) {
+                            stringResource(R.string.home_days_ago_today)
+                        } else {
+                            stringResource(R.string.home_days_ago, item.daysAgo)
+                        },
                         fontSize = 12.sp,
                         color = ColorGray400
                     )
@@ -369,15 +446,21 @@ private fun RecentReceiptItem(
 }
 
 /**
- * AS 만료 예정 0건일 때 표시되는 배너 — 캡션·타이틀·안내 메시지를 파란 카드 하나에 담고,
- * 우는 보보가 하단 안내 박스를 손으로 짚고 있는 것처럼 보이도록 몸통(img_crying_bobo)과
- * 손+태그(img_crying_bobo_hand)를 같은 크기로 겹쳐 그린 뒤, 손 쪽만 더 아래로 내려 배치한다.
+ * AS 만료 예정 0건일 때 표시되는 배너 — 캡션·타이틀·안내 메시지를 파란 카드 하나에 담는다.
+ *
+ * 몸통(img_crying_bobo)과 손+태그(img_crying_bobo_hand)는 같은 캔버스에서 분리된 레이어라
+ * 반드시 동일한 크기·위치로 겹쳐야 원본처럼 자연스럽게 이어진다(따로 어긋나게 배치하면 안 됨).
+ * "손이 안내 박스 위에 얹힌" 효과는 두 레이어의 위치를 다르게 주는 게 아니라, 안내 박스를
+ * 몸통과 손 사이(z-order)에 그려서 몸통의 하단은 박스에 가려지고 손은 박스 위로 드러나게 한다.
  */
 @Composable
 private fun ExpiringEmptyBanner(
     onMoreClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // 💡 [교정 1] 마스코트의 총 높이를 늘려(124.dp) 배너 영역까지 뻗어나갈 수 있는 잉여 공간 확보
+    val bobo = MascotLayout(width = 88.dp, height = 107.dp, offsetY = 0.dp)
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -389,14 +472,24 @@ private fun ExpiringEmptyBanner(
             )
             .padding(Margin20),
     ) {
+        // 1) 몸통 — 맨 아래. (Inner Banner에 의해 하단이 덮임)
+        MascotImage(R.drawable.img_crying_bobo, bobo, endPadding = 32.dp)
+
         Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
+
+            // 💡 [교정 2] 상단 텍스트 영역의 높이를 84dp로 축소
+            // 이로 인해 하단의 안내 박스가 위로 당겨지며, 마스코트(124dp)와 약 40dp 겹침(Overlap) 발생
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(end = 84.dp), // 우측 보보 캐릭터와 겹치지 않도록 여유 확보
-                verticalAlignment = Alignment.Top,
+                    .height(84.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                // 좌측 텍스트 (수직 중앙 정렬)
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(end = 100.dp) // 마스코트 영역 침범 방지
+                ) {
                     Text(
                         text = stringResource(R.string.home_expiring_caption),
                         fontSize = 13.sp,
@@ -419,24 +512,28 @@ private fun ExpiringEmptyBanner(
                         )
                     }
                 }
+
+                // 우측 화살표 (수직 중앙 및 우측 끝 정렬)
                 Icon(
                     painter = painterResource(R.drawable.ic_chevron_right),
                     contentDescription = null,
                     tint = ColorWhite,
                     modifier = Modifier
-                        .size(20.dp)
+                        .size(24.dp)
+                        .align(Alignment.CenterEnd)
                         .clickable(onClick = onMoreClick),
                 )
             }
 
-            Spacer(Modifier.height(52.dp)) // 보보가 내려와 앉는 공간
-
+            // 2) 안내 박스 — 몸통 위, 손 아래
+            // 몸통 하단을 덮어버려 "깔끔한 절취선" 효과를 내고, 손(태그)은 이 위로 오버랩 됨
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(112.dp)
                     .clip(RoundedXl)
                     .background(ColorWhite.copy(alpha = 0.18f))
-                    .padding(vertical = 18.dp, horizontal = 16.dp),
+                    .padding(horizontal = 14.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -449,24 +546,8 @@ private fun ExpiringEmptyBanner(
             }
         }
 
-        // 우는 보보 몸통 — 헤더 우측 상단
-        Image(
-            painter = painterResource(R.drawable.img_crying_bobo),
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .size(width = 92.dp, height = 129.dp)
-                .offset(y = (-6).dp),
-        )
-        // 손 + 보증 만료 태그 — 같은 크기지만 더 아래로 내려서 안내 박스 경계에 걸치게 한다
-        Image(
-            painter = painterResource(R.drawable.img_crying_bobo_hand),
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .size(width = 92.dp, height = 129.dp)
-                .offset(y = 40.dp),
-        )
+        // 3) 손 + 보증 만료 태그 — 맨 위. (안내 박스 위로 오버랩 됨)
+        MascotImage(R.drawable.img_crying_bobo_hand, bobo, endPadding = 32.dp)
     }
 }
 

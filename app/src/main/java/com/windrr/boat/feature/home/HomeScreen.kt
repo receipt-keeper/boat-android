@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -68,7 +69,6 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun HomeScreen(
-    freeAnalysisTokens: Int,
     modifier: Modifier = Modifier,
     onSearchClick: () -> Unit = {},
     onSeeExpiringList: () -> Unit = {},
@@ -90,7 +90,6 @@ fun HomeScreen(
     HomeScreenContent(
         state = state,
         hasUnreadNotification = hasUnreadNotification,
-        freeAnalysisTokens = freeAnalysisTokens,
         onSearchClick = onSearchClick,
         onNotificationClick = {
             context.startActivity(
@@ -142,7 +141,6 @@ fun HomeScreen(
 fun HomeScreenContent(
     state: HomeState,
     hasUnreadNotification: Boolean,
-    freeAnalysisTokens: Int,
     onSearchClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onSeeExpiringList: () -> Unit,
@@ -170,10 +168,12 @@ fun HomeScreenContent(
                 )
             )
     ) {
+        // 헤더 + 콘텐츠를 하나의 세로 스크롤로 묶어, 스크롤 시 상단바가 함께 밀려 올라가도록 한다.
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(WindowInsets.statusBars.asPaddingValues())
+                .verticalScroll(rememberScrollState())
         ) {
             BoatHeader(
                 hasUnreadNotification = hasUnreadNotification,
@@ -184,7 +184,9 @@ fun HomeScreenContent(
             )
             when {
                 state.isLoading -> Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(320.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = ColorBrandPrimary)
@@ -195,8 +197,8 @@ fun HomeScreenContent(
                 )
 
                 else -> HomeGeneralContent(
-                    freeAnalysisTokens = freeAnalysisTokens,
                     expiring = state.expiring,
+                    expiringTotalCount = state.expiringTotalCount,
                     recent = state.recent,
                     onExpiringMore = onSeeExpiringList,
                     onExpiringClick = onExpiringClick,
@@ -271,10 +273,10 @@ private fun TestPushDialog(
 private fun HomeInitialContent(
     onRegisterClick: () -> Unit,
 ) {
+    // 세로 스크롤은 상위(HomeScreenContent)에서 처리하므로 여기선 일반 Column.
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .fillMaxWidth()
             .padding(horizontal = Margin20),
     ) {
         Spacer(Modifier.height(Margin8))
@@ -302,11 +304,11 @@ private fun ReceiptRegisterBanner(onClick: () -> Unit) {
     )
 }
 
-/** 가전제품 소모품/액세서리 배너 — 하단 배너 */
+/** 가전제품 소모품/액세서리 배너 — 초기 홈/일반 홈(AS 만료 예정 아래) 공용. */
 @Composable
-private fun AccessoryBanner(onClick: () -> Unit) {
+fun AccessoryBanner(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(110.dp)
             .clip(RoundedXl)
@@ -317,14 +319,14 @@ private fun AccessoryBanner(onClick: () -> Unit) {
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = "가전제품 필수 아이템!",
+                text = stringResource(R.string.home_card_popular_title),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF333333),
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "교체가 필요한 소모품과\n액세서리를 특가로 만나보세요.",
+                text = stringResource(R.string.home_card_popular_desc),
                 fontSize = 13.sp,
                 color = Color(0xFF777777),
                 lineHeight = 18.sp,
@@ -351,7 +353,6 @@ fun HomeScreenInitialPreview() {
                 hasAnyReceipts = false
             ),
             hasUnreadNotification = true,
-            freeAnalysisTokens = 5,
             onSearchClick = {},
             onNotificationClick = {},
             onSeeExpiringList = {},

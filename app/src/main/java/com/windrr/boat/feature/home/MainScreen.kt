@@ -105,13 +105,14 @@ fun MainScreen(
             NavHost(
                 navController = navController,
                 startDestination = MainTab.START.route,
-                // 이 콘텐츠가 하단 플로팅 바의 블러 소스가 된다
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .hazeSource(state = hazeState),
+                // 이 콘텐츠가 하단 플로팅 바의 블러 소스가 된다.
+                // innerPadding(상태바/네비바 inset)은 화면별로 적용한다 —
+                // 홈은 상단 그라데이션이 상태바 영역까지 꽉 차도록 top inset을 적용하지 않는다.
+                modifier = Modifier.hazeSource(state = hazeState),
             ) {
                 composable(MainTab.LIST.route) {
                     ReceiptListScreen(
+                        modifier = Modifier.padding(innerPadding),
                         initialTab = pendingListTab,
                         initialSort = pendingListSort,
                         onInitialConsumed = {
@@ -123,7 +124,9 @@ fun MainScreen(
                 }
                 composable(MainTab.HOME.route) {
                     HomeScreen(
-                        freeAnalysisTokens = user.freeAnalysisTokensRemaining,
+                        // 상태바 아래까지 그라데이션이 그려지도록 top inset은 생략, 하단 inset만 적용.
+                        // (상태바 offset은 HomeScreen 내부에서 statusBars 패딩으로 직접 처리)
+                        modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
                         onSearchClick = { goSearch() },
                         onSeeExpiringList = {
                             pendingListTab = ReceiptTab.EXPIRING
@@ -138,10 +141,15 @@ fun MainScreen(
                     )
                 }
                 composable("search") {
-                    SearchScreen(onBack = { navController.popBackStack() })
+                    // 검색 화면은 하단 네비바 inset을 자체 처리하므로 상단 inset만 적용한다.
+                    SearchScreen(
+                        modifier = Modifier.padding(top = innerPadding.calculateTopPadding()),
+                        onBack = { navController.popBackStack() },
+                    )
                 }
                 composable(MainTab.MY.route) {
                     MyPageScreen(
+                        modifier = Modifier.padding(innerPadding),
                         name = user.displayName,
                         email = user.email,
                         freeAnalysisTokens = user.freeAnalysisTokensRemaining,

@@ -17,12 +17,15 @@ private const val HOME_RECENT_LIMIT = 5
 
 data class HomeState(
     val expiring: List<ExpiringWarranty> = emptyList(),
+    /** AS 만료 예정 전체 건수(expiring API의 totalCount). 리스트는 5개까지만 노출하지만 "N건"엔 전체 수를 표시. */
+    val expiringTotalCount: Int = 0,
     val recent: List<RecentReceipt> = emptyList(),
     /** 사용자에게 등록된 영수증이 하나라도 있는지(status=all 기준 totalCount). 초기 홈/일반 홈 분기에 사용. */
     val hasAnyReceipts: Boolean = true,
     val isLoading: Boolean = true,
 )
 
+private data class ExpiringQueryResult(val items: List<ExpiringWarranty>, val totalCount: Int)
 private data class RecentQueryResult(val items: List<RecentReceipt>, val totalCount: Int)
 
 class HomeViewModel : ViewModel() {
@@ -37,9 +40,12 @@ class HomeViewModel : ViewModel() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             coroutineScope {
+                // 리스트는 5개까지만 노출하되, "N건"에는 응답의 전체 totalCount를 쓴다.
                 val expiringDeferred = async {
-                    repository.getReceipts(status = "expiring", sort = "expiresOn", limit = HOME_EXPIRING_LIMIT)
-                        .getOrNull()?.receipts?.map { it.toExpiringWarranty() }.orEmpty()
+                    repository.getReceipts(status = "expiring", sort = "expiresOn", limit = HOME_EXPIRING_LIMIT).fold(
+                        onSuccess = { data -> ExpiringQueryResult(data.receipts.map { it.toExpiringWarranty() }, data.totalCount) },
+                        onFailure = { ExpiringQueryResult(emptyList(), 0) },
+                    )
                 }
                 // status=all의 totalCount로 "등록된 영수증이 하나라도 있는지"를 판단 — 초기 홈/일반 홈 분기 기준.
                 val recentDeferred = async {
@@ -48,10 +54,12 @@ class HomeViewModel : ViewModel() {
                         onFailure = { RecentQueryResult(emptyList(), 0) },
                     )
                 }
+                val expiringResult = expiringDeferred.await()
                 val recentResult = recentDeferred.await()
                 _state.update {
                     it.copy(
-                        expiring = expiringDeferred.await(),
+                        expiring = expiringResult.items,
+                        expiringTotalCount = expiringResult.totalCount,
                         recent = recentResult.items,
                         hasAnyReceipts = recentResult.totalCount > 0,
                         isLoading = false,

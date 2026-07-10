@@ -29,12 +29,8 @@
     <string name="home_back_exit">한 번 더 누르면 앱이 종료돼요</string>
     <string name="home_free_analysis">영수증 무료 분석</string>
     <string name="home_free_analysis_remaining">잔여 %1$d회</string>
-    <string name="home_card_register_title">영수증 등록하기</string>
-    <string name="home_card_register_desc">영수증을 등록하고 보증 기간과\n구매 정보를 관리해 보세요.</string>
-    <string name="home_card_popular_title">인기상품 특가</string>
-    <string name="home_card_popular_desc">나에게 필요한 제품을\n지금 바로, 확인해 보세요.</string>
-    <string name="home_card_repair_title">가전제품 AS가 필요할 때!</string>
-    <string name="home_card_repair_desc">전국 출장 수리와\n보증 혜택을 한눈에 확인하세요.</string>
+    <string name="home_card_popular_title">가전제품 필수 아이템!</string>
+    <string name="home_card_popular_desc">교체가 필요한 소모품과\n액세서리를 특가로 만나보세요.</string>
 
     <!-- 홈 일반 (데이터 있음) -->
     <string name="home_expiring_caption">한달 안에 끝나요!</string>
@@ -43,11 +39,12 @@
     <string name="home_expiring_empty">AS 만료 예정인 제품의 영수증이 없습니다.</string>
     <string name="home_recent_title">최근 등록된 영수증</string>
     <string name="home_more">더보기</string>
-    <string name="home_label_vendor">구매처</string>
+    <string name="home_label_brand">브랜드</string>
     <string name="home_label_purchase">구매일</string>
-    <string name="home_label_warranty">보증 기간</string>
-    <string name="home_dday">D - %1$d</string>
+    <string name="home_warranty_end_label">%1$s 보증종료</string>
+    <string name="home_dday">D-%1$d</string>
     <string name="home_days_ago">%1$d일 전</string>
+    <string name="home_days_ago_today">오늘</string>
 
     <!-- 영수증 등록 화면 -->
     <string name="receipt_register_title">영수증 등록</string>

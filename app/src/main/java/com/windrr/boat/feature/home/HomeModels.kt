@@ -10,9 +10,10 @@ import java.util.Locale
 data class ExpiringWarranty(
     val receiptId: String,
     val productName: String,
-    val vendor: String,
+    val brand: String,
     val purchaseDate: String,
-    val warrantyUntil: String,
+    /** "MM월 dd일(요일)" — "%1$s 보증종료"(home_warranty_end_label)와 함께 쓴다. */
+    val expiryLabel: String,
     val dDay: Int,
     val category: String? = null,
     val subCategory: String? = null,
@@ -33,11 +34,9 @@ data class RecentReceipt(
 fun ReceiptItem.toExpiringWarranty() = ExpiringWarranty(
     receiptId = receiptId,
     productName = itemName,
-    vendor = paymentLocation?.takeIf { it.isNotBlank() }
-        ?: brandName?.takeIf { it.isNotBlank() }
-        ?: "-",
+    brand = brandName?.takeIf { it.isNotBlank() } ?: "-",
     purchaseDate = paymentDate.toDotDate(),
-    warrantyUntil = expiresOn?.let { "~${it.toDotDate()}" } ?: "-",
+    expiryLabel = expiresOn.toExpiryLabel(),
     dDay = warrantyDDay ?: 0,
     category = category,
     subCategory = subCategory,
@@ -57,6 +56,15 @@ private fun String?.toDotDate(): String {
     if (this.isNullOrBlank()) return "-"
     val parts = split("-")
     return if (parts.size == 3) "${parts[0]}.${parts[1]}.${parts[2]}" else this
+}
+
+/** "2026-06-29" → "06월 29일(월)" */
+private fun String?.toExpiryLabel(): String {
+    if (this.isNullOrBlank()) return "-"
+    return runCatching {
+        val date = SimpleDateFormat("yyyy-MM-dd", Locale.KOREA).parse(this) ?: return "-"
+        SimpleDateFormat("MM월 dd일(E)", Locale.KOREA).format(date)
+    }.getOrDefault("-")
 }
 
 /** "2026-06-29T12:00:00" → 오늘까지 경과 일수 */
