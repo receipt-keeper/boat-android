@@ -29,7 +29,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -71,6 +70,8 @@ import com.windrr.boat.ui.component.ImageViewerScreen
 import com.windrr.boat.ui.component.InfoTooltipIcon
 import com.windrr.boat.ui.component.ReceiptAttachmentThumbnail
 import com.windrr.boat.ui.component.SyncLoadingOverlay
+import com.windrr.boat.ui.component.rememberShimmerBrush
+import com.windrr.boat.ui.component.shimmer
 import com.windrr.boat.ui.component.toContentUrl
 import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.ColorBrandPrimary
@@ -192,7 +193,7 @@ fun ReceiptDetailScreen(
                         }
                     )
 
-                    state.isLoading -> CircularProgressIndicator(color = ColorBrandPrimary)
+                    state.isLoading -> ReceiptDetailSkeleton()
 
                     else -> {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -331,6 +332,99 @@ private fun MenuSheetRow(text: String, color: Color, onClick: () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = color)
+    }
+}
+
+/** API 로딩 중 표시되는 상세 화면 스켈레톤 — 실제 콘텐츠 레이아웃(히어로/필드/섹션)을 셔머로 흉내낸다. */
+@Composable
+private fun ReceiptDetailSkeleton() {
+    val brush = rememberShimmerBrush()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+    ) {
+        // 대표 이미지 히어로 카드
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Margin20)
+                .padding(top = Margin8)
+                .aspectRatio(16f / 9f)
+                .shimmer(brush, Rounded2xl),
+        )
+
+        Spacer(Modifier.height(Margin24))
+        Column(modifier = Modifier.padding(horizontal = Margin20)) {
+            // 필드 3개 (라벨 바 + 값 바)
+            repeat(3) {
+                Box(Modifier.width(96.dp).height(13.dp).shimmer(brush))
+                Spacer(Modifier.height(10.dp))
+                Box(Modifier.fillMaxWidth(0.62f).height(18.dp).shimmer(brush))
+                Spacer(Modifier.height(Margin20))
+            }
+            // 메모 라벨 + 박스
+            Box(Modifier.width(60.dp).height(13.dp).shimmer(brush))
+            Spacer(Modifier.height(Margin8))
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(96.dp)
+                    .shimmer(brush, RoundedLg),
+            )
+        }
+
+        // 실물 영수증 보관 여부 섹션
+        SectionBand()
+        Column(modifier = Modifier.padding(horizontal = Margin20, vertical = Margin20)) {
+            Box(Modifier.width(140.dp).height(18.dp).shimmer(brush))
+            Spacer(Modifier.height(Margin16))
+            Box(Modifier.width(110.dp).height(14.dp).shimmer(brush))
+            Spacer(Modifier.height(Margin12))
+            Box(Modifier.width(90.dp).height(14.dp).shimmer(brush))
+        }
+
+        // 보증 정보 섹션 (필드 2개)
+        SectionBand()
+        Column(modifier = Modifier.padding(horizontal = Margin20, vertical = Margin20)) {
+            Box(Modifier.width(120.dp).height(18.dp).shimmer(brush))
+            Spacer(Modifier.height(Margin16))
+            repeat(2) {
+                Box(Modifier.width(96.dp).height(13.dp).shimmer(brush))
+                Spacer(Modifier.height(10.dp))
+                Box(Modifier.fillMaxWidth(0.5f).height(18.dp).shimmer(brush))
+                Spacer(Modifier.height(Margin16))
+            }
+        }
+
+        // 원본 영수증 섹션 (제목 + 썸네일 3개)
+        SectionBand()
+        Column(modifier = Modifier.padding(vertical = Margin20)) {
+            Box(
+                Modifier
+                    .padding(horizontal = Margin20)
+                    .width(120.dp)
+                    .height(18.dp)
+                    .shimmer(brush),
+            )
+            Spacer(Modifier.height(Margin16))
+            Row(
+                modifier = Modifier.padding(horizontal = Margin20),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                repeat(3) {
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .aspectRatio(1f)
+                            .shimmer(brush, Rounded2xl),
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(Margin24))
     }
 }
 
