@@ -345,10 +345,10 @@ private fun ReceiptDetailContent(
                 .aspectRatio(16f / 9f)
                 .clip(Rounded2xl)
                 .background(
-                    Brush.linearGradient(
+                    Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFFE5F0FF),
-                            Color(0xFFF6FAFF)
+                            Color(0xFFE5F0FF), // Top: 옅은 블루
+                            Color(0xFFF6FAFF)  // Bottom: 하얀 계열
                         )
                     )
                 )
