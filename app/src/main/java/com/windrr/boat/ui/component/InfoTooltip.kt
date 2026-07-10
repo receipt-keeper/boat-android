@@ -1,6 +1,5 @@
 package com.windrr.boat.ui.component
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -23,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
@@ -33,13 +33,18 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
 import com.windrr.boat.R
-import com.windrr.boat.ui.theme.ColorGray200
+import com.windrr.boat.ui.theme.ColorBrandQuinary
 import com.windrr.boat.ui.theme.ColorGray700
-import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin12
 import com.windrr.boat.ui.theme.RoundedLg
 
-/** 정보 아이콘 — 클릭 시 아이콘 위에 말풍선 툴팁을 띄운다. */
+/** 툴팁 말풍선 배경/포인터 색상 (#E6EBF4) */
+private val TooltipBackground = ColorBrandQuinary
+
+private val TriangleWidth = 14.dp
+private val TriangleHeight = 7.dp
+
+/** 정보 아이콘 — 클릭 시 아이콘 바로 위에 말풍선 툴팁을 띄운다. */
 @Composable
 fun InfoTooltipIcon(tooltipText: String) {
     var showTooltip by remember { mutableStateOf(false) }
@@ -59,26 +64,34 @@ fun InfoTooltipIcon(tooltipText: String) {
         )
 
         if (showTooltip) {
+            // 말풍선이 화면 밖으로 나가 clamp 되더라도 삼각형 포인터는 항상 앵커(?) 정중앙을 가리켜야 한다.
+            // → position provider가 계산한 "말풍선 좌측 끝 기준 앵커 중앙 x"를 상태로 받아 삼각형을 그 위치에 그린다.
+            var pointerXInBubble by remember { mutableStateOf<Int?>(null) }
+            val positionProvider = remember(gapPx) {
+                TooltipPositionProvider(gapPx) { pointerX -> pointerXInBubble = pointerX }
+            }
             Popup(
-                popupPositionProvider = remember(gapPx) { TooltipPositionProvider(gapPx) },
+                popupPositionProvider = positionProvider,
                 onDismissRequest = { showTooltip = false },
                 properties = PopupProperties(focusable = true),
             ) {
-                TooltipBubble(text = tooltipText)
+                TooltipBubble(text = tooltipText, pointerXPx = pointerXInBubble)
             }
         }
     }
 }
 
-/** 흰 말풍선 카드 + 하단 삼각 포인터 */
+/** #E6EBF4 말풍선 카드 + 하단 삼각 포인터(앵커 중앙을 가리킴) */
 @Composable
-private fun TooltipBubble(text: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+private fun TooltipBubble(text: String, pointerXPx: Int?) {
+    val density = LocalDensity.current
+    val triangleHalfPx = with(density) { (TriangleWidth / 2).roundToPx() }
+
+    Column(horizontalAlignment = Alignment.Start) {
         Surface(
             shape = RoundedLg,
-            color = ColorWhite,
-            border = BorderStroke(1.dp, ColorGray200),
-            shadowElevation = 4.dp,
+            color = TooltipBackground,
+            shadowElevation = 3.dp,
         ) {
             Text(
                 text = text,
@@ -88,11 +101,18 @@ private fun TooltipBubble(text: String) {
                 fontSize = 12.sp,
                 color = ColorGray700,
                 lineHeight = 17.sp,
+                textAlign = TextAlign.Center,
             )
         }
+        // pointerXPx: 말풍선 좌측 끝 기준 앵커 중앙 x. 아직 계산 전(첫 프레임)이면 중앙 정렬.
+        val triangleModifier = if (pointerXPx != null) {
+            Modifier.offset(x = with(density) { (pointerXPx - triangleHalfPx).toDp() })
+        } else {
+            Modifier.align(Alignment.CenterHorizontally)
+        }
         Canvas(
-            modifier = Modifier
-                .size(width = 14.dp, height = 7.dp)
+            modifier = triangleModifier
+                .size(width = TriangleWidth, height = TriangleHeight)
                 .offset(y = (-1).dp),
         ) {
             val path = Path().apply {
@@ -101,21 +121,36 @@ private fun TooltipBubble(text: String) {
                 lineTo(size.width / 2f, size.height)
                 close()
             }
-            drawPath(path, color = ColorWhite)
+            drawPath(path, color = TooltipBackground)
         }
     }
 }
 
-/** 앵커(정보 아이콘) 바로 위, 가로 중앙에 툴팁을 배치한다. */
-private class TooltipPositionProvider(private val gapPx: Int) : PopupPositionProvider {
+/**
+ * 앵커(정보 아이콘) 바로 위, 가로로는 앵커 중앙에 맞춰 말풍선을 배치한다.
+ * 화면 밖으로 나가면 좌우로 clamp 하고, 그때의 "말풍선 좌측 기준 앵커 중앙 x"를 [onPointerX]로 전달해
+ * 삼각형 포인터가 앵커를 정확히 가리키도록 한다.
+ */
+private class TooltipPositionProvider(
+    private val gapPx: Int,
+    private val onPointerX: (Int) -> Unit,
+) : PopupPositionProvider {
     override fun calculatePosition(
         anchorBounds: IntRect,
         windowSize: IntSize,
         layoutDirection: LayoutDirection,
         popupContentSize: IntSize,
     ): IntOffset {
-        val x = (anchorBounds.left + anchorBounds.right) / 2 - popupContentSize.width / 2
-        val clampedX = x.coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0))
+        val anchorCenterX = (anchorBounds.left + anchorBounds.right) / 2
+        val rawX = anchorCenterX - popupContentSize.width / 2
+        val clampedX = rawX.coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0))
+
+        // 삼각형이 둥근 모서리를 벗어나지 않도록 좌우 안쪽으로 여백을 둔다.
+        val edge = 14
+        val pointerX = (anchorCenterX - clampedX)
+            .coerceIn(edge, (popupContentSize.width - edge).coerceAtLeast(edge))
+        onPointerX(pointerX)
+
         val y = anchorBounds.top - popupContentSize.height - gapPx
         return IntOffset(clampedX, y)
     }

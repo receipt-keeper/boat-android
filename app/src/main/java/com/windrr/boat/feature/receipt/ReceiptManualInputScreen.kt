@@ -619,7 +619,8 @@ fun ReceiptManualInputScreen(
                 Spacer(Modifier.height(Margin20))
 
                 // ── 실물 영수증 보관 여부 (라디오) ─────────
-                Column(modifier = Modifier.padding(horizontal = Margin20)) {
+                // 다른 섹션과 동일하게 흰색 카드로 감싸 회색 배경과 명확히 분리한다.
+                SectionCard {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = stringResource(R.string.manual_keep_receipt_title),
