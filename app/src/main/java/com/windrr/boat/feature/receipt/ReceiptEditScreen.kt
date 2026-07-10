@@ -22,9 +22,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -64,7 +63,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -79,7 +77,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.compose.AsyncImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -95,9 +92,12 @@ import com.windrr.boat.feature.gallery.GalleryViewModel
 import com.windrr.boat.feature.home.ReceiptAddSheet
 import com.windrr.boat.ui.component.BoatInputField
 import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.ImageViewerScreen
 import com.windrr.boat.ui.component.InfoTooltipIcon
 import com.windrr.boat.ui.component.PriceVisualTransformation
+import com.windrr.boat.ui.component.ReceiptAttachmentThumbnail
 import com.windrr.boat.ui.component.rememberBoatToastState
+import com.windrr.boat.ui.component.toContentUrl
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandQuinary
 import com.windrr.boat.ui.theme.ColorBrandSenary
@@ -294,6 +294,13 @@ private fun ReceiptEditForm(
     val galleryState by galleryViewModel.state.collectAsState()
     val newPhotos = galleryState.photos
     val remoteFileIds = remember { mutableStateListOf(*receipt.receiptFileIds.toTypedArray()) }
+    // fileId → 실제 이미지 URL (contentPath 기반). 원본 썸네일을 실제 이미지로 렌더하기 위함.
+    val remoteUrlByFileId = remember(receipt.receiptFiles) {
+        receipt.receiptFiles.associate { it.fileId to it.toContentUrl() }
+    }
+    // 이미지 뷰어 상태 — 원본(원격) + 신규(로컬)을 순서대로 합쳐 표시
+    var showImageViewer by rememberSaveable { mutableStateOf(false) }
+    var viewerInitialIndex by rememberSaveable { mutableStateOf(0) }
 
     val singlePickLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia()
@@ -690,13 +697,27 @@ private fun ReceiptEditForm(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     item { EditAddImageTile(onClick = { showAddSheet = true }) }
-                    items(remoteFileIds.toList(), key = { "remote_$it" }) { fileId ->
-                        EditRemotePhotoThumbnail(onRemove = { remoteFileIds.remove(fileId) })
+                    itemsIndexed(remoteFileIds.toList(), key = { _, id -> "remote_$id" }) { index, fileId ->
+                        ReceiptAttachmentThumbnail(
+                            model = remoteUrlByFileId[fileId],
+                            onClick = {
+                                viewerInitialIndex = index
+                                showImageViewer = true
+                            },
+                            onRemove = { remoteFileIds.remove(fileId) },
+                            modifier = Modifier.size(100.dp),
+                        )
                     }
-                    items(newPhotos, key = { "local_${it}" }) { uri ->
-                        EditLocalPhotoThumbnail(
-                            uri = uri,
+                    itemsIndexed(newPhotos, key = { _, uri -> "local_$uri" }) { index, uri ->
+                        ReceiptAttachmentThumbnail(
+                            model = uri,
+                            onClick = {
+                                // 뷰어 순서 = 원격 목록 다음에 로컬 목록
+                                viewerInitialIndex = remoteFileIds.size + index
+                                showImageViewer = true
+                            },
                             onRemove = { galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri)) },
+                            modifier = Modifier.size(100.dp),
                         )
                     }
                 }
@@ -751,6 +772,18 @@ private fun ReceiptEditForm(
         )
     }
 
+    // ── 이미지 뷰어 (원본 원격 이미지 + 신규 로컬 이미지 순서대로) ──
+    if (showImageViewer) {
+        val viewerModels: List<Any> =
+            remoteFileIds.mapNotNull { remoteUrlByFileId[it] } + newPhotos
+        if (viewerModels.isNotEmpty()) {
+            ImageViewerScreen(
+                models = viewerModels,
+                initialIndex = viewerInitialIndex.coerceIn(0, viewerModels.size - 1),
+                onClose = { showImageViewer = false },
+            )
+        }
+    }
 }
 
 // ── 서브 컴포저블 (이 화면 전용, ReceiptManualInputScreen과 이름 충돌 방지를 위해 Edit 접두) ──
@@ -861,56 +894,6 @@ private fun EditAddImageTile(onClick: () -> Unit) {
             Text("+", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = ColorBrandPrimary)
             Spacer(Modifier.height(2.dp))
             Text(stringResource(R.string.manual_image_add), fontSize = 12.sp, color = ColorBrandPrimary)
-        }
-    }
-}
-
-/** 이미 서버에 등록된 원본 사진 — 실제 이미지 서빙 API 연동 전까지 placeholder로 표시 */
-@Composable
-private fun EditRemotePhotoThumbnail(onRemove: () -> Unit) {
-    Box(modifier = Modifier.size(100.dp)) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedXl)
-                .background(ColorGray100)
-                .border(1.dp, ColorGray200, RoundedXl),
-        )
-        EditThumbnailRemoveBadge(onRemove)
-    }
-}
-
-/** 이번에 새로 추가한 로컬 사진 */
-@Composable
-private fun EditLocalPhotoThumbnail(uri: Uri, onRemove: () -> Unit) {
-    Box(modifier = Modifier.size(100.dp)) {
-        AsyncImage(
-            model = uri,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize().clip(RoundedXl),
-        )
-        EditThumbnailRemoveBadge(onRemove)
-    }
-}
-
-@Composable
-private fun EditThumbnailRemoveBadge(onRemove: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(100.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(6.dp)
-                .size(22.dp)
-                .clip(CircleShape)
-                .background(Color.Black.copy(alpha = 0.4f))
-                .clickable(onClick = onRemove),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(text = "✕", color = ColorWhite, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

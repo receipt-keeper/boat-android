@@ -23,11 +23,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -50,7 +50,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -61,7 +60,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.compose.AsyncImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -80,6 +78,7 @@ import com.windrr.boat.feature.notification.NotificationListActivity
 import com.windrr.boat.ui.component.BoatHeader
 import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.ImageViewerScreen
+import com.windrr.boat.ui.component.ReceiptAttachmentThumbnail
 import com.windrr.boat.ui.component.SyncLoadingOverlay
 import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.ColorBrandPrimary
@@ -339,6 +338,7 @@ fun ReceiptRegisterScreen(
             containerColor = ColorWhite,
             topBar = {
                 BoatHeader(
+                    modifier = Modifier.statusBarsPadding(), // 시스템 상태바와 겹치지 않도록 inset 확보
                     hasUnreadNotification = hasUnreadNotification,
                     onBackClick = onBack,
                     onSearchClick = { context.startActivity(SearchActivity.intent(context)) },
@@ -427,15 +427,11 @@ fun ReceiptRegisterScreen(
                         ) {
                             items(photos) { uri ->
                                 val index = photos.indexOf(uri)
-                                ReceiptThumbnail(
-                                    uri = uri,
+                                ReceiptAttachmentThumbnail(
+                                    model = uri,
                                     showError = isAnalysisFailed,
                                     onRemove = {
-                                        galleryViewModel.handleIntent(
-                                            GalleryIntent.RemovePhoto(
-                                                uri
-                                            )
-                                        )
+                                        galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri))
                                     },
                                     onClick = {
                                         initialImageIndex = index
@@ -590,7 +586,8 @@ private fun UploadActionCard(
 /** "유의사항" 접기/펼치기 카드 — 헤더(정보 아이콘+타이틀+chevron)와 펼침 시 불릿 3개. */
 @Composable
 private fun NoticeCard() {
-    var expanded by rememberSaveable { mutableStateOf(false) }
+    // 최초 진입 시 기본으로 펼쳐진 상태
+    var expanded by rememberSaveable { mutableStateOf(true) }
 
     Column(
         modifier = Modifier
@@ -689,75 +686,3 @@ private fun NoticeBulletRow(
     }
 }
 
-/** 업로드된 영수증 썸네일 + 우측 상단 X 삭제 버튼. showError=true 시 실패 오버레이 표시. */
-@Composable
-private fun ReceiptThumbnail(
-    uri: Uri,
-    onRemove: () -> Unit,
-    onClick: () -> Unit = {},
-    showError: Boolean = false,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier
-            .clickable(onClick = onClick)
-    ) {
-        AsyncImage(
-            model = uri,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedXl),
-        )
-
-        // 실패 오버레이
-        if (showError) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedXl)
-                    .background(Color.Black.copy(alpha = 0.65f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(26.dp)
-                            .border(1.5.dp, Color(0xFFFF3B30), CircleShape),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = "!",
-                            color = Color(0xFFFF3B30),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
-                    Text(
-                        text = "다시 업로드해 주세요",
-                        color = Color(0xFFFF3B30),
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Medium,
-                    )
-                }
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(6.dp)
-                .size(24.dp)
-                .clip(CircleShape)
-                .background(Color.Black.copy(alpha = 0.4f))
-                .clickable(onClick = onRemove),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(text = "✕", color = ColorWhite, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        }
-    }
-}

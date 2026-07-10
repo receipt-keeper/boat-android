@@ -3,67 +3,51 @@ package com.windrr.boat.ui.component
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.windrr.boat.data.remote.model.ReceiptFile
 import com.windrr.boat.data.remote.ApiClient
+import com.windrr.boat.data.remote.model.ReceiptFile
 
-/**
- * 이미지 뷰어 화면 — 카카오톡 스타일의 전체 화면 이미지 뷰어
- * 
- * @param images 이미지 URI 리스트 (갤러리에서 선택한 사진 등)
- * @param receiptFiles 서버에서 받은 영수증 파일 리스트
- * @param initialIndex 초기에 보여줄 이미지 인덱스
- * @param onClose 뷰어 닫기 콜백
- */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ImageViewerScreen(
     images: List<Uri> = emptyList(),
     receiptFiles: List<ReceiptFile> = emptyList(),
+    /** 로컬/원격이 섞인 경우 Coil model(Any: Uri, URL String 등)을 순서대로 직접 넘긴다. 지정 시 우선한다. */
+    models: List<Any> = emptyList(),
     initialIndex: Int = 0,
     onClose: () -> Unit,
 ) {
-    val allImages = if (images.isNotEmpty()) {
-        images.map { it.toString() }
-    } else {
-        receiptFiles.map {
-            "${ApiClient.BASE_URL_PROD}${it.contentPath.trimStart('/')}"
-        }
+    val allImages: List<Any> = when {
+        models.isNotEmpty() -> models
+        images.isNotEmpty() -> images.map { it.toString() }
+        else -> receiptFiles.map { "${ApiClient.BASE_URL_PROD}${it.contentPath.trimStart('/')}" }
     }
 
     val pagerState = rememberPagerState(
@@ -82,47 +66,112 @@ fun ImageViewerScreen(
         derivedStateOf { pagerState.currentPage + 1 }
     }
 
-    // 상단 바 표시 여부 (탭하여 토글)
+    // 상단 바 표시 여부
     var showTopBar by rememberSaveable { mutableStateOf(true) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { showTopBar = !showTopBar }
-                )
-            }
     ) {
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
-            AsyncImage(
+            // 💡 [추가] 확대/축소를 지원하는 커스텀 이미지 뷰어 컴포넌트 적용
+            ZoomableImage(
                 model = allImages[page],
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize()
+                onToggleTopBar = { showTopBar = !showTopBar }
             )
         }
 
-        // 반투명 상단 메뉴 바
+        // 💡 [수정] 스크린샷 가이드에 맞춘 그라데이션 오버레이 상단 바
         if (showTopBar) {
             ImageViewerTopBar(
                 currentIndex = currentPageIndex,
                 totalCount = allImages.size,
                 onClose = onClose,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.align(Alignment.TopCenter)
             )
         }
     }
 }
 
 /**
- * 이미지 뷰어 상단 바 — 반투명 배경 + 닫기 버튼 + 이미지 카운터
+ * 💡 [추가] 핀치 줌(확대/축소), 패닝(이동), 더블 탭 원복을 지원하는 이미지 컴포넌트
+ * HorizontalPager의 좌우 스와이프와 충돌하지 않도록 배율(scale)이 1.0 초과일 때만 제스처를 소비합니다.
+ */
+@Composable
+private fun ZoomableImage(
+    model: Any,
+    onToggleTopBar: () -> Unit
+) {
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clipToBounds()
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onDoubleTap = {
+                        // 더블 탭 시 기본 크기 및 중앙 위치로 리셋
+                        scale = 1f
+                        offset = Offset.Zero
+                    },
+                    onTap = { onToggleTopBar() }
+                )
+            }
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitFirstDown()
+                    do {
+                        val event = awaitPointerEvent()
+                        val zoom = event.calculateZoom()
+                        val pan = event.calculatePan()
+
+                        // 1배 ~ 4배까지 확대 허용
+                        scale = (scale * zoom).coerceIn(1f, 4f)
+
+                        if (scale > 1f) {
+                            // 확대 상태일 때는 이동(Pan) 바운더리 계산 및 제스처 소비(Consume)
+                            val maxX = (size.width * (scale - 1)) / 2
+                            val maxY = (size.height * (scale - 1)) / 2
+                            offset = Offset(
+                                x = (offset.x + pan.x).coerceIn(-maxX, maxX),
+                                y = (offset.y + pan.y).coerceIn(-maxY, maxY)
+                            )
+                            // 💡 Pager로 제스처가 넘어가지 않도록 이벤트를 소비합니다.
+                            event.changes.forEach { it.consume() }
+                        } else {
+                            // 1배율일 때는 오프셋 초기화 및 제스처 소비 안함 -> Pager가 스와이프를 가져감
+                            offset = Offset.Zero
+                        }
+                    } while (event.changes.any { it.pressed })
+                }
+            }
+    ) {
+        AsyncImage(
+            model = model,
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer(
+                    scaleX = scale,
+                    scaleY = scale,
+                    translationX = offset.x,
+                    translationY = offset.y
+                )
+        )
+    }
+}
+
+/**
+ * 💡 [수정] 이미지 뷰어 상단 바
+ * - 둥근 박스 형태에서, 상단 엣지부터 부드럽게 떨어지는 그라데이션 오버레이로 변경 (가독성 확보)
+ * - 좌우 패딩을 주어 닫기 버튼과 카운터 텍스트를 양 끝에 배치
  */
 @Composable
 private fun ImageViewerTopBar(
@@ -134,32 +183,41 @@ private fun ImageViewerTopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp)
-            .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
-            .padding(horizontal = 16.dp),
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Black.copy(alpha = 0.7f),
+                        Color.Transparent
+                    )
+                )
+            )
+            .statusBarsPadding() // 상태표시줄(노치) 영역 침범 방지
+            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .padding(bottom = 16.dp), // 텍스트 아래로 그라데이션이 충분히 깔리도록 하단 여백 추가
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 닫기 버튼 (좌측)
+        // 닫기 버튼 (좌측 정렬)
         IconButton(
             onClick = onClose,
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier.size(28.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = "닫기",
                 tint = Color.White,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(28.dp)
             )
         }
 
         Spacer(Modifier.weight(1f))
 
-        // 이미지 카운터 (우측) - 예: "1/5"
+        // 이미지 카운터 (우측 정렬) - 디자인 가이드에 맞춰 폰트 크기 및 자간(letterSpacing) 조정
         Text(
-            text = "$currentIndex/$totalCount",
+            text = "$currentIndex / $totalCount",
             color = Color.White,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            letterSpacing = 2.sp
         )
     }
 }

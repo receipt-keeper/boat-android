@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -51,7 +50,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -59,18 +57,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.compose.AsyncImage
 import com.windrr.boat.R
 import com.windrr.boat.core.ocr.DeviceImage
 import com.windrr.boat.core.util.toPriceString
-import com.windrr.boat.data.remote.ApiClient
-import com.windrr.boat.data.remote.model.ReceiptFile
 import com.windrr.boat.data.remote.model.ReceiptItem
 import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.ImageViewerScreen
 import com.windrr.boat.ui.component.InfoTooltipIcon
+import com.windrr.boat.ui.component.ReceiptAttachmentThumbnail
 import com.windrr.boat.ui.component.SyncLoadingOverlay
+import com.windrr.boat.ui.component.toContentUrl
 import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandQuinary
@@ -101,13 +98,6 @@ private fun String?.toDotDate(): String {
     val parts = split("-")
     return if (parts.size == 3) "${parts[0]}.${parts[1]}.${parts[2]}" else this
 }
-
-/**
- * contentPath("/api/v1/files/{id}/content")에 BASE_URL을 붙여 절대 URL로 만든다.
- * 인증(Authorization 헤더)은 Coil의 전역 ImageLoader가 자동으로 붙인다(AppCore 참고).
- */
-private fun ReceiptFile.toContentUrl(): String =
-    "${ApiClient.BASE_URL_PROD}${contentPath.trimStart('/')}"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -478,45 +468,18 @@ private fun ReceiptDetailContent(
                     modifier = Modifier.padding(horizontal = Margin20),
                 )
             } else {
-                // TODO: 원본 사진 개별 삭제 API 확정 후 X 버튼에 실제 삭제 연동
+                // 상세는 읽기 전용 → X 삭제 버튼 없이(onRemove = null) 탭 시 뷰어만 연다.
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = Margin20),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     items(receipt.receiptFiles, key = { it.fileId }) { file ->
                         val index = receipt.receiptFiles.indexOf(file)
-                        Box(
-                            modifier = Modifier
-                                .size(100.dp)
-                                .clickable { onImageClick(index) }
-                        ) {
-                            AsyncImage(
-                                model = file.toContentUrl(),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(RoundedXl)
-                                    .background(ColorGray100)
-                                    .border(1.dp, ColorGray200, RoundedXl),
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .padding(6.dp)
-                                    .size(22.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.Black.copy(alpha = 0.4f)),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = "✕",
-                                    color = ColorWhite,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+                        ReceiptAttachmentThumbnail(
+                            model = file.toContentUrl(),
+                            onClick = { onImageClick(index) },
+                            modifier = Modifier.size(100.dp),
+                        )
                     }
                 }
             }
