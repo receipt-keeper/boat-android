@@ -132,6 +132,7 @@ fun ReceiptListScreen(
     val context = LocalContext.current
     val toastState = rememberBoatToastState()
     val deleteFailedMessage = stringResource(R.string.receipt_delete_failed)
+    val deletedMessage = stringResource(R.string.receipt_deleted_toast)
 
     // 화면 진입(탭 전환 포함)마다 최신화 — 등록 후 홈 복귀 시 새 영수증 반영.
     // 홈 "만료 예정 >" 등 외부 진입이면 초기 탭/정렬을 함께 적용한다.
@@ -150,6 +151,14 @@ fun ReceiptListScreen(
         if (state.deleteError != null) {
             toastState.showError(deleteFailedMessage)
             viewModel.handleIntent(ReceiptListIntent.ConsumeDeleteError)
+        }
+    }
+
+    // 삭제 성공 시 완료 토스트
+    LaunchedEffect(state.deleteSuccess) {
+        if (state.deleteSuccess) {
+            toastState.show(deletedMessage)
+            viewModel.handleIntent(ReceiptListIntent.ConsumeDeleteSuccess)
         }
     }
 

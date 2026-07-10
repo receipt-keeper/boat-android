@@ -1,6 +1,7 @@
 package com.windrr.boat.feature.receipt
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -90,6 +91,7 @@ import com.windrr.boat.feature.gallery.GalleryIntent
 import com.windrr.boat.feature.gallery.GalleryState
 import com.windrr.boat.feature.gallery.GalleryViewModel
 import com.windrr.boat.feature.home.ReceiptAddSheet
+import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatInputField
 import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.ImageViewerScreen
@@ -192,8 +194,12 @@ fun ReceiptEditScreen(
     val toastState = rememberBoatToastState()
     val submitFailedMessage = stringResource(R.string.edit_submit_failed)
     val submittedMessage = stringResource(R.string.edit_submitted_toast)
+    var showExitConfirm by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(receiptId) { viewModel.load(receiptId) }
+
+    // 수정 중 뒤로가기(시스템/툴바) — 나가기 확인 다이얼로그로 가로챈다
+    BackHandler { showExitConfirm = true }
 
     // 수정 성공 — 토스트 표시 후 잠시 뒤 이전 화면(상세)으로 복귀
     LaunchedEffect(state.submitted) {
@@ -224,7 +230,7 @@ fun ReceiptEditScreen(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = onBack) {
+                        IconButton(onClick = { showExitConfirm = true }) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_arrow_back),
                                 contentDescription = stringResource(R.string.common_back),
@@ -272,6 +278,21 @@ fun ReceiptEditScreen(
         if (state.isSubmitting) {
             com.windrr.boat.ui.component.SyncLoadingOverlay(message = stringResource(R.string.loading_edit_submit_message))
         }
+    }
+
+    // 작성 중 나가기 확인
+    if (showExitConfirm) {
+        BoatDialog(
+            title = stringResource(R.string.receipt_exit_confirm_title),
+            message = stringResource(R.string.receipt_exit_confirm_message),
+            confirmText = stringResource(R.string.receipt_exit_confirm_leave),
+            dismissText = stringResource(R.string.common_cancel),
+            onConfirm = {
+                showExitConfirm = false
+                onBack()
+            },
+            onDismiss = { showExitConfirm = false },
+        )
     }
 }
 

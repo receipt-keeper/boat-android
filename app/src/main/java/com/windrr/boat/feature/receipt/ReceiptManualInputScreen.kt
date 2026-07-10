@@ -2,6 +2,7 @@ package com.windrr.boat.feature.receipt
 
 import android.Manifest
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -96,6 +97,7 @@ import com.windrr.boat.feature.gallery.GalleryIntent
 import com.windrr.boat.feature.gallery.GalleryState
 import com.windrr.boat.feature.gallery.GalleryViewModel
 import com.windrr.boat.feature.home.ReceiptAddSheet
+import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatInputField
 import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.InfoTooltipIcon
@@ -311,6 +313,11 @@ fun ReceiptManualInputScreen(
     val repository = remember { ReceiptRepository() }
     var isSubmitting by remember { mutableStateOf(false) }
     val failMessage = stringResource(R.string.receipt_register_done_failed)
+    var showExitConfirm by rememberSaveable { mutableStateOf(false) }
+
+    // 뒤로가기(시스템/툴바) — 확인 다이얼로그로 가로챈다.
+    // OCR 결과 기반 입력이면 "분석 횟수 재차감" 경고, 직접 입력이면 "작성 중 나가기" 안내.
+    BackHandler { showExitConfirm = true }
 
     fun submit() {
         if (isSubmitting || !canSubmit) return
@@ -373,7 +380,7 @@ fun ReceiptManualInputScreen(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = onBack) {
+                        IconButton(onClick = { showExitConfirm = true }) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_arrow_back),
                                 contentDescription = stringResource(R.string.common_back),
@@ -721,6 +728,27 @@ fun ReceiptManualInputScreen(
         )
     }
 
+    // 뒤로가기 확인 — OCR 결과 기반 입력이면 분석 횟수 재차감 경고, 직접 입력이면 작성 중 나가기 안내
+    if (showExitConfirm) {
+        val isFromOcr = ocrData != null
+        BoatDialog(
+            title = stringResource(
+                if (isFromOcr) R.string.ocr_back_confirm_title else R.string.receipt_exit_confirm_title
+            ),
+            message = stringResource(
+                if (isFromOcr) R.string.ocr_back_confirm_message else R.string.receipt_exit_confirm_message
+            ),
+            confirmText = stringResource(
+                if (isFromOcr) R.string.ocr_back_confirm_leave else R.string.receipt_exit_confirm_leave
+            ),
+            dismissText = stringResource(R.string.common_cancel),
+            onConfirm = {
+                showExitConfirm = false
+                onBack()
+            },
+            onDismiss = { showExitConfirm = false },
+        )
+    }
 }
 
 // ── 서브 컴포저블 ─────────────────────────────────────────────────────────────

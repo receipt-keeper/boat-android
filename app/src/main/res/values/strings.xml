@@ -148,7 +148,7 @@
     <string name="edit_title">영수증 수정</string>
     <string name="edit_submit">수정 완료</string>
     <string name="edit_max_length">최대 %1$d자까지 입력할 수 있습니다.</string>
-    <string name="edit_submitted_toast">영수증이 수정되었습니다.</string>
+    <string name="edit_submitted_toast">수정이 완료되었습니다.</string>
     <string name="edit_photo_required_hint">사진을 1장 이상 첨부해 주세요.</string>
     <string name="edit_submit_failed">영수증 수정에 실패했어요.\n잠시 후 다시 시도해 주세요.</string>
     <string name="loading_edit_submit_message">영수증을 수정하는 중이에요.</string>
@@ -156,6 +156,19 @@
     <string name="receipt_delete_confirm_message">관련 정보도 함께 사라지며, 삭제된 데이터는 복구되지 않아요</string>
     <string name="receipt_deleted_toast">영수증이 삭제되었습니다.</string>
     <string name="loading_delete_message">영수증을 삭제하는 중이에요.</string>
+
+    <!-- 작성 중 나가기 확인 (수정/업로드/직접 입력 공통) -->
+    <string name="receipt_exit_confirm_title">작성 중인 화면을 나갈까요?</string>
+    <string name="receipt_exit_confirm_message">지금 나가시면 작성 중인 내용이 저장되지 않아요</string>
+    <string name="receipt_exit_confirm_leave">나가기</string>
+
+    <!-- OCR 결과 입력 화면 뒤로가기 확인 -->
+    <string name="ocr_back_confirm_title">정말 뒤로 돌아가시겠어요?</string>
+    <string name="ocr_back_confirm_message">이전 화면으로 돌아가면 영수증 분석 횟수가 다시 차감될 수 있어요</string>
+    <string name="ocr_back_confirm_leave">돌아가기</string>
+
+    <!-- 무료 분석 횟수 충전 완료 -->
+    <string name="token_recharged_toast">무료 횟수 5회가 충전되었습니다.</string>
 
     <!-- 마이페이지 -->
     <string name="mypage_title">마이페이지</string>

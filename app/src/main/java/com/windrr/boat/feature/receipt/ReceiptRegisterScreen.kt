@@ -3,6 +3,7 @@ package com.windrr.boat.feature.receipt
 import android.Manifest
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -75,6 +76,7 @@ import com.windrr.boat.feature.gallery.GalleryState
 import com.windrr.boat.feature.gallery.GalleryViewModel
 import com.windrr.boat.feature.notification.NotificationBadgeViewModel
 import com.windrr.boat.feature.notification.NotificationListActivity
+import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatHeader
 import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.ImageViewerScreen
@@ -146,6 +148,13 @@ fun ReceiptRegisterScreen(
     // 이미지 뷰어 표시 여부
     var showImageViewer by rememberSaveable { mutableStateOf(false) }
     var initialImageIndex by rememberSaveable { mutableStateOf(0) }
+    // 작성 중(사진 선택됨) 상태에서 뒤로가기 시 나가기 확인 다이얼로그 표시 여부
+    var showExitConfirm by rememberSaveable { mutableStateOf(false) }
+
+    // 선택된 사진이 있으면 확인 다이얼로그, 없으면 즉시 종료
+    fun handleBack() {
+        if (photos.isNotEmpty()) showExitConfirm = true else onBack()
+    }
 
     val promotionRepository = remember { PromotionRepository() }
     // 프로모션 수령 멱등키 — 재시도 시 동일 값을 재사용해 중복 수령을 방지한다.
@@ -153,8 +162,12 @@ fun ReceiptRegisterScreen(
     val rechargeFailedMessage = stringResource(R.string.token_empty_recharge_failed)
     val alreadyRedeemedMessage = stringResource(R.string.token_recharge_already)
     val unavailableMessage = stringResource(R.string.token_recharge_unavailable)
+    val rechargedMessage = stringResource(R.string.token_recharged_toast)
 
     LaunchedEffect(Unit) { badgeViewModel.refresh() }
+
+    // 시스템 뒤로가기 — 사진이 선택된 경우에만 가로채 확인 다이얼로그를 띄운다
+    BackHandler(enabled = photos.isNotEmpty()) { showExitConfirm = true }
 
     /**
      * 월간 OCR 충전 프로모션 수령 흐름.
@@ -177,6 +190,7 @@ fun ReceiptRegisterScreen(
                                     ApiClient.userDataStore.updateFreeAnalysisTokens(it)
                                 }
                                 onUsageChanged()
+                                toastState.show(rechargedMessage)
                             },
                             onFailure = { e ->
                                 isRecharging = false
@@ -340,7 +354,7 @@ fun ReceiptRegisterScreen(
                 BoatHeader(
                     modifier = Modifier.statusBarsPadding(), // 시스템 상태바와 겹치지 않도록 inset 확보
                     hasUnreadNotification = hasUnreadNotification,
-                    onBackClick = onBack,
+                    onBackClick = { handleBack() },
                     onSearchClick = { context.startActivity(SearchActivity.intent(context)) },
                     onNotificationClick = {
                         context.startActivity(Intent(context, NotificationListActivity::class.java))
@@ -510,6 +524,21 @@ fun ReceiptRegisterScreen(
                 showAnalysisFailedSheet = false
                 analyzeReceipt()
             },
+        )
+    }
+
+    // ── 작성 중 나가기 확인 ──
+    if (showExitConfirm) {
+        BoatDialog(
+            title = stringResource(R.string.receipt_exit_confirm_title),
+            message = stringResource(R.string.receipt_exit_confirm_message),
+            confirmText = stringResource(R.string.receipt_exit_confirm_leave),
+            dismissText = stringResource(R.string.common_cancel),
+            onConfirm = {
+                showExitConfirm = false
+                onBack()
+            },
+            onDismiss = { showExitConfirm = false },
         )
     }
 

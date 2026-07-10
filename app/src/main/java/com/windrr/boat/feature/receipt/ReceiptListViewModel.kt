@@ -20,6 +20,8 @@ data class ReceiptListState(
     val selectedSort: ReceiptSort = ReceiptSort.DEFAULT,
     /** 삭제 실패 시 1회성 에러 메시지 (토스트 표시용, 목록 전체 에러 화면과는 분리) */
     val deleteError: String? = null,
+    /** 삭제 성공 1회성 신호 (성공 토스트 표시용) */
+    val deleteSuccess: Boolean = false,
 )
 
 sealed class ReceiptListIntent {
@@ -31,6 +33,7 @@ sealed class ReceiptListIntent {
     data object Refresh : ReceiptListIntent()
     data class DeleteReceipt(val receiptId: String) : ReceiptListIntent()
     data object ConsumeDeleteError : ReceiptListIntent()
+    data object ConsumeDeleteSuccess : ReceiptListIntent()
 }
 
 class ReceiptListViewModel : ViewModel() {
@@ -67,6 +70,7 @@ class ReceiptListViewModel : ViewModel() {
             ReceiptListIntent.Refresh -> loadReceipts()
             is ReceiptListIntent.DeleteReceipt -> deleteReceipt(intent.receiptId)
             ReceiptListIntent.ConsumeDeleteError -> _state.update { it.copy(deleteError = null) }
+            ReceiptListIntent.ConsumeDeleteSuccess -> _state.update { it.copy(deleteSuccess = false) }
         }
     }
 
@@ -79,6 +83,7 @@ class ReceiptListViewModel : ViewModel() {
                         s.copy(
                             receipts = s.receipts.filterNot { it.receiptId == receiptId },
                             totalCount = (s.totalCount - 1).coerceAtLeast(0),
+                            deleteSuccess = true,
                         )
                     }
                 },
