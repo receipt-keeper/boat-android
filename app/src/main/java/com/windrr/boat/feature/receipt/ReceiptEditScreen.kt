@@ -188,6 +188,8 @@ fun ReceiptEditScreen(
     receiptId: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    // 수정 저장 성공 시 호출 — 호출부(Activity)가 결과를 세팅해 상세 화면이 재조회하도록 한다.
+    onSubmitted: () -> Unit = onBack,
     viewModel: ReceiptEditViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -201,12 +203,12 @@ fun ReceiptEditScreen(
     // 수정 중 뒤로가기(시스템/툴바) — 나가기 확인 다이얼로그로 가로챈다
     BackHandler { showExitConfirm = true }
 
-    // 수정 성공 — 토스트 표시 후 잠시 뒤 이전 화면(상세)으로 복귀
+    // 수정 성공 — 토스트 표시 후 잠시 뒤 이전 화면(상세)으로 복귀 (상세가 재조회하도록 결과 전달)
     LaunchedEffect(state.submitted) {
         if (state.submitted) {
             toastState.show(submittedMessage)
             kotlinx.coroutines.delay(1000)
-            onBack()
+            onSubmitted()
         }
     }
     LaunchedEffect(state.submitError) {

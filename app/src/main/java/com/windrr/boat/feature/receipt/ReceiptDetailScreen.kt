@@ -1,7 +1,10 @@
 package com.windrr.boat.feature.receipt
 
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -120,8 +123,15 @@ fun ReceiptDetailScreen(
 
     LaunchedEffect(receiptId) { viewModel.load(receiptId) }
 
-    // 수정 화면(별도 Activity)에서 저장 후 상세로 복귀 시 변경 내용 반영을 위해 재조회
-    com.windrr.boat.ui.component.RefreshOnResume { viewModel.load(receiptId) }
+    // 수정 화면(별도 Activity)에서 저장 성공(RESULT_OK) 후 복귀하면 변경 내용(새 사진 포함)을 재조회한다.
+    // resume 타이밍에 의존하는 방식은 복귀 시점에 옛 상태가 그대로 남는 경우가 있어, 결과 기반으로 명시적으로 갱신한다.
+    val editLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            viewModel.load(receiptId)
+        }
+    }
 
     // 삭제 성공 — 토스트 표시 후 잠시 뒤 이전 화면(목록)으로 복귀
     LaunchedEffect(state.deleted) {
@@ -216,7 +226,7 @@ fun ReceiptDetailScreen(
             onDismiss = { showMenuSheet = false },
             onEdit = {
                 showMenuSheet = false
-                context.startActivity(ReceiptEditActivity.intent(context, receiptId))
+                editLauncher.launch(ReceiptEditActivity.intent(context, receiptId))
             },
             onDelete = {
                 showMenuSheet = false

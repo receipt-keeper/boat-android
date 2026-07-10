@@ -1,5 +1,6 @@
 package com.windrr.boat.feature.receipt
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -33,6 +34,11 @@ class ReceiptEditActivity : ComponentActivity() {
                 ReceiptEditScreen(
                     receiptId = receiptId,
                     onBack = { finish() },
+                    onSubmitted = {
+                        // 상세 화면이 재조회하도록 성공 결과를 전달하고 종료
+                        setResult(Activity.RESULT_OK)
+                        finish()
+                    },
                 )
             }
         }
