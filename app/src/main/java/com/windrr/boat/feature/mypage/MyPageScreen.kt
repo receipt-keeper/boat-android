@@ -290,7 +290,7 @@ private fun AnalysisCreditBanner(
                 .clip(RoundedFull)
                 .background(ColorBrandPrimary)
                 .clickable(onClick = onViewClick)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 6.dp),
         ) {
             Text(
                 text = stringResource(R.string.mypage_analysis_view),
