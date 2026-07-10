@@ -53,6 +53,7 @@ import com.windrr.boat.feature.receipt.ReceiptDetailActivity
 import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
 import com.windrr.boat.ui.component.BoatHeader
 import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.RefreshOnResume
 import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.BoatTheme
 import com.windrr.boat.ui.theme.ColorBrandPrimary
@@ -83,6 +84,12 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
+        viewModel.refresh()
+        badgeViewModel.refresh()
+    }
+
+    // 등록/상세 등 다른 화면에서 홈으로 복귀할 때마다 최신화 (LaunchedEffect는 최초 1회만 실행됨)
+    RefreshOnResume {
         viewModel.refresh()
         badgeViewModel.refresh()
     }
@@ -183,7 +190,8 @@ fun HomeScreenContent(
                 iconTint = ColorWhite,
             )
             when {
-                state.isLoading -> Box(
+                // 최초 로딩 중에만 전체 스피너 — 복귀 후 재조회 시엔 기존 내용을 유지한 채 갱신
+                state.isLoading && !state.hasLoaded -> Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(320.dp),

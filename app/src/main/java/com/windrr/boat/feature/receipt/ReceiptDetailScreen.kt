@@ -120,6 +120,9 @@ fun ReceiptDetailScreen(
 
     LaunchedEffect(receiptId) { viewModel.load(receiptId) }
 
+    // 수정 화면(별도 Activity)에서 저장 후 상세로 복귀 시 변경 내용 반영을 위해 재조회
+    com.windrr.boat.ui.component.RefreshOnResume { viewModel.load(receiptId) }
+
     // 삭제 성공 — 토스트 표시 후 잠시 뒤 이전 화면(목록)으로 복귀
     LaunchedEffect(state.deleted) {
         if (state.deleted) {
@@ -170,8 +173,18 @@ fun ReceiptDetailScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 when {
+                    // 이미 조회된 내용이 있으면(복귀 후 재조회 포함) 스피너 없이 기존 내용을 유지한 채 갱신
+                    state.receipt != null -> ReceiptDetailContent(
+                        receipt = state.receipt!!,
+                        onImageClick = { index ->
+                            initialImageIndex = index
+                            showImageViewer = true
+                        }
+                    )
+
                     state.isLoading -> CircularProgressIndicator(color = ColorBrandPrimary)
-                    state.receipt == null -> {
+
+                    else -> {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
                                 text = state.error
@@ -187,14 +200,6 @@ fun ReceiptDetailScreen(
                             }
                         }
                     }
-
-                    else -> ReceiptDetailContent(
-                        receipt = state.receipt!!,
-                        onImageClick = { index ->
-                            initialImageIndex = index
-                            showImageViewer = true
-                        }
-                    )
                 }
             }
         }

@@ -129,7 +129,7 @@ private fun NoTokenPromoContent(
     ) {
         // 아이콘 (좌측 정렬)
         AsyncImage(
-            model = R.drawable.ai_color, // 반짝이는 AI 아이콘 리소스
+            model = R.drawable.shiny_white, // 반짝이는 AI 아이콘 리소스
             contentDescription = null,
             modifier = Modifier.size(48.dp),
         )
@@ -245,7 +245,7 @@ private fun NoTokenSimpleContent(onManualInput: () -> Unit) {
     ) {
         // 아이콘 (중앙 정렬)
         AsyncImage(
-            model = R.drawable.ai_color,
+            model = R.drawable.shiny_white,
             contentDescription = null,
             modifier = Modifier.size(48.dp),
         )

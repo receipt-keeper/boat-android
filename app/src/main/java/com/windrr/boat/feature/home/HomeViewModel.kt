@@ -23,6 +23,8 @@ data class HomeState(
     /** 사용자에게 등록된 영수증이 하나라도 있는지(status=all 기준 totalCount). 초기 홈/일반 홈 분기에 사용. */
     val hasAnyReceipts: Boolean = true,
     val isLoading: Boolean = true,
+    /** 최초 1회라도 로딩을 완료했는지. 복귀 후 재조회 시 전체 스피너 대신 기존 내용을 유지하기 위한 플래그. */
+    val hasLoaded: Boolean = false,
 )
 
 private data class ExpiringQueryResult(val items: List<ExpiringWarranty>, val totalCount: Int)
@@ -63,6 +65,7 @@ class HomeViewModel : ViewModel() {
                         recent = recentResult.items,
                         hasAnyReceipts = recentResult.totalCount > 0,
                         isLoading = false,
+                        hasLoaded = true,
                     )
                 }
             }

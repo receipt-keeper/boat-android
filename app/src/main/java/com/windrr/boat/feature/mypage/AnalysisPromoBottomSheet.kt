@@ -76,7 +76,7 @@ fun AnalysisPromoBottomSheet(
 
                 // 스크린샷 텐션에 맞춰 아이콘 크기(48dp) 및 간격 최적화
                 AsyncImage(
-                    model = R.drawable.ai_color,
+                    model = R.drawable.shiny_white,
                     contentDescription = null,
                     modifier = Modifier.size(48.dp),
                 )

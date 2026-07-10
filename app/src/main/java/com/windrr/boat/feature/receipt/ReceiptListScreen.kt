@@ -71,6 +71,7 @@ import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatFilterChip
 import com.windrr.boat.ui.component.BoatHeader
 import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.RefreshOnResume
 import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.BottomBarClearance
 import com.windrr.boat.ui.theme.ColorBrandPrimary
@@ -143,6 +144,13 @@ fun ReceiptListScreen(
         } else {
             viewModel.handleIntent(ReceiptListIntent.Refresh)
         }
+        badgeViewModel.refresh()
+    }
+
+    // 상세/수정/등록 등 다른 화면에서 목록으로 복귀할 때마다 현재 탭/정렬 기준으로 최신화.
+    // (편집/삭제/신규 등록이 별도 Activity에서 일어나므로 복귀 시 목록을 다시 불러온다)
+    RefreshOnResume {
+        viewModel.handleIntent(ReceiptListIntent.Refresh)
         badgeViewModel.refresh()
     }
 
@@ -219,11 +227,12 @@ fun ReceiptListScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 when {
-                    state.isLoading -> {
+                    // 이미 불러온 목록이 있으면(복귀 후 재조회 등) 스피너 대신 기존 목록을 유지한 채 갱신
+                    state.isLoading && state.receipts.isEmpty() -> {
                         CircularProgressIndicator(color = ColorBrandPrimary)
                     }
 
-                    state.error != null -> {
+                    state.error != null && state.receipts.isEmpty() -> {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
                                 text = state.error!!,

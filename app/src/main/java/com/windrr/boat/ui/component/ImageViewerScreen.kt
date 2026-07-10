@@ -18,7 +18,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
@@ -58,6 +63,28 @@ fun ImageViewerScreen(
     LaunchedEffect(initialIndex) {
         if (initialIndex in allImages.indices) {
             pagerState.scrollToPage(initialIndex)
+        }
+    }
+
+    // 뒤로가기 버튼을 가로채서 ImageViewerScreen만 닫기
+    BackHandler {
+        onClose()
+    }
+
+    // 시스템 UI 숨기기 (풀스크린 모드)
+    val view = LocalView.current
+    LaunchedEffect(Unit) {
+        val window = (view.context as android.app.Activity).window
+        val windowInsetsController = WindowCompat.getInsetsController(window, view)
+        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+        windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+    }
+
+    DisposableEffect(Unit) {
+        val window = (view.context as android.app.Activity).window
+        val windowInsetsController = WindowCompat.getInsetsController(window, view)
+        onDispose {
+            windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
         }
     }
 
