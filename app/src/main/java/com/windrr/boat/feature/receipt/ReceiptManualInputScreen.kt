@@ -96,11 +96,11 @@ import com.windrr.boat.data.repository.ReceiptRepository
 import com.windrr.boat.feature.gallery.GalleryIntent
 import com.windrr.boat.feature.gallery.GalleryState
 import com.windrr.boat.feature.gallery.GalleryViewModel
-import com.windrr.boat.feature.home.ReceiptAddSheet
 import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatInputField
 import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.InfoTooltipIcon
+import com.windrr.boat.ui.component.PhotoSourceSheet
 import com.windrr.boat.ui.component.PriceVisualTransformation
 import com.windrr.boat.ui.component.SyncLoadingOverlay
 import com.windrr.boat.ui.component.rememberBoatToastState
@@ -713,9 +713,9 @@ fun ReceiptManualInputScreen(
         }
     }
 
-    // ── 이미지 추가 메뉴 (홈 FAB와 동일한 2-옵션 메뉴 재사용) ──
+    // ── 이미지 추가 메뉴 (하단 액션 시트 — 카메라 / 갤러리) ──
     if (showAddSheet) {
-        ReceiptAddSheet(
+        PhotoSourceSheet(
             onDismiss = { showAddSheet = false },
             onCamera = { showAddSheet = false; onTakePhoto() },
             onGallery = { showAddSheet = false; onPickImages() },
