@@ -912,9 +912,18 @@ private fun EditAddImageTile(onClick: () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("+", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = ColorBrandPrimary)
+            Icon(
+                painter = painterResource(id = R.drawable.ic_plus),
+                contentDescription = null,
+                tint = ColorBrandPrimary,
+                modifier = Modifier.size(24.dp)
+            )
             Spacer(Modifier.height(2.dp))
-            Text(stringResource(R.string.manual_image_add), fontSize = 12.sp, color = ColorBrandPrimary)
+            Text(
+                text = stringResource(R.string.manual_image_add),
+                fontSize = 12.sp,
+                color = ColorBrandPrimary
+            )
         }
     }
 }

@@ -284,7 +284,7 @@ fun ReceiptManualInputScreen(
     var brand               by remember { mutableStateOf(ocrData?.brandName.orEmpty()) }
     var price               by remember { mutableStateOf(ocrData?.totalAmount?.toString().orEmpty()) }
     var serial              by remember { mutableStateOf("") }
-    var keepReceipt         by remember { mutableStateOf<Boolean?>(null) } // 필요함/필요하지 않음 (미선택 시 null)
+    var keepReceipt         by remember { mutableStateOf(false) }
     var showDatePicker      by remember { mutableStateOf(false) }
     var showAddSheet        by remember { mutableStateOf(false) }
     var productInfoExpanded by remember { mutableStateOf(true) }
@@ -924,9 +924,18 @@ private fun AddImageTile(onClick: () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("+", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = ColorBrandPrimary)
+            Icon(
+                painter = painterResource(id = R.drawable.ic_plus),
+                contentDescription = null,
+                tint = ColorBrandPrimary,
+                modifier = Modifier.size(24.dp)
+            )
             Spacer(Modifier.height(2.dp))
-            Text(stringResource(R.string.manual_image_add), fontSize = 12.sp, color = ColorBrandPrimary)
+            Text(
+                text = stringResource(R.string.manual_image_add),
+                fontSize = 12.sp,
+                color = ColorBrandPrimary
+            )
         }
     }
 }

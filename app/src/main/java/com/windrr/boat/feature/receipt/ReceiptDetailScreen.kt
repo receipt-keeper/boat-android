@@ -49,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -338,7 +339,14 @@ private fun ReceiptDetailContent(
                 .padding(top = Margin8)
                 .aspectRatio(16f / 9f)
                 .clip(Rounded2xl)
-                .background(ColorBrandSenary)
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFE5F0FF),
+                            Color(0xFFF6FAFF)
+                        )
+                    )
+                )
                 .border(1.dp, ColorBrandQuinary, Rounded2xl),
             contentAlignment = Alignment.Center,
         ) {

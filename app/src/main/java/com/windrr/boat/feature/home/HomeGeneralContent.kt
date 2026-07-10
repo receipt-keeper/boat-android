@@ -194,7 +194,9 @@ private fun ExpiringWarrantySection(
         // 1) 몸통 — 맨 아래. 카드와 겹치는 부분은 카드에 가려진다. (endPadding을 키워 캐릭터를 안쪽으로)
         MascotImage(R.drawable.img_happy_bobo, bobo, endPadding = 44.dp)
 
-        Column(modifier = Modifier.fillMaxWidth().padding(top = Margin24, bottom = Margin20)) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = Margin24, bottom = Margin20)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -202,7 +204,9 @@ private fun ExpiringWarrantySection(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // 캐릭터 세트는 안쪽으로 들여놓고(chevron과 겹치지 않게), 타이틀은 캐릭터 아래로 넘어가지 않도록 우측 여백 확보
-                Column(modifier = Modifier.weight(1f).padding(end = 96.dp)) {
+                Column(modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 96.dp)) {
                     Text(
                         text = stringResource(R.string.home_expiring_caption),
                         fontSize = 13.sp,
@@ -268,7 +272,11 @@ private fun ExpiringWarrantySection(
 private data class MascotLayout(val width: Dp, val height: Dp, val offsetY: Dp)
 
 @Composable
-private fun BoxScope.MascotImage(@DrawableRes drawable: Int, layout: MascotLayout, endPadding: Dp = Margin20) {
+private fun BoxScope.MascotImage(
+    @DrawableRes drawable: Int,
+    layout: MascotLayout,
+    endPadding: Dp = Margin20
+) {
     Image(
         painter = painterResource(drawable),
         contentDescription = null,
@@ -402,43 +410,76 @@ private fun RecentReceiptItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = Rounded2xl,
-        color = ColorGray50,
+        shape = RoundedCornerShape(12.dp),
+        color = Color(0xFFF5F7FA), // 디자인 가이드의 옅은 쿨그레이 배경색
     ) {
-        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Thumbnail(category = item.category, subCategory = item.subCategory, sizeDp = 48)
-            Spacer(Modifier.width(12.dp))
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 💡 [수정] 썸네일을 감싸는 하얀색 라운드 박스 추가
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(Color.White, RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                // 내부 썸네일 크기를 56dp 박스에 맞게 약간 축소
+                Thumbnail(category = item.category, subCategory = item.subCategory, sizeDp = 36)
+            }
+
+            Spacer(Modifier.width(16.dp))
+
             Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                // 상단: 제품명 및 D-Day
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Text(
                         text = item.productName,
-                        fontSize = 15.sp,
+                        fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
-                        color = ColorGray900,
+                        color = Color(0xFF111827), // 짙은 블랙/그레이
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),
                     )
+
                     Spacer(Modifier.width(8.dp))
+
+                    // 💡 [수정] D-Day 텍스트의 색상을 블루 계열로 변경하고 폰트 크기 조정
                     Text(
                         text = if (item.daysAgo <= 0) {
                             stringResource(R.string.home_days_ago_today)
                         } else {
                             stringResource(R.string.home_days_ago, item.daysAgo)
                         },
-                        fontSize = 12.sp,
-                        color = ColorGray400
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF5C9DFF) // 가이드 상의 밝은 블루 색상
                     )
                 }
-                Spacer(Modifier.height(4.dp))
+
+                Spacer(Modifier.height(6.dp))
+
+                // 하단: 구매일 라벨 및 날짜
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        stringResource(R.string.home_label_purchase),
-                        fontSize = 13.sp,
-                        color = ColorGray500
+                        text = stringResource(R.string.home_label_purchase),
+                        fontSize = 14.sp,
+                        color = Color(0xFF6B7280) // 텍스트용 그레이
                     )
-                    Text("  |  ", fontSize = 13.sp, color = ColorGray400)
-                    Text(item.purchaseDate, fontSize = 13.sp, color = ColorGray500)
+                    Text(
+                        text = "  |  ",
+                        fontSize = 12.sp,
+                        color = Color(0xFFD1D5DB) // 구분선용 연한 그레이
+                    )
+                    Text(
+                        text = item.purchaseDate,
+                        fontSize = 14.sp,
+                        color = Color(0xFF6B7280)
+                    )
                 }
             }
         }
@@ -555,7 +596,12 @@ private val ColorLabel = Color(0xFF616161)
 
 /** 제품 썸네일 — 실제 업로드 사진이 아닌 카테고리/소분류 기본 이미지를 보여준다. */
 @Composable
-private fun Thumbnail(category: String?, subCategory: String?, sizeDp: Int, bg: Color = ColorBrandSenary) {
+private fun Thumbnail(
+    category: String?,
+    subCategory: String?,
+    sizeDp: Int,
+    bg: Color = ColorBrandSenary
+) {
     Box(
         modifier = Modifier
             .size(sizeDp.dp)
