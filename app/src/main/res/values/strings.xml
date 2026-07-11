@@ -39,6 +39,7 @@
     <string name="home_expiring_empty">AS 만료 예정인 제품의 영수증이 없습니다.</string>
     <string name="home_recent_title">최근 등록된 영수증</string>
     <string name="home_more">더보기</string>
+    <string name="home_expiring_more_count">%1$d건</string>
     <string name="home_label_brand">브랜드</string>
     <string name="home_label_purchase">구매일</string>
     <string name="home_warranty_end_label">%1$s 보증종료</string>
@@ -123,7 +124,7 @@
     <string name="receipt_filter_kitchen">주방 가전</string>
     <string name="receipt_filter_living">리빙/냉난방</string>
     <string name="receipt_filter_other">기타 제품</string>
-    <string name="receipt_sort_default">기본 순</string>
+    <string name="receipt_sort_default">가나다 순</string>
     <string name="receipt_sort_expiring">만료 임박 순</string>
     <string name="receipt_sort_recent">최근 등록 순</string>
     <string name="receipt_sort_purchase">구매일 순</string>

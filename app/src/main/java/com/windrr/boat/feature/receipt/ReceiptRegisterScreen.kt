@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -107,6 +108,187 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 
 private val ThumbnailSize = 130.dp
+
+/**
+ * [NoticeCard]가 "접힌 상태"일 때의 대략적인 높이(아이콘 20dp + 헤더 1줄 + 상하 패딩 32dp).
+ * 첨부내역 섹션은 이 높이만큼 아래로 고정 오프셋을 두어, 유의사항이 접혀 있을 땐 겹치지 않고
+ * 온전히 보이지만, 유의사항을 펼치면 늘어난 카드 높이가 이 오프셋을 넘어서며 첨부내역 상단을
+ * 덮게 된다 — 접힘/펼침에 따라 겹침 여부가 달라지는 의도된 오버레이 효과.
+ */
+private val NoticeCollapsedHeight = 56.dp
+
+/** "✦ 분석횟수 N회" pill — 타이틀 옆에 표시하는 잔여 분석 횟수 뱃지. */
+@Composable
+fun AnalysisCountPill(remaining: Int) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedFull)
+            .background(ColorBrandSenary)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ai_color),
+            contentDescription = null,
+            tint = Color.Unspecified,
+            modifier = Modifier.size(16.dp),
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = stringResource(R.string.receipt_register_analysis_count, remaining),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = ColorBrandPrimary,
+        )
+    }
+}
+
+/** 카메라/갤러리 정사각 업로드 카드 — 흰 배경 + 연한 brand 테두리 + 큰 아이콘/라벨 */
+@Composable
+fun UploadActionCard(
+    @DrawableRes icon: Int,
+    @StringRes label: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .aspectRatio(1f)
+            .clip(Rounded2xl)
+            .background(ColorWhite)
+            .border(1.dp, ColorBrandTertiary, Rounded2xl)
+            .clickable(onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = ColorBrandPrimary,
+            modifier = Modifier.size(32.dp),
+        )
+        Spacer(Modifier.height(12.dp))
+        Text(
+            text = stringResource(label),
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = ColorBrandPrimary,
+        )
+    }
+}
+
+/** "유의사항" 접기/펼치기 카드 — 헤더(정보 아이콘+타이틀+chevron)와 펼침 시 불릿 3개. */
+@Composable
+fun NoticeCard(
+    photoCount: Int = 0,
+    modifier: Modifier = Modifier,
+) {
+    // 최초 진입 시 기본으로 펼쳐진 상태, 사진 추가 시 자동으로 닫힘
+    var expanded by rememberSaveable { mutableStateOf(true) }
+
+    // 사진이 추가되면 자동으로 닫힘
+    LaunchedEffect(photoCount) {
+        if (photoCount > 0) {
+            expanded = false
+        }
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedXl)
+            .background(ColorWhite)
+            .border(1.dp, ColorGray200, RoundedXl)
+            .padding(Margin16),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = { expanded = !expanded }),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.toast_info),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier.size(20.dp),
+            )
+            Spacer(Modifier.width(10.dp))
+            Text(
+                text = stringResource(R.string.receipt_register_notice_title),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = ColorGray900,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                painter = painterResource(R.drawable.ic_chevron_right),
+                contentDescription = null,
+                tint = ColorGray400,
+                modifier = Modifier
+                    .size(20.dp)
+                    .rotate(if (expanded) 270f else 90f),
+            )
+        }
+
+        if (expanded) {
+            Spacer(Modifier.height(Margin16))
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                NoticeBulletRow(
+                    icon = R.drawable.icon_images_upload,
+                    prefix = "영수증은 ",
+                    highlight = "제품 1개당 최대 5장까지",
+                    suffix = " 업로드할 수 있습니다.",
+                )
+                NoticeBulletRow(
+                    icon = R.drawable.ic_upload_single,
+                    prefix = "영수증은 ",
+                    highlight = "1장씩 개별 촬영하여",
+                    suffix = " 업로드해 주세요.",
+                )
+                NoticeBulletRow(
+                    icon = R.drawable.ic_file_format,
+                    prefix = "",
+                    highlight = "JPG, PNG, HEIC",
+                    suffix = "만 등록해 주세요.",
+                )
+            }
+        }
+    }
+}
+
+/** 유의사항 불릿 한 줄 — 좌측 아이콘 + prefix/highlight(파랑)/suffix 텍스트. */
+@Composable
+fun NoticeBulletRow(
+    @DrawableRes icon: Int,
+    prefix: String,
+    highlight: String,
+    suffix: String,
+) {
+    Row(verticalAlignment = Alignment.Top) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = ColorGray600,
+            modifier = Modifier
+                .padding(top = 1.dp)
+                .size(18.dp),
+        )
+        Spacer(Modifier.width(10.dp))
+        Text(
+            text = buildAnnotatedString {
+                append(prefix)
+                withStyle(SpanStyle(color = ColorBrandPrimary, fontWeight = FontWeight.SemiBold)) {
+                    append(highlight)
+                }
+                append(suffix)
+            },
+            fontSize = 13.sp,
+            color = ColorGray700,
+            lineHeight = 19.sp,
+        )
+    }
+}
 
 /**
  * 영수증 기기 등록 화면 — 카메라/갤러리 업로드 카드 + 유의사항 + 첨부내역(가로 스크롤) + 분석 시작.
@@ -361,6 +543,46 @@ fun ReceiptRegisterScreen(
                     },
                 )
             },
+            bottomBar = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(ColorWhite) // 1. 배경색을 먼저 깔아줍니다 (네비게이션 바 영역까지 하얗게 덮임)
+                        .navigationBarsPadding() // 💡 2. 핵심: 시스템 네비게이션 바 높이만큼 내부 패딩을 밀어줍니다
+                        .padding(horizontal = Margin20, vertical = Margin16) // 3. 버튼 여백을 줍니다
+                ) {
+                    val networkErrorMessage = stringResource(R.string.receipt_check_network)
+                    Button(
+                        onClick = {
+                            when {
+                                remoteCanAnalyze == null -> toastState.showError(
+                                    networkErrorMessage
+                                )
+
+                                remoteCanAnalyze && freeAnalysisTokens > 0 -> analyzeReceipt()
+                                else -> openNoTokenSheet()
+                            }
+                        },
+                        enabled = photos.isNotEmpty() && !isAnalyzing,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedXl,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ColorBrandPrimary,
+                            contentColor = ColorWhite,
+                            disabledContainerColor = ColorGray200,
+                            disabledContentColor = ColorGray400,
+                        ),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.receipt_register_analyze),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
+            },
         ) { innerPadding ->
             Column(
                 modifier = Modifier
@@ -369,7 +591,6 @@ fun ReceiptRegisterScreen(
             ) {
                 Column(
                     modifier = Modifier
-                        .weight(1f)
                         .verticalScroll(rememberScrollState()),
                 ) {
                     Column(modifier = Modifier.padding(horizontal = Margin20)) {
@@ -408,12 +629,17 @@ fun ReceiptRegisterScreen(
                         }
 
                         Spacer(Modifier.height(Margin16))
-                        NoticeCard()
+                    }
 
-                        if (photos.isNotEmpty()) {
-                            Spacer(Modifier.height(Margin24))
+                    // 유의사항 카드 + 첨부내역 섹션을 겹쳐 배치한다.
+                    // 첨부내역은 유의사항의 "접힌 상태" 높이만큼 고정 오프셋을 두므로 접혀 있을 땐
+                    // 겹치지 않고 온전히 보이고, 펼치면 유의사항 카드가 그 위로 올라와 상단을 덮는다.
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(top = NoticeCollapsedHeight + Margin12)) {
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = Margin20),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Text(
@@ -431,63 +657,42 @@ fun ReceiptRegisterScreen(
                                 )
                             }
                             Spacer(Modifier.height(Margin12))
-                        }
-                    }
-
-                    if (photos.isNotEmpty()) {
-                        LazyRow(
-                            contentPadding = PaddingValues(horizontal = Margin20),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            items(photos) { uri ->
-                                val index = photos.indexOf(uri)
-                                ReceiptAttachmentThumbnail(
-                                    model = uri,
-                                    showError = isAnalysisFailed,
-                                    onRemove = {
-                                        galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri))
-                                    },
-                                    onClick = {
-                                        initialImageIndex = index
-                                        showImageViewer = true
-                                    },
-                                    modifier = Modifier.size(ThumbnailSize),
-                                )
+                            LazyRow(
+                                contentPadding = PaddingValues(horizontal = Margin20),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                items(photos) { uri ->
+                                    val index = photos.indexOf(uri)
+                                    ReceiptAttachmentThumbnail(
+                                        model = uri,
+                                        showError = isAnalysisFailed,
+                                        onRemove = {
+                                            galleryViewModel.handleIntent(
+                                                GalleryIntent.RemovePhoto(
+                                                    uri
+                                                )
+                                            )
+                                        },
+                                        onClick = {
+                                            initialImageIndex = index
+                                            showImageViewer = true
+                                        },
+                                        modifier = Modifier.size(ThumbnailSize),
+                                    )
+                                }
                             }
                         }
-                    }
-                    Spacer(Modifier.height(Margin20))
-                }
 
-                Column(modifier = Modifier.padding(horizontal = Margin20)) {
-                    val networkErrorMessage = stringResource(R.string.receipt_check_network)
-                    Button(
-                        onClick = {
-                            when {
-                                remoteCanAnalyze == null -> toastState.showError(networkErrorMessage)
-                                remoteCanAnalyze && freeAnalysisTokens > 0 -> analyzeReceipt()
-                                else -> openNoTokenSheet()
-                            }
-                        },
-                        enabled = photos.isNotEmpty() && !isAnalyzing,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedXl,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ColorBrandPrimary,
-                            contentColor = ColorWhite,
-                            disabledContainerColor = ColorGray200,
-                            disabledContentColor = ColorGray400,
-                        ),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.receipt_register_analyze),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
+                        // 유의사항 카드 — 나중에 그려져 위 레이어(펼치면 첨부내역 상단을 덮는다)
+                        NoticeCard(
+                            photoCount = photos.size,
+                            modifier = Modifier.padding(horizontal = Margin20),
                         )
                     }
-                    Spacer(Modifier.height(Margin16))
+
+                    Column(modifier = Modifier.padding(horizontal = Margin20)) {
+                        Spacer(Modifier.height(Margin20))
+                    }
                 }
             }
         }
@@ -499,219 +704,56 @@ fun ReceiptRegisterScreen(
         if (isRecharging) {
             SyncLoadingOverlay(message = stringResource(R.string.loading_recharge_message))
         }
-    }
 
-    if (showNoTokenSheet) {
-        NoTokenBottomSheet(
-            onDismiss = { showNoTokenSheet = false },
-            onRecharge = { rechargeOcrCredits() },
-            onManualInput = {
-                showNoTokenSheet = false
-                context.startActivity(ReceiptManualInputActivity.intent(context, photos))
-            },
-            canRecharge = canRecharge,
-        )
-    }
-
-    if (showAnalysisFailedSheet) {
-        AnalysisFailedBottomSheet(
-            onDismiss = { showAnalysisFailedSheet = false },
-            onManualInput = {
-                showAnalysisFailedSheet = false
-                context.startActivity(ReceiptManualInputActivity.intent(context, photos))
-            },
-            onRetry = {
-                showAnalysisFailedSheet = false
-                analyzeReceipt()
-            },
-        )
-    }
-
-    // ── 작성 중 나가기 확인 ──
-    if (showExitConfirm) {
-        BoatDialog(
-            title = stringResource(R.string.receipt_exit_confirm_title),
-            message = stringResource(R.string.receipt_exit_confirm_message),
-            confirmText = stringResource(R.string.receipt_exit_confirm_leave),
-            dismissText = stringResource(R.string.common_cancel),
-            onConfirm = {
-                showExitConfirm = false
-                onBack()
-            },
-            onDismiss = { showExitConfirm = false },
-        )
-    }
-
-    // ── 이미지 뷰어 ──
-    if (showImageViewer) {
-        ImageViewerScreen(
-            images = photos,
-            initialIndex = initialImageIndex,
-            onClose = { showImageViewer = false }
-        )
-    }
-}
-
-/** "✦ 분석횟수 N회" pill — 타이틀 옆에 표시하는 잔여 분석 횟수 뱃지. */
-@Composable
-private fun AnalysisCountPill(remaining: Int) {
-    Row(
-        modifier = Modifier
-            .clip(RoundedFull)
-            .background(ColorBrandSenary)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.ai_color),
-            contentDescription = null,
-            tint = Color.Unspecified,
-            modifier = Modifier.size(16.dp),
-        )
-        Spacer(Modifier.width(6.dp))
-        Text(
-            text = stringResource(R.string.receipt_register_analysis_count, remaining),
-            fontSize = 13.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = ColorBrandPrimary,
-        )
-    }
-}
-
-/** 카메라/갤러리 정사각 업로드 카드 — 흰 배경 + 연한 brand 테두리 + 큰 아이콘/라벨 */
-@Composable
-private fun UploadActionCard(
-    @DrawableRes icon: Int,
-    @StringRes label: Int,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier
-            .aspectRatio(1f)
-            .clip(Rounded2xl)
-            .background(ColorWhite)
-            .border(1.dp, ColorBrandTertiary, Rounded2xl)
-            .clickable(onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = null,
-            tint = ColorBrandPrimary,
-            modifier = Modifier.size(32.dp),
-        )
-        Spacer(Modifier.height(12.dp))
-        Text(
-            text = stringResource(label),
-            fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = ColorBrandPrimary,
-        )
-    }
-}
-
-/** "유의사항" 접기/펼치기 카드 — 헤더(정보 아이콘+타이틀+chevron)와 펼침 시 불릿 3개. */
-@Composable
-private fun NoticeCard() {
-    // 최초 진입 시 기본으로 펼쳐진 상태
-    var expanded by rememberSaveable { mutableStateOf(true) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedXl)
-            .background(ColorWhite)
-            .border(1.dp, ColorGray200, RoundedXl)
-            .padding(Margin16),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = { expanded = !expanded }),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.toast_info),
-                contentDescription = null,
-                tint = Color.Unspecified,
-                modifier = Modifier.size(20.dp),
-            )
-            Spacer(Modifier.width(10.dp))
-            Text(
-                text = stringResource(R.string.receipt_register_notice_title),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = ColorGray900,
-                modifier = Modifier.weight(1f),
-            )
-            Icon(
-                painter = painterResource(R.drawable.ic_chevron_right),
-                contentDescription = null,
-                tint = ColorGray400,
-                modifier = Modifier
-                    .size(20.dp)
-                    .rotate(if (expanded) 270f else 90f),
+        if (showNoTokenSheet) {
+            NoTokenBottomSheet(
+                onDismiss = { showNoTokenSheet = false },
+                onRecharge = { rechargeOcrCredits() },
+                onManualInput = {
+                    showNoTokenSheet = false
+                    context.startActivity(ReceiptManualInputActivity.intent(context, photos))
+                },
+                canRecharge = canRecharge,
             )
         }
 
-        if (expanded) {
-            Spacer(Modifier.height(Margin16))
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                NoticeBulletRow(
-                    icon = R.drawable.icon_images_upload,
-                    prefix = "영수증은 ",
-                    highlight = "제품 1개당 최대 5장까지",
-                    suffix = " 업로드할 수 있습니다.",
-                )
-                NoticeBulletRow(
-                    icon = R.drawable.ic_upload_single,
-                    prefix = "영수증은 ",
-                    highlight = "1장씩 개별 촬영하여",
-                    suffix = " 업로드해 주세요.",
-                )
-                NoticeBulletRow(
-                    icon = R.drawable.ic_file_format,
-                    prefix = "",
-                    highlight = "JPG, PNG, HEIC",
-                    suffix = "만 등록해 주세요.",
-                )
-            }
+        if (showAnalysisFailedSheet) {
+            AnalysisFailedBottomSheet(
+                onDismiss = { showAnalysisFailedSheet = false },
+                onManualInput = {
+                    showAnalysisFailedSheet = false
+                    context.startActivity(ReceiptManualInputActivity.intent(context, photos))
+                },
+                onRetry = {
+                    showAnalysisFailedSheet = false
+                    analyzeReceipt()
+                },
+            )
         }
-    }
-}
 
-/** 유의사항 불릿 한 줄 — 좌측 아이콘 + prefix/highlight(파랑)/suffix 텍스트. */
-@Composable
-private fun NoticeBulletRow(
-    @DrawableRes icon: Int,
-    prefix: String,
-    highlight: String,
-    suffix: String,
-) {
-    Row(verticalAlignment = Alignment.Top) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = null,
-            tint = ColorGray600,
-            modifier = Modifier
-                .padding(top = 1.dp)
-                .size(18.dp),
-        )
-        Spacer(Modifier.width(10.dp))
-        Text(
-            text = buildAnnotatedString {
-                append(prefix)
-                withStyle(SpanStyle(color = ColorBrandPrimary, fontWeight = FontWeight.SemiBold)) {
-                    append(highlight)
-                }
-                append(suffix)
-            },
-            fontSize = 13.sp,
-            color = ColorGray700,
-            lineHeight = 19.sp,
-        )
+        // ── 작성 중 나가기 확인 ──
+        if (showExitConfirm) {
+            BoatDialog(
+                title = stringResource(R.string.receipt_exit_confirm_title),
+                message = stringResource(R.string.receipt_exit_confirm_message),
+                confirmText = stringResource(R.string.receipt_exit_confirm_leave),
+                dismissText = stringResource(R.string.common_cancel),
+                onConfirm = {
+                    showExitConfirm = false
+                    onBack()
+                },
+                onDismiss = { showExitConfirm = false },
+            )
+        }
+
+        // ── 이미지 뷰어 ──
+        if (showImageViewer) {
+            ImageViewerScreen(
+                images = photos,
+                initialIndex = initialImageIndex,
+                onClose = { showImageViewer = false }
+            )
+        }
     }
 }
 

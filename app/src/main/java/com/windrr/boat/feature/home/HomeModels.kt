@@ -3,6 +3,7 @@ package com.windrr.boat.feature.home
 import com.windrr.boat.data.remote.model.ReceiptItem
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.TimeZone
 
 /**
  * AS 만료 예정 기기 (홈 가로형 카드).
@@ -67,13 +68,32 @@ private fun String?.toExpiryLabel(): String {
     }.getOrDefault("-")
 }
 
-/** "2026-06-29T12:00:00" → 오늘까지 경과 일수 */
+/** "2026-06-29T12:00:00Z" → 오늘까지 경과 일수 (서버 UTC 시간을 시스템 시간대로 변환, 날짜 기준 계산) */
 private fun String?.daysAgo(): Int {
     if (this.isNullOrBlank()) return 0
     return runCatching {
+        // 서버 데이터는 UTC 기준이므로 UTC로 파싱
         val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.KOREA)
+        sdf.timeZone = TimeZone.getTimeZone("UTC")
         val registered = sdf.parse(this) ?: return 0
-        val diffMs = System.currentTimeMillis() - registered.time
-        (diffMs / (24 * 60 * 60 * 1000L)).toInt().coerceAtLeast(0)
+        
+        // 시스템 기본 시간대 기준 자정까지 경과 일수 계산
+        val currentCal = java.util.Calendar.getInstance()
+        currentCal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+        currentCal.set(java.util.Calendar.MINUTE, 0)
+        currentCal.set(java.util.Calendar.SECOND, 0)
+        currentCal.set(java.util.Calendar.MILLISECOND, 0)
+        
+        val registeredCal = java.util.Calendar.getInstance()
+        registeredCal.timeInMillis = registered.time
+        registeredCal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+        registeredCal.set(java.util.Calendar.MINUTE, 0)
+        registeredCal.set(java.util.Calendar.SECOND, 0)
+        registeredCal.set(java.util.Calendar.MILLISECOND, 0)
+        
+        val diffMs = currentCal.timeInMillis - registeredCal.timeInMillis
+        val diffDays = (diffMs / (24 * 60 * 60 * 1000L)).toInt().coerceAtLeast(0)
+        
+        diffDays
     }.getOrDefault(0)
 }

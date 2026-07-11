@@ -20,7 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
@@ -28,12 +28,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -181,6 +187,13 @@ private fun ExpiringWarrantySection(
     // 화면폭 - 좌우 화면 마진(40) - 캐러셀 좌측 여백(20) - 우측 peek 여백(28)
     val cardWidth = LocalConfiguration.current.screenWidthDp.dp - 88.dp
 
+    // 노출된 카드(최대 5개)보다 전체 만료 예정 건수가 많으면, 캐러셀 끝에 "N건 더보기" 카드를 붙인다.
+    val remainingMore = (totalCount - expiring.size).coerceAtLeast(0)
+    val showMoreCard = remainingMore > 0
+    // "더보기" 카드 높이를 일반 카드와 정확히 맞추기 위해 첫 카드의 실측 높이를 공유한다.
+    var cardHeightPx by remember { mutableStateOf(0) }
+    val pageCount = expiring.size + if (showMoreCard) 1 else 0
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -246,18 +259,31 @@ private fun ExpiringWarrantySection(
                 contentPadding = PaddingValues(horizontal = Margin20),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                items(expiring, key = { it.receiptId }) { item ->
+                itemsIndexed(expiring, key = { _, item -> item.receiptId }) { index, item ->
                     ExpiringWarrantyCard(
                         item = item,
                         width = cardWidth,
                         onClick = { onItemClick(item) },
+                        // 첫 카드의 실측 높이를 "더보기" 카드에 그대로 물려준다.
+                        modifier = if (index == 0) {
+                            Modifier.onSizeChanged { cardHeightPx = it.height }
+                        } else Modifier,
                     )
+                }
+                if (showMoreCard) {
+                    item(key = "expiring_more") {
+                        ExpiringMoreCard(
+                            remainingCount = remainingMore,
+                            heightPx = cardHeightPx,
+                            onClick = onMoreClick,
+                        )
+                    }
                 }
             }
 
             Spacer(Modifier.height(14.dp))
             CarouselIndicator(
-                count = expiring.size,
+                count = pageCount,
                 listState = listState,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -289,6 +315,7 @@ private fun BoxScope.MascotImage(
 }
 
 /** 캐러셀 페이지 인디케이터 — 현재 보이는 카드가 넓은 필(pill), 나머지는 작은 도트. */
+@SuppressLint("FrequentlyChangingValue")
 @Composable
 private fun CarouselIndicator(
     count: Int,
@@ -296,7 +323,20 @@ private fun CarouselIndicator(
     modifier: Modifier = Modifier,
 ) {
     if (count == 0) return
-    val activeIndex = listState.firstVisibleItemIndex.coerceIn(0, count - 1)
+    val layoutInfo = listState.layoutInfo
+    val activeIndex = if (layoutInfo.visibleItemsInfo.isNotEmpty()) {
+        val firstVisible = layoutInfo.visibleItemsInfo.first()
+        val itemSize = firstVisible.size
+        val offset = firstVisible.offset
+        // 오프셋이 아이템 크기의 절반 이상이면 다음 인덱스로 간주
+        if (offset < -itemSize / 2) {
+            (firstVisible.index + 1).coerceIn(0, count - 1)
+        } else {
+            firstVisible.index.coerceIn(0, count - 1)
+        }
+    } else {
+        0
+    }
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.Center,
@@ -374,6 +414,58 @@ private fun ExpiringWarrantyCard(
                 Spacer(Modifier.height(6.dp))
                 LabelValueRow(stringResource(R.string.home_label_purchase), item.purchaseDate)
             }
+        }
+    }
+}
+
+/**
+ * 캐러셀 끝 "N건 더보기" 카드 — 노출된 5개 외 남은 만료 예정 건수를 안내하고, 탭하면 목록으로 이동한다.
+ * 파란 히어로 위에 반투명 흰색으로 얹어 일반(흰색) 카드와 시각적으로 구분한다.
+ * 높이는 [heightPx](첫 일반 카드의 실측값)에 맞춰 카드들과 정확히 같게 그린다.
+ */
+@Composable
+private fun ExpiringMoreCard(
+    remainingCount: Int,
+    heightPx: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val density = LocalDensity.current
+    val heightModifier = if (heightPx > 0) {
+        Modifier.height(with(density) { heightPx.toDp() })
+    } else Modifier
+    Column(
+        modifier = modifier
+            .then(heightModifier)
+            .width(96.dp)
+            .clip(Rounded2xl)
+            .background(ColorWhite.copy(alpha = 0.18f))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.home_expiring_more_count, remainingCount),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = ColorWhite,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(4.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = stringResource(R.string.home_more),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = ColorWhite,
+            )
+            Icon(
+                painter = painterResource(R.drawable.ic_chevron_right),
+                contentDescription = null,
+                tint = ColorWhite,
+                modifier = Modifier.size(14.dp),
+            )
         }
     }
 }

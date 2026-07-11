@@ -77,8 +77,13 @@ fun BoatTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // 앱 전체가 화이트 테마 — 상태바 아이콘 항상 검은색으로 고정
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+            // 앱 전체가 화이트 테마 — 상태바/네비게이션 바 아이콘 항상 검은색으로 고정.
+            // enableEdgeToEdge()는 기본적으로 시스템 다크/라이트 모드를 보고 바 아이콘 밝기를
+            // 자동 결정하므로, 시스템이 다크모드면 흰 배경 위에 흰 아이콘이 그려져 안 보이게 된다.
+            // 앱은 항상 라이트 배경만 쓰므로 시스템 모드와 무관하게 두 아이콘 모두 검은색으로 고정한다.
+            val insetsController = WindowCompat.getInsetsController(window, view)
+            insetsController.isAppearanceLightStatusBars = true
+            insetsController.isAppearanceLightNavigationBars = true
         }
     }
 
