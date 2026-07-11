@@ -200,8 +200,9 @@ fun ReceiptEditScreen(
 
     LaunchedEffect(receiptId) { viewModel.load(receiptId) }
 
-    // 수정 중 뒤로가기(시스템/툴바) — 나가기 확인 다이얼로그로 가로챈다
-    BackHandler { showExitConfirm = true }
+    // 수정 중 뒤로가기(시스템/툴바) — 변경사항이 있을 때만 확인 다이얼로그 노출
+    var hasChanges by remember { mutableStateOf(false) }
+    BackHandler { if (hasChanges) showExitConfirm = true else onBack() }
 
     // 수정 성공 — 토스트 표시 후 잠시 뒤 이전 화면(상세)으로 복귀 (상세가 재조회하도록 결과 전달)
     LaunchedEffect(state.submitted) {
@@ -232,7 +233,7 @@ fun ReceiptEditScreen(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = { showExitConfirm = true }) {
+                        IconButton(onClick = { if (hasChanges) showExitConfirm = true else onBack() }) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_arrow_back),
                                 contentDescription = stringResource(R.string.common_back),
@@ -271,6 +272,7 @@ fun ReceiptEditScreen(
                         onSubmit = { remainingFileIds, newPhotoParts, buildRequest ->
                             viewModel.submit(receiptId, buildRequest, remainingFileIds, newPhotoParts)
                         },
+                        onChanged = { hasChanges = it }
                     )
                 }
             }
@@ -309,6 +311,7 @@ private fun ReceiptEditForm(
         newPhotoParts: List<MultipartBody.Part>,
         buildRequest: (List<String>) -> com.windrr.boat.data.remote.model.UpdateReceiptRequest,
     ) -> Unit,
+    onChanged: (Boolean) -> Unit = {},
     galleryViewModel: GalleryViewModel = viewModel(),
 ) {
     val context = LocalContext.current
@@ -411,6 +414,31 @@ private fun ReceiptEditForm(
         editCalculateExpiryDate(purchaseDate, warrantyMonths)
     } else null
 
+    // ── 변경사항 감지 ──
+    val originalFileIds = remember(receipt) { receipt.receiptFileIds }
+    val isChanged = remember(
+        selectedCategory, selectedSubCategory, productName, purchaseDate,
+        selectedWarranty, customWarrantyValue, customWarrantyUnit,
+        keepReceipt, brand, price, serial, newPhotos, remoteFileIds.size
+    ) {
+        val categoryChanged = selectedCategory.displayName != receipt.category
+        val subCategoryChanged = selectedSubCategory != receipt.subCategory
+        val nameChanged = productName != receipt.itemName
+        val dateChanged = purchaseDate != (receipt.paymentDate?.editNormalizeDate() ?: "")
+        val warrantyChanged = warrantyMonths != receipt.periodMonths
+        val keepReceiptChanged = keepReceipt != receipt.requiresPhysicalReceipt
+        val brandChanged = (brand.ifBlank { null }) != receipt.brandName
+        val priceChanged = (price.toIntOrNull()) != receipt.totalAmount
+        val serialChanged = (serial.ifBlank { null }) != receipt.serialNumber
+        val photosChanged = newPhotos.isNotEmpty() || remoteFileIds.toList() != originalFileIds
+
+        categoryChanged || subCategoryChanged || nameChanged || dateChanged ||
+                warrantyChanged || keepReceiptChanged || brandChanged ||
+                priceChanged || serialChanged || photosChanged
+    }
+
+    LaunchedEffect(isChanged) { onChanged(isChanged) }
+
     // 첨부 이미지는 수정 후에도 1장 이상 5장 이하여야 한다 (서버 스펙)
     val totalPhotoCount = remoteFileIds.size + newPhotos.size
     val canSubmit = productName.isNotBlank() && purchaseDate.isNotBlank() && warrantyMonths != null &&
@@ -475,7 +503,10 @@ private fun ReceiptEditForm(
                         .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    EDIT_SUBCATEGORIES[selectedCategory].orEmpty().forEach { sub ->
+                    // 💡 선택된 소분류가 항상 맨 왼쪽에 오도록 정렬하여 노출
+                    val orderedSubCategories = EDIT_SUBCATEGORIES[selectedCategory].orEmpty()
+                        .sortedByDescending { it == selectedSubCategory }
+                    orderedSubCategories.forEach { sub ->
                         EditSubCategoryItem(
                             label = sub,
                             iconRes = DeviceImage.resolve(selectedCategory.displayName, sub),
@@ -728,7 +759,12 @@ private fun ReceiptEditForm(
                                 viewerInitialIndex = index
                                 showImageViewer = true
                             },
-                            onRemove = { galleryViewModel.handleIntent(GalleryIntent.ClearError); galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri)) },
+                            onRemove = if (totalPhotoCount > 1) {
+                                {
+                                    galleryViewModel.handleIntent(GalleryIntent.ClearError)
+                                    galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri))
+                                }
+                            } else null,
                             modifier = Modifier.size(100.dp),
                         )
                     }
@@ -740,7 +776,9 @@ private fun ReceiptEditForm(
                                 viewerInitialIndex = newPhotos.size + index
                                 showImageViewer = true
                             },
-                            onRemove = { remoteFileIds.remove(fileId) },
+                            onRemove = if (totalPhotoCount > 1) {
+                                { remoteFileIds.remove(fileId) }
+                            } else null,
                             modifier = Modifier.size(100.dp),
                         )
                     }
@@ -857,7 +895,9 @@ private fun EditCategoryDropdown(selected: DeviceCategory, onSelect: (DeviceCate
             shape = RoundedLg,
             modifier = if (anchorWidthPx > 0) Modifier.width(with(density) { anchorWidthPx.toDp() }) else Modifier,
         ) {
-            DeviceCategory.entries.forEach { cat ->
+            // 💡 선택된 카테고리가 항상 맨 위에 오도록 정렬하여 노출
+            val orderedCategories = DeviceCategory.entries.sortedByDescending { it == selected }
+            orderedCategories.forEach { cat ->
                 val isSelected = cat == selected
                 DropdownMenuItem(
                     text = {

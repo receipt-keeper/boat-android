@@ -731,7 +731,7 @@ fun ReceiptRegisterScreen(
                 },
                 onRetry = {
                     showAnalysisFailedSheet = false
-                    analyzeReceipt()
+                    // 💡 분석 실패 표시(빨간 테두리)는 유지하여 사용자에게 상태를 알림
                 },
                 errorMessage = analysisErrorMessage,
             )

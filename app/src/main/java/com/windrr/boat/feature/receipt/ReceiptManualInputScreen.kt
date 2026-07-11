@@ -456,7 +456,10 @@ fun ReceiptManualInputScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        items(SUBCATEGORIES[selectedCategory].orEmpty()) { sub ->
+                        // 💡 선택된 소분류가 항상 맨 왼쪽에 오도록 정렬하여 노출
+                        val orderedSubCategories = SUBCATEGORIES[selectedCategory].orEmpty()
+                            .sortedByDescending { it == selectedSubCategory }
+                        items(orderedSubCategories) { sub ->
                             SubCategoryItem(
                                 label = sub,
                                 iconRes = DeviceImage.resolve(selectedCategory.displayName, sub),
@@ -840,7 +843,9 @@ private fun CategoryDropdown(
                 Modifier.width(with(density) { anchorWidthPx.toDp() })
             } else Modifier,
         ) {
-            DeviceCategory.entries.forEach { cat ->
+            // 💡 선택된 카테고리가 항상 맨 위에 오도록 정렬하여 노출
+            val orderedCategories = DeviceCategory.entries.sortedByDescending { it == selected }
+            orderedCategories.forEach { cat ->
                 val isSelected = cat == selected
                 DropdownMenuItem(
                     text = {
