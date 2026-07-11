@@ -1041,14 +1041,15 @@ private fun EditFieldBox(onClick: () -> Unit, content: @Composable () -> Unit) {
 private fun EditWarrantyChip(label: String, selected: Boolean, onClick: () -> Unit) {
     Text(
         text = label,
-        fontSize = 13.sp,
+        fontSize = 15.sp,
         fontWeight = FontWeight.Medium,
-        color = if (selected) ColorBrandPrimary else ColorGray700,
+        color = if (selected) ColorWhite else ColorGray600,
         modifier = Modifier
             .clip(RoundedFull)
-            .border(1.dp, if (selected) ColorBrandPrimary else ColorGray300, RoundedFull)
+            .background(if (selected) ColorBrandPrimary else ColorWhite)
+            .border(1.dp, if (selected) ColorBrandPrimary else ColorGray200, RoundedFull)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 20.dp, vertical = 10.dp),
     )
 }
 

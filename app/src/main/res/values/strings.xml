@@ -204,6 +204,7 @@
     <string name="common_cancel">취소</string>
     <string name="common_logout">로그아웃</string>
     <string name="common_back">뒤로</string>
+    <string name="common_close">닫기</string>
     <string name="common_more">더보기</string>
 
     <!-- 알림 목록 화면 -->

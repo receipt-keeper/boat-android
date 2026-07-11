@@ -109,6 +109,8 @@ fun ReceiptDetailScreen(
     receiptId: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    // 등록완료 화면의 "보러가기"처럼 백스택 없이 바로 진입한 경우 true — 뒤로가기 대신 닫기(X) 아이콘을 보여준다.
+    showCloseIcon: Boolean = false,
     viewModel: ReceiptDetailViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -157,8 +159,12 @@ fun ReceiptDetailScreen(
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(
-                                painter = painterResource(R.drawable.ic_arrow_back),
-                                contentDescription = stringResource(R.string.common_back),
+                                painter = painterResource(
+                                    if (showCloseIcon) R.drawable.icon_close else R.drawable.ic_arrow_back
+                                ),
+                                contentDescription = stringResource(
+                                    if (showCloseIcon) R.string.common_close else R.string.common_back
+                                ),
                                 tint = Color.Unspecified,
                             )
                         }

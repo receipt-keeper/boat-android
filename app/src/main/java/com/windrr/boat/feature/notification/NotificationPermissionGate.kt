@@ -1,6 +1,7 @@
 package com.windrr.boat.feature.notification
 
 import android.Manifest
+import android.app.AlarmManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -32,16 +33,17 @@ fun NotificationPermissionGate() {
     val context = LocalContext.current
     var showRationaleDialog by remember { mutableStateOf(false) }
     var showSettingsDialog by remember { mutableStateOf(false) }
+    var showAlarmRationaleDialog by remember { mutableStateOf(false) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        // 시스템 다이얼로그에서 거부했거나, 영구 거부라 즉시 false로 온 경우 → 설정 유도
         if (!granted) showSettingsDialog = true
     }
 
     // 앱이 포그라운드로 올라올 때마다 재확인 (설정에서 껐다가 돌아오는 케이스 포함)
     LifecycleResumeEffect(Unit) {
+        // 1. 기본적인 알림 권한 체크 (POST_NOTIFICATIONS)
         val areNotificationsEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
         if (!areNotificationsEnabled) {
             val needsRuntimeRequest = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
@@ -50,13 +52,19 @@ fun NotificationPermissionGate() {
                 ) != PackageManager.PERMISSION_GRANTED
             
             if (needsRuntimeRequest) {
-                // Android 13+ 권한 요청이 필요한 경우 바로 띄우지 않고 Rationale(명분) 다이얼로그를 먼저 띄움
                 showRationaleDialog = true
             } else {
-                // 이미 권한을 거부했거나 시스템 설정에서 알림을 끈 경우 → 설정으로 안내
                 showSettingsDialog = true
             }
+        } 
+        // 2. 알람 및 리마인더 권한 체크 (SCHEDULE_EXACT_ALARM, Android 12+)
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            if (!alarmManager.canScheduleExactAlarms()) {
+                showAlarmRationaleDialog = true
+            }
         }
+        
         onPauseOrDispose { }
     }
 
@@ -91,6 +99,21 @@ fun NotificationPermissionGate() {
             onDismiss = { showSettingsDialog = false },
         )
     }
+
+    // 3. 알람 및 리마인더 권한(정확한 알람) 안내
+    if (showAlarmRationaleDialog) {
+        BoatDialog(
+            title = "정확한 알림 설정이 필요해요",
+            message = "정해진 시각에 AS 만료 알림을 받으려면\n'알람 및 리마인더' 권한 허용이 필요합니다.",
+            confirmText = "설정하러 가기",
+            onConfirm = {
+                showAlarmRationaleDialog = false
+                context.openExactAlarmSettings()
+            },
+            dismissText = "나중에",
+            onDismiss = { showAlarmRationaleDialog = false },
+        )
+    }
 }
 
 /** 앱의 시스템 알림 설정 화면 열기 */
@@ -100,7 +123,6 @@ private fun Context.openAppNotificationSettings() {
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     runCatching { startActivity(intent) }
         .onFailure {
-            // 일부 기기에서 위 인텐트가 없을 때 앱 상세 설정으로 폴백
             runCatching {
                 startActivity(
                     Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
@@ -109,4 +131,14 @@ private fun Context.openAppNotificationSettings() {
                 )
             }
         }
+}
+
+/** 알람 및 리마인더 설정 화면 열기 (Android 12+) */
+private fun Context.openExactAlarmSettings() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+            .setData(android.net.Uri.fromParts("package", packageName, null))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { startActivity(intent) }
+    }
 }

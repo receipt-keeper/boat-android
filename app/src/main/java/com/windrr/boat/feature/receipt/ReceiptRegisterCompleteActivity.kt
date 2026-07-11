@@ -44,7 +44,8 @@ class ReceiptRegisterCompleteActivity : ComponentActivity() {
                     onGoHome = { goHome() },
                     onViewReceipt = {
                         goHome()
-                        startActivity(ReceiptDetailActivity.intent(this, receiptId))
+                        // 뒤로가기 스택 없이 바로 진입 — 닫기(X) 아이콘으로 노출
+                        startActivity(ReceiptDetailActivity.intentWithCloseIcon(this, receiptId))
                     },
                 )
             }
