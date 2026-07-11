@@ -306,8 +306,8 @@ fun ReceiptManualInputScreen(
         calculateExpiryDate(purchaseDate, warrantyMonths)
     else null
 
-    val canSubmit = productName.isNotBlank() && purchaseDate.isNotBlank() && 
-            warrantyMonths != null && photos.isNotEmpty()
+    val isFormComplete = productName.isNotBlank() && purchaseDate.isNotBlank() && warrantyMonths != null
+    val canSubmit = isFormComplete && photos.isNotEmpty()
 
     // ── 등록 ──────────────────────────────────────────────
     val scope = rememberCoroutineScope()
@@ -405,6 +405,7 @@ fun ReceiptManualInputScreen(
                 SectionTitle(
                     stringResource(R.string.manual_image_section),
                     Modifier.padding(horizontal = Margin20),
+                    required = true,
                 )
                 Spacer(Modifier.height(Margin12))
                 LazyRow(
@@ -679,8 +680,14 @@ fun ReceiptManualInputScreen(
 
                 Spacer(Modifier.height(Margin24))
                 Button(
-                    onClick = { submit() },
-                    enabled = canSubmit && !isSubmitting,
+                    onClick = {
+                        if (!photos.isNotEmpty()) {
+                            toastState.showError("영수증 이미지를 1장 이상 등록해 주세요.")
+                        } else {
+                            submit()
+                        }
+                    },
+                    enabled = isFormComplete && !isSubmitting,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = Margin20)
@@ -1009,8 +1016,13 @@ private fun PurchaseDatePicker(onDismiss: () -> Unit, onConfirm: (String) -> Uni
 }
 
 @Composable
-private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
-    Text(text = text, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = ColorGray900, modifier = modifier)
+private fun SectionTitle(text: String, modifier: Modifier = Modifier, required: Boolean = false) {
+    Row(modifier = modifier) {
+        Text(text = text, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = ColorGray900)
+        if (required) {
+            Text(" *", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = ColorSystemError)
+        }
+    }
 }
 
 @Composable
