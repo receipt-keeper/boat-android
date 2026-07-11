@@ -35,6 +35,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.remote.model.ReceiptFile
@@ -49,77 +51,88 @@ fun ImageViewerScreen(
     initialIndex: Int = 0,
     onClose: () -> Unit,
 ) {
-    val allImages: List<Any> = when {
-        models.isNotEmpty() -> models
-        images.isNotEmpty() -> images.map { it.toString() }
-        else -> receiptFiles.map { "${ApiClient.BASE_URL_PROD}${it.contentPath.trimStart('/')}" }
-    }
-
-    val pagerState = rememberPagerState(
-        initialPage = initialIndex,
-        pageCount = { allImages.size }
-    )
-
-    LaunchedEffect(initialIndex) {
-        if (initialIndex in allImages.indices) {
-            pagerState.scrollToPage(initialIndex)
-        }
-    }
-
-    // 뒤로가기 버튼을 가로채서 ImageViewerScreen만 닫기
-    BackHandler {
-        onClose()
-    }
-
-    // 시스템 UI 숨기기 (풀스크린 모드)
-    val view = LocalView.current
-    LaunchedEffect(Unit) {
-        val window = (view.context as android.app.Activity).window
-        val windowInsetsController = WindowCompat.getInsetsController(window, view)
-        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-        windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-    }
-
-    DisposableEffect(Unit) {
-        val window = (view.context as android.app.Activity).window
-        val windowInsetsController = WindowCompat.getInsetsController(window, view)
-        onDispose {
-            windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
-        }
-    }
-
-    // 현재 페이지 인덱스 (1-based)
-    val currentPageIndex by remember {
-        derivedStateOf { pagerState.currentPage + 1 }
-    }
-
-    // 상단 바 표시 여부
-    var showTopBar by rememberSaveable { mutableStateOf(true) }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
+    // 💡 [수정] 이전 화면의 Top Bar 등을 완전히 덮기 위해 Dialog 사용
+    // usePlatformDefaultWidth = false 로 설정하여 전체 화면을 점유하도록 함
+    Dialog(
+        onDismissRequest = onClose,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false // 💡 시스템 UI 영역까지 확장
+        )
     ) {
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxSize()
-        ) { page ->
-            // 💡 [추가] 확대/축소를 지원하는 커스텀 이미지 뷰어 컴포넌트 적용
-            ZoomableImage(
-                model = allImages[page],
-                onToggleTopBar = { showTopBar = !showTopBar }
-            )
+        val allImages: List<Any> = when {
+            models.isNotEmpty() -> models
+            images.isNotEmpty() -> images.map { it.toString() }
+            else -> receiptFiles.map { "${ApiClient.BASE_URL_PROD}${it.contentPath.trimStart('/')}" }
         }
 
-        // 💡 [수정] 스크린샷 가이드에 맞춘 그라데이션 오버레이 상단 바
-        if (showTopBar) {
-            ImageViewerTopBar(
-                currentIndex = currentPageIndex,
-                totalCount = allImages.size,
-                onClose = onClose,
-                modifier = Modifier.align(Alignment.TopCenter)
-            )
+        val pagerState = rememberPagerState(
+            initialPage = initialIndex,
+            pageCount = { allImages.size }
+        )
+
+        LaunchedEffect(initialIndex) {
+            if (initialIndex in allImages.indices) {
+                pagerState.scrollToPage(initialIndex)
+            }
+        }
+
+        // 뒤로가기 버튼을 가로채서 ImageViewerScreen만 닫기
+        BackHandler {
+            onClose()
+        }
+
+        // 시스템 UI 숨기기 (풀스크린 모드)
+        val view = LocalView.current
+        LaunchedEffect(Unit) {
+            val window = (view.context as android.app.Activity).window
+            val windowInsetsController = WindowCompat.getInsetsController(window, view)
+            windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+            windowInsetsController.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+
+        DisposableEffect(Unit) {
+            val window = (view.context as android.app.Activity).window
+            val windowInsetsController = WindowCompat.getInsetsController(window, view)
+            onDispose {
+                windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
+            }
+        }
+
+        // 현재 페이지 인덱스 (1-based)
+        val currentPageIndex by remember {
+            derivedStateOf { pagerState.currentPage + 1 }
+        }
+
+        // 상단 바 표시 여부
+        var showTopBar by rememberSaveable { mutableStateOf(true) }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        ) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                // 💡 [추가] 확대/축소를 지원하는 커스텀 이미지 뷰어 컴포넌트 적용
+                ZoomableImage(
+                    model = allImages[page],
+                    onToggleTopBar = { showTopBar = !showTopBar }
+                )
+            }
+
+            // 💡 [수정] 스크린샷 가이드에 맞춘 그라데이션 오버레이 상단 바
+            if (showTopBar) {
+                ImageViewerTopBar(
+                    currentIndex = currentPageIndex,
+                    totalCount = allImages.size,
+                    onClose = onClose,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
+            }
         }
     }
 }

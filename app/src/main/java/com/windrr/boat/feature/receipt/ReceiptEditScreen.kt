@@ -397,7 +397,7 @@ private fun ReceiptEditForm(
     var showDatePicker by remember { mutableStateOf(false) }
 
     // ── 실물 영수증 보관 여부 ──
-    var keepReceipt by remember { mutableStateOf(receipt.requiresPhysicalReceipt) }
+    var keepReceipt by remember { mutableStateOf<Boolean?>(receipt.requiresPhysicalReceipt) }
 
     // ── 보증 정보 ──
     var brand by remember { mutableStateOf(receipt.brandName.orEmpty().take(BRAND_MAX)) }
@@ -464,7 +464,7 @@ private fun ReceiptEditForm(
                     category = selectedCategory.displayName,
                     subCategory = selectedSubCategory,
                     memo = memo.trim().ifBlank { null },
-                    requiresPhysicalReceipt = keepReceipt,
+                    requiresPhysicalReceipt = keepReceipt ?: false,
                     receiptFileIds = finalFileIds,
                 )
             }
@@ -503,9 +503,10 @@ private fun ReceiptEditForm(
                         .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    // 💡 선택된 소분류가 항상 맨 왼쪽에 오도록 정렬하여 노출
+                    // 💡 진입 시점의 기존 소분류만 맨 왼쪽에 고정하고, 이후 직접 변경 시에는 위치 변화 없음
+                    val initialSubCategory = remember(receipt) { receipt.subCategory }
                     val orderedSubCategories = EDIT_SUBCATEGORIES[selectedCategory].orEmpty()
-                        .sortedByDescending { it == selectedSubCategory }
+                        .sortedByDescending { it == initialSubCategory }
                     orderedSubCategories.forEach { sub ->
                         EditSubCategoryItem(
                             label = sub,
@@ -674,7 +675,7 @@ private fun ReceiptEditForm(
                 )
                 EditRadioRow(
                     label = stringResource(R.string.manual_keep_receipt_no),
-                    selected = !keepReceipt,
+                    selected = keepReceipt == false,
                     onClick = { keepReceipt = false },
                 )
             }

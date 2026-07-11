@@ -285,7 +285,7 @@ fun ReceiptManualInputScreen(
     var brand               by remember { mutableStateOf(ocrData?.brandName.orEmpty()) }
     var price               by remember { mutableStateOf(ocrData?.totalAmount?.toString().orEmpty()) }
     var serial              by remember { mutableStateOf("") }
-    var keepReceipt         by remember { mutableStateOf(false) }
+    var keepReceipt         by remember { mutableStateOf<Boolean?>(null) }
     var showDatePicker      by remember { mutableStateOf(false) }
     var showAddSheet        by remember { mutableStateOf(false) }
     var productInfoExpanded by remember { mutableStateOf(true) }
@@ -306,7 +306,8 @@ fun ReceiptManualInputScreen(
         calculateExpiryDate(purchaseDate, warrantyMonths)
     else null
 
-    val canSubmit = productName.isNotBlank() && purchaseDate.isNotBlank() && warrantyMonths != null
+    val canSubmit = productName.isNotBlank() && purchaseDate.isNotBlank() && 
+            warrantyMonths != null && photos.isNotEmpty()
 
     // ── 등록 ──────────────────────────────────────────────
     val scope = rememberCoroutineScope()
@@ -445,6 +446,8 @@ fun ReceiptManualInputScreen(
                     Spacer(Modifier.height(Margin16))
                     // 소분류(대표 기기명) 아이콘 — 가로 스크롤. OCR로 미리 선택된 항목이 있으면 보이도록 스크롤.
                     val subCategoryListState = rememberLazyListState()
+                    val initialSubCategory = remember(ocrData) { ocrData?.subCategory }
+                    
                     LaunchedEffect(selectedCategory) {
                         val idx = SUBCATEGORIES[selectedCategory].orEmpty()
                             .indexOf(selectedSubCategory)
@@ -456,9 +459,9 @@ fun ReceiptManualInputScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        // 💡 선택된 소분류가 항상 맨 왼쪽에 오도록 정렬하여 노출
+                        // 💡 OCR로 분석되어 최초 설정된 소분류만 맨 왼쪽에 고정하고, 이후 직접 변경 시에는 위치 변화 없음
                         val orderedSubCategories = SUBCATEGORIES[selectedCategory].orEmpty()
-                            .sortedByDescending { it == selectedSubCategory }
+                            .sortedByDescending { it == initialSubCategory }
                         items(orderedSubCategories) { sub ->
                             SubCategoryItem(
                                 label = sub,
