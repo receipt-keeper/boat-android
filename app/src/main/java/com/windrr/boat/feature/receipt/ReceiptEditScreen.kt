@@ -670,7 +670,7 @@ private fun ReceiptEditForm(
                 Spacer(Modifier.height(Margin12))
                 EditRadioRow(
                     label = stringResource(R.string.manual_keep_receipt_yes),
-                    selected = keepReceipt,
+                    selected = keepReceipt == true,
                     onClick = { keepReceipt = true },
                 )
                 EditRadioRow(
