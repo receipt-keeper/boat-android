@@ -143,7 +143,7 @@ fun ReceiptDetailScreen(
     }
     LaunchedEffect(state.deleteError) {
         if (state.deleteError != null) {
-            toastState.showError(deleteFailedMessage)
+            toastState.showError(state.deleteError ?: deleteFailedMessage)
             viewModel.consumeDeleteError()
         }
     }

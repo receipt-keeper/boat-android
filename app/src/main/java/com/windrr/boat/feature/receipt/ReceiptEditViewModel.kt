@@ -2,6 +2,7 @@ package com.windrr.boat.feature.receipt
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.windrr.boat.data.remote.ApiErrorParser
 import com.windrr.boat.data.remote.model.ReceiptItem
 import com.windrr.boat.data.remote.model.UpdateReceiptRequest
 import com.windrr.boat.data.repository.ReceiptRepository
@@ -33,7 +34,7 @@ class ReceiptEditViewModel : ViewModel() {
             _state.update { it.copy(isLoading = true, error = null) }
             repository.getReceiptDetail(receiptId).fold(
                 onSuccess = { item -> _state.update { it.copy(receipt = item, isLoading = false) } },
-                onFailure = { e -> _state.update { it.copy(isLoading = false, error = e.message) } },
+                onFailure = { e -> _state.update { it.copy(isLoading = false, error = ApiErrorParser.message(e)) } },
             )
         }
     }
@@ -59,12 +60,12 @@ class ReceiptEditViewModel : ViewModel() {
                             _state.update { it.copy(isSubmitting = false, submitted = true, receipt = item) }
                         },
                         onFailure = { e ->
-                            _state.update { it.copy(isSubmitting = false, submitError = e.message) }
+                            _state.update { it.copy(isSubmitting = false, submitError = ApiErrorParser.message(e)) }
                         },
                     )
                 },
                 onFailure = { e ->
-                    _state.update { it.copy(isSubmitting = false, submitError = e.message) }
+                    _state.update { it.copy(isSubmitting = false, submitError = ApiErrorParser.message(e)) }
                 },
             )
         }

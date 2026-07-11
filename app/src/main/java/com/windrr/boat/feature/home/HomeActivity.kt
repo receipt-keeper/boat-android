@@ -27,7 +27,6 @@ import com.windrr.boat.data.repository.AuthRepositoryImpl
 import com.windrr.boat.feature.auth.AuthIntent
 import com.windrr.boat.feature.auth.AuthViewModel
 import com.windrr.boat.ui.component.BoatToastHost
-import com.windrr.boat.ui.component.SyncLoadingOverlay
 import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.BoatTheme
 
@@ -101,9 +100,6 @@ class HomeActivity : ComponentActivity() {
                         onDeleteAccount = { authViewModel.handleIntent(AuthIntent.DeleteAccount) },
                         onShowExitToast = { toastState.show(msgBackExit) },
                     )
-                    if (state.isSyncing) {
-                        SyncLoadingOverlay()
-                    }
                 }
             }
         }

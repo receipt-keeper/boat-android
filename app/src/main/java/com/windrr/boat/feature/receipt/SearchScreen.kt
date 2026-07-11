@@ -112,7 +112,9 @@ fun SearchScreen(
             Spacer(Modifier.width(12.dp))
             SearchField(
                 query = state.query,
-                onQueryChange = { viewModel.onQueryChanged(it) },
+                onQueryChange = {
+                    if (it.length <= 100) viewModel.onQueryChanged(it)
+                },
                 onSearch = { /* 디바운스 검색으로 자동 실행되므로 별도 처리 불필요 */ },
                 onClear = { viewModel.onClear() },
                 focusRequester = focusRequester,

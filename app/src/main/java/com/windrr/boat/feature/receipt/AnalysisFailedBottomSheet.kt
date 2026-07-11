@@ -59,6 +59,7 @@ fun AnalysisFailedBottomSheet(
     onDismiss: () -> Unit,
     onManualInput: () -> Unit,
     onRetry: () -> Unit,
+    errorMessage: String? = null,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -110,7 +111,7 @@ fun AnalysisFailedBottomSheet(
 
                 // 메인 타이틀
                 Text(
-                    text = "영수증 분석에 실패했어요!",
+                    text = errorMessage ?: "영수증 분석에 실패했어요!",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = colorGray900,

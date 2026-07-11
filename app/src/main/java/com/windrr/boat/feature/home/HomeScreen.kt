@@ -4,18 +4,21 @@ import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
@@ -55,10 +58,13 @@ import com.windrr.boat.ui.component.BoatHeader
 import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.RefreshOnResume
 import com.windrr.boat.ui.component.rememberBoatToastState
+import com.windrr.boat.ui.component.rememberShimmerBrush
+import com.windrr.boat.ui.component.shimmer
 import com.windrr.boat.ui.theme.BoatTheme
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorGray500
 import com.windrr.boat.ui.theme.ColorWhite
+import com.windrr.boat.ui.theme.Margin12
 import com.windrr.boat.ui.theme.Margin20
 import com.windrr.boat.ui.theme.Margin8
 import com.windrr.boat.ui.theme.Rounded2xl
@@ -190,14 +196,9 @@ fun HomeScreenContent(
                 iconTint = ColorWhite,
             )
             when {
-                // 최초 로딩 중에만 전체 스피너 — 복귀 후 재조회 시엔 기존 내용을 유지한 채 갱신
-                state.isLoading && !state.hasLoaded -> Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(320.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = ColorBrandPrimary)
+                // 로딩 중이고 최초 로딩인 경우 (hasLoaded=false) 또는 데이터 유무에 따른 스켈레톤 노출
+                state.isLoading && !state.hasLoaded -> {
+                    if (state.hasAnyReceipts) HomeGeneralSkeleton() else HomeInitialSkeleton()
                 }
 
                 !state.hasAnyReceipts -> HomeInitialContent(
@@ -227,6 +228,99 @@ fun HomeScreenContent(
                 onTestPushClick(title, body)
             },
         )
+    }
+}
+
+/** 초기 홈(영수증 0건) 진입 시 스켈레톤 */
+@Composable
+private fun HomeInitialSkeleton() {
+    val brush = rememberShimmerBrush()
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Margin20)
+    ) {
+        Spacer(Modifier.height(Margin8))
+        // 등록 유도 배너 스켈레톤
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(320f / 164f) // img_cta_banner 비율 근사치
+                .shimmer(brush, Rounded2xl)
+        )
+        Spacer(Modifier.height(Margin20))
+        // 액세서리 배너 스켈레톤
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(110.dp)
+                .shimmer(brush, RoundedXl)
+        )
+        Spacer(Modifier.height(Margin20))
+    }
+}
+
+/** 일반 홈(영수증 1건 이상) 진입 시 스켈레톤 */
+@Composable
+private fun HomeGeneralSkeleton() {
+    val brush = rememberShimmerBrush()
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Spacer(Modifier.height(Margin8))
+        // AS 만료 예정 섹션 (가로 카드)
+        Box(
+            modifier = Modifier
+                .padding(horizontal = Margin20)
+                .fillMaxWidth()
+                .height(200.dp)
+                .shimmer(brush, Rounded2xl)
+        )
+        Spacer(Modifier.height(Margin20))
+        // 가전 소모품 배너
+        Box(
+            modifier = Modifier
+                .padding(horizontal = Margin20)
+                .fillMaxWidth()
+                .height(110.dp)
+                .shimmer(brush, RoundedXl)
+        )
+        Spacer(Modifier.height(24.dp))
+        // 최근 등록 영수증 섹션 타이틀
+        Box(
+            modifier = Modifier
+                .padding(horizontal = Margin20)
+                .width(120.dp)
+                .height(20.dp)
+                .shimmer(brush)
+        )
+        Spacer(Modifier.height(12.dp))
+        // 리스트 카드 5개 (세로형)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Margin20),
+            verticalArrangement = Arrangement.spacedBy(Margin12)
+        ) {
+            repeat(5) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(96.dp)
+                        .shimmer(brush, RoundedXl)
+                )
+            }
+        }
+        Spacer(Modifier.height(Margin20))
+        // 하단 여유 공간 (네비바 고려)
+        Box(
+            modifier = Modifier
+                .padding(horizontal = Margin20)
+                .fillMaxWidth()
+                .height(48.dp)
+                .shimmer(brush, RoundedXl)
+        )
+        Spacer(Modifier.height(Margin20))
     }
 }
 

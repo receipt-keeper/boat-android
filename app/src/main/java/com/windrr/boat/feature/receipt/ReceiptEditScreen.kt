@@ -213,7 +213,7 @@ fun ReceiptEditScreen(
     }
     LaunchedEffect(state.submitError) {
         if (state.submitError != null) {
-            toastState.showError(submitFailedMessage)
+            toastState.showError(state.submitError ?: submitFailedMessage)
             viewModel.consumeSubmitError()
         }
     }
@@ -424,6 +424,7 @@ private fun ReceiptEditForm(
             val parts = coroutineScope {
                 newPhotos.map { uri -> async { uri.toMultipartPart(context, "files") } }.awaitAll()
             }
+            // 신규(로컬) 이미지가 항상 앞에 오도록 순서를 합쳐서 제출
             onSubmit(remoteFileIds.toList(), parts) { finalFileIds ->
                 com.windrr.boat.data.remote.model.UpdateReceiptRequest(
                     itemName = productName.trim(),
@@ -720,26 +721,26 @@ private fun ReceiptEditForm(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     item { EditAddImageTile(onClick = { showAddSheet = true }) }
-                    itemsIndexed(remoteFileIds.toList(), key = { _, id -> "remote_$id" }) { index, fileId ->
-                        ReceiptAttachmentThumbnail(
-                            model = remoteUrlByFileId[fileId],
-                            onClick = {
-                                viewerInitialIndex = index
-                                showImageViewer = true
-                            },
-                            onRemove = { remoteFileIds.remove(fileId) },
-                            modifier = Modifier.size(100.dp),
-                        )
-                    }
                     itemsIndexed(newPhotos, key = { _, uri -> "local_$uri" }) { index, uri ->
                         ReceiptAttachmentThumbnail(
                             model = uri,
                             onClick = {
-                                // 뷰어 순서 = 원격 목록 다음에 로컬 목록
-                                viewerInitialIndex = remoteFileIds.size + index
+                                viewerInitialIndex = index
                                 showImageViewer = true
                             },
-                            onRemove = { galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri)) },
+                            onRemove = { galleryViewModel.handleIntent(GalleryIntent.ClearError); galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri)) },
+                            modifier = Modifier.size(100.dp),
+                        )
+                    }
+                    itemsIndexed(remoteFileIds.toList(), key = { _, id -> "remote_$id" }) { index, fileId ->
+                        ReceiptAttachmentThumbnail(
+                            model = remoteUrlByFileId[fileId],
+                            onClick = {
+                                // 뷰어 순서 = 로컬 목록 다음에 원격 목록
+                                viewerInitialIndex = newPhotos.size + index
+                                showImageViewer = true
+                            },
+                            onRemove = { remoteFileIds.remove(fileId) },
                             modifier = Modifier.size(100.dp),
                         )
                     }
@@ -795,10 +796,10 @@ private fun ReceiptEditForm(
         )
     }
 
-    // ── 이미지 뷰어 (원본 원격 이미지 + 신규 로컬 이미지 순서대로) ──
+    // ── 이미지 뷰어 (신규 로컬 이미지 + 원본 원격 이미지 순서대로) ──
     if (showImageViewer) {
         val viewerModels: List<Any> =
-            remoteFileIds.mapNotNull { remoteUrlByFileId[it] } + newPhotos
+            newPhotos + remoteFileIds.mapNotNull { remoteUrlByFileId[it] }
         if (viewerModels.isNotEmpty()) {
             ImageViewerScreen(
                 models = viewerModels,

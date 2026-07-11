@@ -70,6 +70,7 @@ import com.windrr.boat.core.log.BoatLog
 import com.windrr.boat.core.util.createImageCaptureUri
 import com.windrr.boat.core.util.toMultipartPart
 import com.windrr.boat.data.remote.ApiClient
+import com.windrr.boat.data.remote.ApiErrorParser
 import com.windrr.boat.data.remote.model.PromotionState
 import com.windrr.boat.data.repository.PromotionRepository
 import com.windrr.boat.feature.gallery.GalleryIntent
@@ -319,6 +320,7 @@ fun ReceiptRegisterScreen(
     var showNoTokenSheet by rememberSaveable { mutableStateOf(false) }
     // 분석 실패 BottomSheet 표시 여부
     var showAnalysisFailedSheet by rememberSaveable { mutableStateOf(false) }
+    var analysisErrorMessage by remember { mutableStateOf<String?>(null) }
     // OCR 분석 진행 중 여부 (버튼 로딩/중복 호출 방지)
     var isAnalyzing by rememberSaveable { mutableStateOf(false) }
     // OCR 분석 실패 여부 — 실패 시 각 썸네일에 에러 오버레이 표시
@@ -439,6 +441,7 @@ fun ReceiptRegisterScreen(
                 isAnalyzing = false
                 isAnalysisFailed = true
                 BoatLog.e("OCR 분석 실패", e)
+                analysisErrorMessage = ApiErrorParser.message(e)
                 showAnalysisFailedSheet = true
             }
         }
@@ -661,8 +664,10 @@ fun ReceiptRegisterScreen(
                                 contentPadding = PaddingValues(horizontal = Margin20),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                             ) {
-                                items(photos) { uri ->
-                                    val index = photos.indexOf(uri)
+                                // 💡 사용자가 방금 등록한 사진이 항상 앞에 오도록 역순(reversed)으로 노출
+                                val orderedPhotos = photos.reversed()
+                                items(orderedPhotos) { uri ->
+                                    val index = orderedPhotos.indexOf(uri)
                                     ReceiptAttachmentThumbnail(
                                         model = uri,
                                         showError = isAnalysisFailed,
@@ -728,6 +733,7 @@ fun ReceiptRegisterScreen(
                     showAnalysisFailedSheet = false
                     analyzeReceipt()
                 },
+                errorMessage = analysisErrorMessage,
             )
         }
 

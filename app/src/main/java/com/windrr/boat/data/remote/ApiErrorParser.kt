@@ -37,9 +37,11 @@ object ApiErrorParser {
         return parseMessage(body()) ?: UNKNOWN_MESSAGE
     }
 
-    /** 에러 본문에서 data.message 추출 */
+    /** 에러 본문에서 data.message 추출 (errors 리스트가 있으면 첫 번째 항목의 message 우선) */
     private fun parseMessage(raw: String?): String? = runCatching {
         if (raw.isNullOrBlank()) return null
-        gson.fromJson(raw, ErrorResponse::class.java)?.data?.message?.takeIf { it.isNotBlank() }
+        val response = gson.fromJson(raw, ErrorResponse::class.java)
+        val fieldError = response?.data?.errors?.firstOrNull()?.message
+        fieldError ?: response?.data?.message?.takeIf { it.isNotBlank() }
     }.getOrNull()
 }

@@ -90,6 +90,7 @@ import com.windrr.boat.core.ocr.DeviceCategory
 import com.windrr.boat.core.ocr.DeviceImage
 import com.windrr.boat.core.util.createImageCaptureUri
 import com.windrr.boat.core.util.toMultipartPart
+import com.windrr.boat.data.remote.ApiErrorParser
 import com.windrr.boat.data.remote.model.CreateReceiptRequest
 import com.windrr.boat.data.remote.model.OcrData
 import com.windrr.boat.data.repository.ReceiptRepository
@@ -312,7 +313,6 @@ fun ReceiptManualInputScreen(
     val toastState = rememberBoatToastState()
     val repository = remember { ReceiptRepository() }
     var isSubmitting by remember { mutableStateOf(false) }
-    val failMessage = stringResource(R.string.receipt_register_done_failed)
     var showExitConfirm by rememberSaveable { mutableStateOf(false) }
 
     // 뒤로가기(시스템/툴바) — 확인 다이얼로그로 가로챈다.
@@ -351,14 +351,14 @@ fun ReceiptManualInputScreen(
                         onFailure = {
                             isSubmitting = false
                             BoatLog.e("영수증 등록 실패", it)
-                            toastState.showError(failMessage)
+                            toastState.showError(ApiErrorParser.message(it))
                         },
                     )
                 },
                 onFailure = {
                     isSubmitting = false
                     BoatLog.e("영수증 파일 업로드 실패", it)
-                    toastState.showError(failMessage)
+                    toastState.showError(ApiErrorParser.message(it))
                 },
             )
         }
@@ -411,28 +411,14 @@ fun ReceiptManualInputScreen(
                     contentPadding = PaddingValues(horizontal = Margin20),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    // OCR 분석 진입: 이미 등록된 사진이 먼저 보이고 추가 버튼은 맨 뒤.
-                    // 수동 입력 진입: 사진이 없으므로 추가 버튼이 맨 앞.
-                    if (ocrData != null) {
-                        items(photos, key = { it.toString() }) { uri ->
-                            ImageThumbnail(
-                                uri = uri,
-                                onRemove = { galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri)) },
-                            )
-                        }
-                        item {
-                            AddImageTile(onClick = { showAddSheet = true })
-                        }
-                    } else {
-                        item {
-                            AddImageTile(onClick = { showAddSheet = true })
-                        }
-                        items(photos, key = { it.toString() }) { uri ->
-                            ImageThumbnail(
-                                uri = uri,
-                                onRemove = { galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri)) },
-                            )
-                        }
+                    item {
+                        AddImageTile(onClick = { showAddSheet = true })
+                    }
+                    items(photos, key = { it.toString() }) { uri ->
+                        ImageThumbnail(
+                            uri = uri,
+                            onRemove = { galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri)) },
+                        )
                     }
                 }
 
