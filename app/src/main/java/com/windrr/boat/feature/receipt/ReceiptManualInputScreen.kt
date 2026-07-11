@@ -843,9 +843,7 @@ private fun CategoryDropdown(
                 Modifier.width(with(density) { anchorWidthPx.toDp() })
             } else Modifier,
         ) {
-            // 💡 선택된 카테고리가 항상 맨 위에 오도록 정렬하여 노출
-            val orderedCategories = DeviceCategory.entries.sortedByDescending { it == selected }
-            orderedCategories.forEach { cat ->
+            DeviceCategory.entries.forEach { cat ->
                 val isSelected = cat == selected
                 DropdownMenuItem(
                     text = {
