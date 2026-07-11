@@ -334,6 +334,8 @@ fun ReceiptRegisterScreen(
     var initialImageIndex by rememberSaveable { mutableStateOf(0) }
     // 작성 중(사진 선택됨) 상태에서 뒤로가기 시 나가기 확인 다이얼로그 표시 여부
     var showExitConfirm by rememberSaveable { mutableStateOf(false) }
+    // 카메라/갤러리 권한 안내 다이얼로그
+    var showCameraRationale by remember { mutableStateOf(false) }
 
     // 선택된 사진이 있으면 확인 다이얼로그, 없으면 즉시 종료
     fun handleBack() {
@@ -502,11 +504,16 @@ fun ReceiptRegisterScreen(
     }
 
     fun onPickFromGallery(errorMessage: String) {
+        if (remainingSlots <= 0) {
+            showMaxReached(errorMessage)
+            return
+        }
         val request = PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+        // PickVisualMedia는 런타임 권한(READ_EXTERNAL_STORAGE 등) 없이 동작하지만, 
+        // 혹시 모를 권한 거부 상황이나 기기별 대응을 위해 기본 핸들러를 따른다.
         when {
-            remainingSlots <= 0 -> showMaxReached(errorMessage)
-            remainingSlots == 1 -> singlePickLauncher.launch(request)   // 1장만 선택
-            else -> multiPickLauncher.launch(request)                   // 남은 만큼만 선택
+            remainingSlots == 1 -> singlePickLauncher.launch(request)
+            else -> multiPickLauncher.launch(request)
         }
     }
 
@@ -515,8 +522,12 @@ fun ReceiptRegisterScreen(
             showMaxReached(errorMessage)
             return
         }
-        if (cameraPermission.status.isGranted) launchCamera()
-        else cameraPermission.launchPermissionRequest()
+        if (cameraPermission.status.isGranted) {
+            launchCamera()
+        } else {
+            // Android 가이드라인: 권한 요청 전 명분(Rationale) 안내
+            showCameraRationale = true
+        }
     }
 
     // FAB 메뉴에서 진입한 경우 선택한 소스를 1회 자동 실행 (회전 후 재실행 방지)
@@ -758,6 +769,21 @@ fun ReceiptRegisterScreen(
                 images = photos,
                 initialIndex = initialImageIndex,
                 onClose = { showImageViewer = false }
+            )
+        }
+
+        // ── 카메라 권한 안내 ──
+        if (showCameraRationale) {
+            BoatDialog(
+                title = "카메라 사용 권한 안내",
+                message = "영수증을 직접 촬영하여 등록하려면\n카메라 사용 권한이 필요합니다.",
+                confirmText = "확인",
+                onConfirm = {
+                    showCameraRationale = false
+                    cameraPermission.launchPermissionRequest()
+                },
+                dismissText = "취소",
+                onDismiss = { showCameraRationale = false },
             )
         }
     }

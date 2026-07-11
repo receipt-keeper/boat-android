@@ -30,6 +30,7 @@ import com.windrr.boat.ui.component.BoatDialog
 @Composable
 fun NotificationPermissionGate() {
     val context = LocalContext.current
+    var showRationaleDialog by remember { mutableStateOf(false) }
     var showSettingsDialog by remember { mutableStateOf(false) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -41,26 +42,47 @@ fun NotificationPermissionGate() {
 
     // 앱이 포그라운드로 올라올 때마다 재확인 (설정에서 껐다가 돌아오는 케이스 포함)
     LifecycleResumeEffect(Unit) {
-        if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+        val areNotificationsEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
+        if (!areNotificationsEnabled) {
             val needsRuntimeRequest = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 ContextCompat.checkSelfPermission(
                     context, Manifest.permission.POST_NOTIFICATIONS,
                 ) != PackageManager.PERMISSION_GRANTED
+            
             if (needsRuntimeRequest) {
-                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                // Android 13+ 권한 요청이 필요한 경우 바로 띄우지 않고 Rationale(명분) 다이얼로그를 먼저 띄움
+                showRationaleDialog = true
             } else {
-                // 권한은 있으나 알림이 꺼진 상태(앱 알림 토글 off 등) → 설정으로 안내
+                // 이미 권한을 거부했거나 시스템 설정에서 알림을 끈 경우 → 설정으로 안내
                 showSettingsDialog = true
             }
         }
         onPauseOrDispose { }
     }
 
+    // 1. Android 13+ 런타임 권한 요청 전 명분(Rationale) 안내
+    if (showRationaleDialog) {
+        BoatDialog(
+            title = "중요 알림을 놓치지 마세요",
+            message = "무상 AS 만료일과 중요한 혜택 소식을\n알림으로 가장 먼저 받아볼 수 있습니다.",
+            confirmText = "알림 받기",
+            onConfirm = {
+                showRationaleDialog = false
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            },
+            dismissText = "나중에",
+            onDismiss = { showRationaleDialog = false },
+        )
+    }
+
+    // 2. 권한 거절 또는 설정에서 비활성화된 경우 설정 이동 안내
     if (showSettingsDialog) {
         BoatDialog(
-            title = "알림이 꺼져 있어요",
-            message = "무상 AS 만료 알림 등 중요한 소식을 받으려면 알림을 켜 주세요.",
-            confirmText = "알림 켜기",
+            title = "알림 설정이 꺼져 있어요",
+            message = "중요한 AS 만료 리마인더를 받으려면\n설정에서 알림을 켜 주세요.",
+            confirmText = "설정으로 이동",
             onConfirm = {
                 showSettingsDialog = false
                 context.openAppNotificationSettings()
