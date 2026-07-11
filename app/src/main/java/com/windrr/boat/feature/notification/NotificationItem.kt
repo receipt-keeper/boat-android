@@ -18,6 +18,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,16 +43,25 @@ fun NotificationItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
 ) {
+    val alpha = if (notification.isRead) 0.5f else 1f
+
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = Rounded2xl,
         color = ColorWhite,
-        shadowElevation = 2.dp,
+        shadowElevation = if (notification.isRead) 0.dp else 2.dp,
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .padding(16.dp)
+                .drawWithContent {
+                    drawContent()
+                    if (notification.isRead) {
+                        drawRect(color = Color.White.copy(alpha = 0.3f))
+                    }
+                },
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // 썸네일 — 카테고리/기기 이미지(metadata.subCategory 기반)
@@ -58,13 +69,14 @@ fun NotificationItem(
                 modifier = Modifier
                     .size(56.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(ColorGray100),
+                    .background(ColorGray100.copy(alpha = alpha)),
                 contentAlignment = Alignment.Center,
             ) {
                 Image(
                     painter = painterResource(DeviceImage.resolve(null, notification.subCategory)),
                     contentDescription = null,
                     modifier = Modifier.size(56.dp),
+                    alpha = alpha
                 )
             }
 
@@ -76,7 +88,7 @@ fun NotificationItem(
                         text = notification.productName,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = ColorGray900,
+                        color = ColorGray900.copy(alpha = alpha),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),
@@ -85,14 +97,14 @@ fun NotificationItem(
                     Text(
                         text = notification.date,
                         fontSize = 14.sp,
-                        color = ColorGray500,
+                        color = ColorGray500.copy(alpha = alpha),
                     )
                 }
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = notification.message,
                     fontSize = 14.sp,
-                    color = ColorGray500,
+                    color = ColorGray500.copy(alpha = alpha),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )

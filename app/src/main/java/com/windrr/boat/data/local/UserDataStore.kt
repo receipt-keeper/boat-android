@@ -30,6 +30,7 @@ class UserDataStore(private val context: Context) {
         private val KEY_NOTIFICATION_ENABLED = booleanPreferencesKey("notification_enabled")
         private val KEY_MARKETING_CONSENT = booleanPreferencesKey("marketing_consent")
         private val KEY_FREE_ANALYSIS_TOKENS = intPreferencesKey("free_analysis_tokens_remaining")
+        private val KEY_LAST_NOTIF_VIEWED_AT = stringPreferencesKey("last_notif_viewed_at")
     }
 
     /** 저장된 사용자 정보를 Flow로 관찰 (값이 없으면 기본값) */
@@ -73,6 +74,15 @@ class UserDataStore(private val context: Context) {
     /** 남은 무료 분석 토큰 수만 갱신 */
     suspend fun updateFreeAnalysisTokens(remaining: Int) {
         context.userDataStore.edit { it[KEY_FREE_ANALYSIS_TOKENS] = remaining }
+    }
+
+    /** 마지막으로 알림 목록을 확인한 시각 (ISO 8601) */
+    val lastNotifViewedAt: Flow<String?> = context.userDataStore.data
+        .map { it[KEY_LAST_NOTIF_VIEWED_AT] }
+
+    /** 마지막으로 알림 목록을 확인한 시각 갱신 */
+    suspend fun updateLastNotifViewedAt(timestamp: String) {
+        context.userDataStore.edit { it[KEY_LAST_NOTIF_VIEWED_AT] = timestamp }
     }
 
     /** 로그아웃/탈퇴 시 사용자 정보 전체 삭제 */

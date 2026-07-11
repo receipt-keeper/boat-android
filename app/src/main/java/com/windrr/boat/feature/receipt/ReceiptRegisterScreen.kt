@@ -329,6 +329,7 @@ fun ReceiptRegisterScreen(
     var isRecharging by rememberSaveable { mutableStateOf(false) }
     // 이번 달 충전 프로모션 수령 가능 여부 (조회 전 null → 조회 완료 시 결정). 시트 충전 버튼 노출 제어.
     var canRecharge by rememberSaveable { mutableStateOf(true) }
+    var isCheckingPromotion by remember { mutableStateOf(false) }
     // 이미지 뷰어 표시 여부
     var showImageViewer by rememberSaveable { mutableStateOf(false) }
     var initialImageIndex by rememberSaveable { mutableStateOf(0) }
@@ -355,64 +356,22 @@ fun ReceiptRegisterScreen(
     // 시스템 뒤로가기 — 사진이 선택된 경우에만 가로채 확인 다이얼로그를 띄운다
     BackHandler(enabled = photos.isNotEmpty()) { showExitConfirm = true }
 
-    /**
-     * 월간 OCR 충전 프로모션 수령 흐름.
-     * 프로모션 조회 → state=redeemable이면 수령 → balance.remainingCount를 잔여 크레딧에 반영 후 usage 재조회.
-     * 이미 수령/노출 없음 등은 상태별 안내 토스트를 띄운다.
-     */
-    fun rechargeOcrCredits() {
-        if (isRecharging) return
-        scope.launch {
-            isRecharging = true
-            promotionRepository.getOcrRechargePromotion().fold(
-                onSuccess = { promo ->
-                    val promotionId = promo.promotionId
-                    if (promo.stateType == PromotionState.REDEEMABLE && promotionId != null) {
-                        promotionRepository.redeem(promotionId, rechargeIdempotencyKey).fold(
-                            onSuccess = { redeemed ->
-                                isRecharging = false
-                                showNoTokenSheet = false
-                                redeemed.balance?.remainingCount?.let {
-                                    ApiClient.userDataStore.updateFreeAnalysisTokens(it)
-                                }
-                                onUsageChanged()
-                                toastState.show(rechargedMessage)
-                            },
-                            onFailure = { e ->
-                                isRecharging = false
-                                BoatLog.e("OCR 충전 수령 실패", e)
-                                // 409 등 이미 수령 상태면 충전 버튼을 숨기고 안내
-                                canRecharge = false
-                                toastState.showError(alreadyRedeemedMessage)
-                            },
-                        )
-                    } else {
-                        // redeemable이 아니면 수령 불가 — 충전 버튼 숨김 + 상태별 안내
-                        isRecharging = false
-                        canRecharge = false
-                        val message = when (promo.stateType) {
-                            PromotionState.ALREADY_REDEEMED -> alreadyRedeemedMessage
-                            else -> unavailableMessage
-                        }
-                        toastState.showError(message)
-                    }
-                },
-                onFailure = { e ->
-                    isRecharging = false
-                    BoatLog.e("OCR 충전 프로모션 조회 실패", e)
-                    toastState.showError(rechargeFailedMessage)
-                },
-            )
-        }
-    }
-
     /** 토큰 소진 시트를 열기 전, 이번 달 충전 프로모션 수령 가능 여부를 조회해 충전 버튼 노출을 결정한다. */
     fun openNoTokenSheet() {
-        showNoTokenSheet = true
+        if (isCheckingPromotion) return
         scope.launch {
+            isCheckingPromotion = true
             promotionRepository.getOcrRechargePromotion().fold(
-                onSuccess = { canRecharge = it.stateType == PromotionState.REDEEMABLE },
-                onFailure = { canRecharge = false },
+                onSuccess = { 
+                    canRecharge = it.stateType == PromotionState.REDEEMABLE 
+                    isCheckingPromotion = false
+                    showNoTokenSheet = true
+                },
+                onFailure = { 
+                    canRecharge = false 
+                    isCheckingPromotion = false
+                    showNoTokenSheet = true
+                },
             )
         }
     }
@@ -446,6 +405,60 @@ fun ReceiptRegisterScreen(
                 analysisErrorMessage = ApiErrorParser.message(e)
                 showAnalysisFailedSheet = true
             }
+        }
+    }
+
+    /**
+     * 월간 OCR 충전 프로모션 수령 흐름.
+     * 프로모션 조회 → state=redeemable이면 수령 → balance.remainingCount를 잔여 크레딧에 반영 후 usage 재조회.
+     * 이미 수령/노출 없음 등은 상태별 안내 토스트를 띄운다.
+     */
+    fun rechargeOcrCredits() {
+        if (isRecharging) return
+        scope.launch {
+            isRecharging = true
+            promotionRepository.getOcrRechargePromotion().fold(
+                onSuccess = { promo ->
+                    val promotionId = promo.promotionId
+                    if (promo.stateType == PromotionState.REDEEMABLE && promotionId != null) {
+                        promotionRepository.redeem(promotionId, rechargeIdempotencyKey).fold(
+                            onSuccess = { redeemed ->
+                                isRecharging = false
+                                showNoTokenSheet = false
+                                redeemed.balance?.remainingCount?.let {
+                                    ApiClient.userDataStore.updateFreeAnalysisTokens(it)
+                                }
+                                onUsageChanged()
+                                toastState.show(rechargedMessage)
+                                
+                                // 💡 충전 성공 시 바로 분석 시작
+                                analyzeReceipt()
+                            },
+                            onFailure = { e ->
+                                isRecharging = false
+                                BoatLog.e("OCR 충전 수령 실패", e)
+                                // 409 등 이미 수령 상태면 충전 버튼을 숨기고 안내
+                                canRecharge = false
+                                toastState.showError(alreadyRedeemedMessage)
+                            },
+                        )
+                    } else {
+                        // redeemable이 아니면 수령 불가 — 충전 버튼 숨김 + 상태별 안내
+                        isRecharging = false
+                        canRecharge = false
+                        val message = when (promo.stateType) {
+                            PromotionState.ALREADY_REDEEMED -> alreadyRedeemedMessage
+                            else -> unavailableMessage
+                        }
+                        toastState.showError(message)
+                    }
+                },
+                onFailure = { e ->
+                    isRecharging = false
+                    BoatLog.e("OCR 충전 프로모션 조회 실패", e)
+                    toastState.showError(rechargeFailedMessage)
+                },
+            )
         }
     }
 
@@ -719,6 +732,9 @@ fun ReceiptRegisterScreen(
         }
         if (isRecharging) {
             SyncLoadingOverlay(message = stringResource(R.string.loading_recharge_message))
+        }
+        if (isCheckingPromotion) {
+            SyncLoadingOverlay(message = stringResource(R.string.loading_sync_message))
         }
 
         if (showNoTokenSheet) {

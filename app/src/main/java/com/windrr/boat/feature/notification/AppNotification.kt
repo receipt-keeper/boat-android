@@ -31,6 +31,7 @@ data class AppNotification(
     val resourceId: String? = null,
     val kind: String? = null,
     val messageType: String? = null,
+    val isRead: Boolean = false,
 )
 
 /** "2026-06-15T12:00:00" → "2026.06.15" */
@@ -78,4 +79,5 @@ fun NotificationDto.toAppNotification(): AppNotification = AppNotification(
     resourceId = resourceId,
     kind = kind,
     messageType = messageType,
+    isRead = !readAt.isNullOrBlank(),
 )

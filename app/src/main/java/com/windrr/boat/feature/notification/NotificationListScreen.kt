@@ -55,7 +55,11 @@ fun NotificationListScreen(
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
 
-    LaunchedEffect(Unit) { viewModel.load() }
+    LaunchedEffect(Unit) { 
+        viewModel.load() 
+        // 💡 알림 목록에 진입한 시점을 기록하여 홈의 Red Dot을 제거한다
+        viewModel.markAsViewed()
+    }
 
     // 앱이 처리할 수 있는 resourceType만 라우팅, 그 외/없음은 목록에 머문다.
     // 실제 푸시 탭(PushNotificationRouterActivity)과 동일한 규칙을 쓴다 — resolveNotificationRoute 참고.

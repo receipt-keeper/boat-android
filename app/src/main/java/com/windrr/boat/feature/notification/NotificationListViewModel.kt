@@ -11,6 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 /** 알림 탭 유형 */
 enum class NotificationTab(@StringRes val titleRes: Int) {
@@ -45,6 +49,7 @@ data class NotificationListState(
 class NotificationListViewModel : ViewModel() {
 
     private val api = ApiClient.notificationApiService
+    private val userDataStore = ApiClient.userDataStore
 
     private val _state = MutableStateFlow(NotificationListState())
     val state: StateFlow<NotificationListState> = _state.asStateFlow()
@@ -86,11 +91,8 @@ class NotificationListViewModel : ViewModel() {
     private fun applyFiltersAndSort() {
         val source = cachedAllNotifications
 
-        var filtered = when (_state.value.selectedTab) {
-            NotificationTab.ALL -> source
-            NotificationTab.UNREAD -> source.filter { it.date.isNotBlank() } // 읽지 않은 알림 (실제 로직은 readAt 체크)
-            NotificationTab.READ -> emptyList() // 읽은 알림 (실제 로직은 readAt 체크)
-        }
+        // 💡 모든 알림이 목록에 표시되도록 탭 필터링 제거 (필요 시 탭 메뉴 자체를 수정할 수도 있으나, 현재는 ALL로 간주)
+        var filtered = source
 
         filtered = when (_state.value.selectedFilter) {
             NotificationFilter.ALL -> filtered
@@ -111,16 +113,30 @@ class NotificationListViewModel : ViewModel() {
         }
     }
 
+    /** 사용자가 알림 목록을 '확인'했음을 기록 (Red Dot 제거용) */
+    fun markAsViewed() {
+        viewModelScope.launch {
+            val now = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.KOREA).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }.format(Date())
+            userDataStore.updateLastNotifViewedAt(now)
+        }
+    }
+
     /**
      * 카드 탭 처리 — 읽음 API 호출 후 목록에서 즉시 제거(낙관적).
      * 화면 이동은 호출부(Screen)가 [AppNotification]의 resourceType/kind를 보고 결정한다.
      */
     fun onNotificationClicked(item: AppNotification) {
-        // 낙관적 제거 — 실패해도 서버가 읽음 처리 안 됐을 뿐, 다음 조회 때 다시 나타난다
+        // 💡 이미 읽은 알림이더라도 상세 화면 이동 등을 위해 클릭은 허용하되, 읽음 처리 API 호출만 스킵
+        if (item.isRead) return
+
+        // 낙관적 읽음 상태 변경
         _state.update { s -> 
             s.copy(
-                notifications = s.notifications.filterNot { it.id == item.id },
-                totalCount = s.totalCount - 1
+                notifications = s.notifications.map { 
+                    if (it.id == item.id) it.copy(isRead = true) else it 
+                }
             ) 
         }
         viewModelScope.launch {
