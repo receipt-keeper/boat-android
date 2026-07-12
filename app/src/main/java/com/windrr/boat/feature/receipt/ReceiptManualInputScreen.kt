@@ -428,8 +428,10 @@ fun ReceiptManualInputScreen(
                     contentPadding = PaddingValues(horizontal = Margin20),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    item {
-                        AddImageTile(onClick = { showAddSheet = true })
+                    if (remainingSlots > 0) {
+                        item {
+                            AddImageTile(onClick = { showAddSheet = true })
+                        }
                     }
                     items(photos, key = { it.toString() }) { uri ->
                         ImageThumbnail(

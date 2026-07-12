@@ -788,7 +788,9 @@ private fun ReceiptEditForm(
                     contentPadding = PaddingValues(horizontal = Margin20),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    item { EditAddImageTile(onClick = { showAddSheet = true }) }
+                    if (remainingSlots > 0) {
+                        item { EditAddImageTile(onClick = { showAddSheet = true }) }
+                    }
                     itemsIndexed(newPhotos, key = { _, uri -> "local_$uri" }) { index, uri ->
                         ReceiptAttachmentThumbnail(
                             model = uri,
