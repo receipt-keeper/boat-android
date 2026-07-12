@@ -1,5 +1,6 @@
 package com.windrr.boat
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -18,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.repository.AuthRepositoryImpl
 import com.windrr.boat.feature.auth.AuthIntent
@@ -31,9 +33,14 @@ import com.windrr.boat.ui.theme.BoatTheme
 import com.windrr.boat.ui.theme.ColorWhite
 
 class MainActivity : ComponentActivity() {
+    private lateinit var firebaseAnalytics: FirebaseAnalytics
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        firebaseAnalytics = FirebaseAnalytics.getInstance(this)
+        trackAppInstallOnce()
+
         setContent {
             BoatTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -103,6 +110,16 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    /** 앱 최초 실행 시 1회만 app_install 이벤트 전송 */
+    private fun trackAppInstallOnce() {
+        val prefs = getSharedPreferences("analytics_prefs", Context.MODE_PRIVATE)
+        val isTracked = prefs.getBoolean("app_install_tracked", false)
+        if (!isTracked) {
+            firebaseAnalytics.logEvent("app_install", null)
+            prefs.edit().putBoolean("app_install_tracked", true).apply()
         }
     }
 }

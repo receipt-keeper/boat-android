@@ -65,6 +65,13 @@ fun NotificationItem(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // 썸네일 — 카테고리/기기 이미지(metadata.subCategory 기반)
+            // 💡 상시유도알림(registration_prompt)이나 마케팅형 알림은 항상 '기타' 대분류 이미지를 노출
+            val imageRes = if (notification.kind == "registration_prompt" || notification.messageType == "marketing") {
+                DeviceImage.categoryDefault("기타 제품")
+            } else {
+                DeviceImage.resolve(null, notification.subCategory)
+            }
+
             Box(
                 modifier = Modifier
                     .size(56.dp)
@@ -73,7 +80,7 @@ fun NotificationItem(
                 contentAlignment = Alignment.Center,
             ) {
                 Image(
-                    painter = painterResource(DeviceImage.resolve(null, notification.subCategory)),
+                    painter = painterResource(imageRes),
                     contentDescription = null,
                     modifier = Modifier.size(56.dp),
                     alpha = alpha
