@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -51,6 +52,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -138,6 +140,17 @@ fun ReceiptListScreen(
     val toastState = rememberBoatToastState()
     val deleteFailedMessage = stringResource(R.string.receipt_delete_failed)
     val deletedMessage = stringResource(R.string.receipt_deleted_toast)
+    val listState = rememberLazyListState()
+
+    // 리스트 끝에서 3번째 항목 이내가 보이면 다음 페이지를 미리 불러온다. iOS loadMoreIfNeeded 대응.
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+            .collect { lastVisibleIndex ->
+                if (lastVisibleIndex != null && lastVisibleIndex >= state.receipts.size - 3) {
+                    viewModel.handleIntent(ReceiptListIntent.LoadMore)
+                }
+            }
+    }
 
     // 화면 진입(탭 전환 포함)마다 최신화 — 등록 후 홈 복귀 시 새 영수증 반영.
     // 홈 "만료 예정 >" 등 외부 진입이면 초기 탭/정렬을 함께 적용한다.
@@ -260,6 +273,7 @@ fun ReceiptListScreen(
 
                         else -> {
                             LazyColumn(
+                                state = listState,
                                 modifier = Modifier.fillMaxSize(),
                                 // 플로팅 하단 바에 가려지지 않도록 하단 여백을 넉넉히 확보
                                 contentPadding = PaddingValues(
@@ -287,6 +301,21 @@ fun ReceiptListScreen(
                                             viewModel.handleIntent(ReceiptListIntent.DeleteReceipt(item.receiptId))
                                         },
                                     )
+                                }
+                                if (state.isLoadingMore) {
+                                    item {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 16.dp),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            CircularProgressIndicator(
+                                                color = ColorBrandPrimary,
+                                                modifier = Modifier.size(24.dp),
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -640,7 +669,8 @@ internal fun ReceiptItemThumbnail(
 
 /**
  * AS 잔여일 뱃지.
- * - dDay <= 0: 회색 "만료"
+ * - dDay < 0 (또는 없음): 회색 "만료"
+ * - dDay == 0: 빨간 "D-Day" (만료 예정 — 만료일 당일까지는 아직 만료가 아님)
  * - 1..30: 빨간 "D-N" (임박)
  * - >30: 파란 "D-N"
  */
@@ -653,11 +683,17 @@ internal fun WarrantyDayBadge(warrantyDDay: Int?) {
 
     // 💡 [교정 1] 스크린샷 기반: 글자색 > 테두리색 > 배경색 순으로 미세한 명도 차이(Tint) 할당
     when {
-        warrantyDDay == null || warrantyDDay <= 0 -> {
+        warrantyDDay == null || warrantyDDay < 0 -> {
             label = "만료"
             textColor = Color(0xFFA1A1AA)   // 짙은 회색
             bgColor = Color(0xFFF4F4F5)     // 아주 옅은 회색
             borderColor = Color(0xFFE4E4E7) // 중간 옅은 회색
+        }
+        warrantyDDay == 0 -> {
+            label = "D-Day"
+            textColor = Color(0xFFEF4444)   // 짙은 빨간색
+            bgColor = Color(0xFFFEF2F2)     // 아주 옅은 빨간색
+            borderColor = Color(0xFFFECACA) // 중간 옅은 빨간색
         }
         warrantyDDay <= 30 -> {
             label = "D-$warrantyDDay"

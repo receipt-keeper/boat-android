@@ -15,6 +15,10 @@ data class ReceiptListState(
     val receipts: List<ReceiptItem> = emptyList(),
     val totalCount: Int = 0,
     val isLoading: Boolean = false,
+    /** 다음 페이지 로딩 중 여부 (하단 푸터 인디케이터). iOS ReceiptListViewModel.isLoadingMore 대응. */
+    val isLoadingMore: Boolean = false,
+    val hasNext: Boolean = false,
+    val nextCursor: String? = null,
     val error: String? = null,
     val selectedTab: ReceiptTab = ReceiptTab.ALL,
     val selectedFilter: ReceiptFilter = ReceiptFilter.ALL,
@@ -32,6 +36,8 @@ sealed class ReceiptListIntent {
     /** 홈 화면 등 외부 진입 시 초기 탭/정렬 1회 적용 */
     data class ApplyInitial(val tab: ReceiptTab?, val sort: ReceiptSort?) : ReceiptListIntent()
     data object Refresh : ReceiptListIntent()
+    /** 마지막 항목 근처까지 스크롤됐을 때 다음 페이지 추가 조회. iOS loadMoreIfNeeded 대응. */
+    data object LoadMore : ReceiptListIntent()
     data class DeleteReceipt(val receiptId: String) : ReceiptListIntent()
     data object ConsumeDeleteError : ReceiptListIntent()
     data object ConsumeDeleteSuccess : ReceiptListIntent()
@@ -43,6 +49,10 @@ class ReceiptListViewModel : ViewModel() {
 
     private val _state = MutableStateFlow(ReceiptListState())
     val state: StateFlow<ReceiptListState> = _state.asStateFlow()
+
+    /** 재조회 세대 토큰 — 탭/정렬/필터가 바뀌는 동안 진행 중이던 이전 요청 결과를 무시한다.
+     *  iOS ReceiptListViewModel의 generation 패턴과 동일. */
+    private var generation = 0
 
     fun handleIntent(intent: ReceiptListIntent) {
         when (intent) {
@@ -69,6 +79,7 @@ class ReceiptListViewModel : ViewModel() {
                 loadReceipts()
             }
             ReceiptListIntent.Refresh -> loadReceipts()
+            ReceiptListIntent.LoadMore -> loadMore()
             is ReceiptListIntent.DeleteReceipt -> deleteReceipt(intent.receiptId)
             ReceiptListIntent.ConsumeDeleteError -> _state.update { it.copy(deleteError = null) }
             ReceiptListIntent.ConsumeDeleteSuccess -> _state.update { it.copy(deleteSuccess = false) }
@@ -95,28 +106,77 @@ class ReceiptListViewModel : ViewModel() {
         }
     }
 
+    /** 탭/정렬/필터 변경 또는 새로고침 — 첫 페이지부터 다시 조회 */
     private fun loadReceipts() {
+        generation += 1
+        val token = generation
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
+            _state.update { it.copy(isLoading = true, isLoadingMore = false, error = null) }
             val s = _state.value
             repository.getReceipts(
                 status   = s.selectedTab.toApiStatus(),
                 sort     = s.selectedSort.toApiSort(),
-                limit    = 20,
+                limit    = PAGE_SIZE,
                 category = s.selectedFilter.toApiCategory(),
             ).fold(
                 onSuccess = { data ->
+                    if (token != generation) return@fold  // 더 최신 요청이 들어왔으면 폐기
                     _state.update { it.copy(
                         receipts   = data.receipts,
-                        totalCount = data.pagination.totalCount,
+                        totalCount = data.totalCount,
+                        hasNext    = data.pagination.hasNext,
+                        nextCursor = data.pagination.nextCursor,
                         isLoading  = false,
                     )}
                 },
                 onFailure = { e ->
+                    if (token != generation) return@fold
                     _state.update { it.copy(isLoading = false, error = ApiErrorParser.message(e)) }
                 },
             )
         }
+    }
+
+    /** 리스트 마지막 근처까지 스크롤됐을 때 다음 페이지를 이어붙인다. iOS loadMore() 대응. */
+    private fun loadMore() {
+        val s = _state.value
+        val cursor = s.nextCursor
+        if (!s.hasNext || s.isLoading || s.isLoadingMore || cursor == null) return
+
+        val token = generation
+        viewModelScope.launch {
+            _state.update { it.copy(isLoadingMore = true) }
+            repository.getReceipts(
+                status   = s.selectedTab.toApiStatus(),
+                sort     = s.selectedSort.toApiSort(),
+                limit    = PAGE_SIZE,
+                cursor   = cursor,
+                category = s.selectedFilter.toApiCategory(),
+            ).fold(
+                onSuccess = { data ->
+                    if (token != generation) return@fold
+                    _state.update {
+                        it.copy(
+                            receipts   = it.receipts + data.receipts,
+                            totalCount = data.totalCount,
+                            hasNext    = data.pagination.hasNext,
+                            nextCursor = data.pagination.nextCursor,
+                            isLoadingMore = false,
+                        )
+                    }
+                },
+                onFailure = {
+                    if (token != generation) return@fold
+                    // 추가 로드 실패는 조용히 멈춘다(iOS와 동일) — 다음 스크롤에서 재시도되진 않으므로
+                    // hasNext를 내려 더 이상 트리거되지 않게 한다.
+                    _state.update { it.copy(isLoadingMore = false, hasNext = false) }
+                },
+            )
+        }
+    }
+
+    companion object {
+        private const val PAGE_SIZE = 20
     }
 }
 
