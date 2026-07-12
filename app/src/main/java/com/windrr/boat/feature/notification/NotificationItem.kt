@@ -23,19 +23,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.windrr.boat.core.ocr.DeviceImage
 import com.windrr.boat.ui.theme.ColorGray100
+import com.windrr.boat.ui.theme.ColorGray400
 import com.windrr.boat.ui.theme.ColorGray500
+import com.windrr.boat.ui.theme.ColorGray600
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Rounded2xl
 
+/** 상시 유도 알림(registration_prompt/marketing)의 고정 수신거부 안내 문구 — 데이터와 무관하게 항상 동일하게 노출. */
+private const val PERSISTENT_NOTIFICATION_FOOTER =
+    "([Boatlab] 수신거부: 설정 내 알림 메뉴에서 변경 가능)"
+
 /**
  * 알림 목록 아이템 (재사용 컴포넌트) — 디자인 가이드 스펙.
- * 좌측 썸네일(56dp) + (제품명 Bold / 날짜) + 메시지 1줄.
+ *
+ * 카테고리(보증/혜택 등)와 무관하게 상단 라벨은 항상 "보트랩" 고정 → 날짜 →
+ * 타이틀(제품명) → 메시지 순 세로 배치. 상시 유도 알림(registration_prompt/marketing)만
+ * 최하단에 고정 수신거부 문구가 추가로 붙는다. 썸네일은 항상 상단 라인에 맞춰 정렬한다.
  */
 @Composable
 fun NotificationItem(
@@ -44,6 +52,7 @@ fun NotificationItem(
     onClick: () -> Unit = {},
 ) {
     val alpha = if (notification.isRead) 0.5f else 1f
+    val isPersistent = notification.kind == "registration_prompt" || notification.messageType == "marketing"
 
     Surface(
         modifier = modifier
@@ -62,11 +71,11 @@ fun NotificationItem(
                         drawRect(color = Color.White.copy(alpha = 0.3f))
                     }
                 },
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Top,
         ) {
             // 썸네일 — 카테고리/기기 이미지(metadata.subCategory 기반)
             // 💡 상시유도알림(registration_prompt)이나 마케팅형 알림은 항상 '기타' 대분류 이미지를 노출
-            val imageRes = if (notification.kind == "registration_prompt" || notification.messageType == "marketing") {
+            val imageRes = if (isPersistent) {
                 DeviceImage.categoryDefault("기타 제품")
             } else {
                 DeviceImage.resolve(null, notification.subCategory)
@@ -89,15 +98,14 @@ fun NotificationItem(
 
             Spacer(Modifier.width(14.dp))
 
+            // 카테고리 라벨(보증/혜택 등)과 무관하게 상단 라벨은 항상 "보트랩" 고정.
+            // 상시 유도 알림만 최하단에 고정 수신거부 문구가 추가로 붙는다.
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = notification.productName,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = ColorGray900.copy(alpha = alpha),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        text = "보트랩",
+                        fontSize = 14.sp,
+                        color = ColorGray600.copy(alpha = alpha),
                         modifier = Modifier.weight(1f),
                     )
                     Spacer(Modifier.width(8.dp))
@@ -107,14 +115,27 @@ fun NotificationItem(
                         color = ColorGray500.copy(alpha = alpha),
                     )
                 }
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = notification.productName,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = ColorGray900.copy(alpha = alpha),
+                )
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = notification.message,
                     fontSize = 14.sp,
-                    color = ColorGray500.copy(alpha = alpha),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    color = ColorGray600.copy(alpha = alpha),
                 )
+                if (isPersistent) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = PERSISTENT_NOTIFICATION_FOOTER,
+                        fontSize = 12.sp,
+                        color = ColorGray400.copy(alpha = alpha),
+                    )
+                }
             }
         }
     }

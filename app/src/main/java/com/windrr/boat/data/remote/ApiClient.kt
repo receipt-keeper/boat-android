@@ -33,7 +33,7 @@ object ApiClient {
     internal const val DEBUG_PREFS      = "debug_prefs"
     internal const val KEY_USE_LOCAL_URL = "use_local_url"
 
-    private const val TIMEOUT_SECONDS = 15L
+    private const val TIMEOUT_SECONDS = 60L
 
     private lateinit var appContext: Context
 
