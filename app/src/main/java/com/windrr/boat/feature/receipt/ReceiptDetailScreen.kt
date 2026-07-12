@@ -30,8 +30,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -521,36 +519,23 @@ private fun ReceiptDetailContent(
             }
         }
 
-        // ── 실물 영수증 보관 여부 (디자인 스펙 정밀 반영) ──
+        // ── 실물 영수증 보관 여부 ──
         SectionBand()
         Column(modifier = Modifier.padding(horizontal = Margin20, vertical = 20.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(R.string.manual_keep_receipt_title),
-                    fontSize = 18.sp, // 상세 페이지는 18sp 유지
-                    fontWeight = FontWeight.Bold,
-                    color = ColorGray900,
-                )
-                Checkbox(
-                    checked = receipt.requiresPhysicalReceipt,
-                    onCheckedChange = null,
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = ColorBrandPrimary,
-                        uncheckedColor = ColorGray300,
-                        checkmarkColor = ColorWhite
-                    )
-                )
-            }
+            Text(
+                text = stringResource(R.string.manual_keep_receipt_title),
+                fontSize = 18.sp, // 상세 페이지는 18sp 유지
+                fontWeight = FontWeight.Bold,
+                color = ColorGray900,
+            )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "제조사 정책에 따라 수리 시 실물 영수증이\n필요할 수 있으니, 확인 후 보관 여부를 선택해 주세요.",
-                fontSize = 14.sp,
-                color = ColorGray600,
-                lineHeight = 22.sp
+                text = stringResource(
+                    if (receipt.requiresPhysicalReceipt) R.string.receipt_detail_physical_kept
+                    else R.string.receipt_detail_physical_not_kept
+                ),
+                fontSize = 15.sp,
+                color = ColorBrandPrimary,
             )
         }
 
