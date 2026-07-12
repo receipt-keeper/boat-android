@@ -1,5 +1,8 @@
 package com.windrr.boat.ui.component
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -85,7 +88,8 @@ fun ImageViewerScreen(
         // 시스템 UI 숨기기 (풀스크린 모드)
         val view = LocalView.current
         LaunchedEffect(Unit) {
-            val window = (view.context as android.app.Activity).window
+            val activity = view.context.findActivity() ?: return@LaunchedEffect
+            val window = activity.window
             val windowInsetsController = WindowCompat.getInsetsController(window, view)
             windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
             windowInsetsController.systemBarsBehavior =
@@ -93,10 +97,11 @@ fun ImageViewerScreen(
         }
 
         DisposableEffect(Unit) {
-            val window = (view.context as android.app.Activity).window
-            val windowInsetsController = WindowCompat.getInsetsController(window, view)
+            val activity = view.context.findActivity()
+            val window = activity?.window
+            val windowInsetsController = window?.let { WindowCompat.getInsetsController(it, view) }
             onDispose {
-                windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
+                windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
             }
         }
 
@@ -135,6 +140,15 @@ fun ImageViewerScreen(
             }
         }
     }
+}
+
+private fun Context.findActivity(): Activity? {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        context = context.baseContext
+    }
+    return null
 }
 
 /**
