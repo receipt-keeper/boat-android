@@ -123,7 +123,7 @@ fun NotificationSettingsScreen(
                             alarmEnabled = wantOn
                             viewModel.setNotificationEnabled(wantOn)
                             // 💡 상태 전환에 따른 토스트 안내
-                            toastState.show(if (wantOn) "수신 동의 처리되었습니다." else "수신 동의가 철회되었습니다.")
+                            toastState.show(if (wantOn) "수신 동의 처리되었습니다." else "중요한 정보를 놓치지 않으려면 알림을 켜주세요.")
                         }
                     }
                 },
@@ -134,7 +134,7 @@ fun NotificationSettingsScreen(
                 onCheckedChange = { wantOn -> 
                     viewModel.setMarketingConsent(wantOn)
                     // 💡 상태 전환에 따른 토스트 안내
-                    toastState.show(if (wantOn) "수신 동의 처리되었습니다." else "수신 동의가 철회되었습니다.")
+                    toastState.show(if (wantOn) "수신 동의 처리되었습니다." else "중요한 정보를 놓치지 않으려면 알림을 켜주세요.")
                 },
             )
             Text(
