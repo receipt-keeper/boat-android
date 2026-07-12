@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.windrr.boat.MainActivity
 import com.windrr.boat.R
 import com.windrr.boat.feature.receipt.ReceiptDetailActivity
 import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
@@ -65,7 +66,13 @@ fun NotificationListScreen(
                 context.startActivity(ReceiptDetailActivity.intent(context, target.receiptId))
             NotificationRoute.ReceiptRegister ->
                 context.startActivity(ReceiptRegisterActivity.intent(context))
-            NotificationRoute.Home -> Unit // 홈 화면으로 이동 (이미 홈에 있거나 홈으로 이동 처리 필요 시 추가)
+            // 상시 유도/마케팅 알림 — 태스크를 MainActivity(기본 홈 탭)로 리셋한다.
+            // 푸시 탭(PushNotificationRouterActivity)과 동일한 방식.
+            NotificationRoute.Home -> context.startActivity(
+                Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+            )
             NotificationRoute.None -> Unit
         }
     }
