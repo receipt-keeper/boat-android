@@ -122,6 +122,8 @@ fun NotificationSettingsScreen(
                         else -> {
                             alarmEnabled = wantOn
                             viewModel.setNotificationEnabled(wantOn)
+                            // 💡 상태 전환에 따른 토스트 안내
+                            toastState.show(if (wantOn) "수신 동의 처리되었습니다." else "수신 동의가 철회되었습니다.")
                         }
                     }
                 },
@@ -129,7 +131,17 @@ fun NotificationSettingsScreen(
             ToggleRow(
                 label = stringResource(R.string.notif_settings_marketing),
                 checked = user.marketingConsent,
-                onCheckedChange = { viewModel.setMarketingConsent(it) },
+                onCheckedChange = { wantOn -> 
+                    viewModel.setMarketingConsent(wantOn)
+                    // 💡 상태 전환에 따른 토스트 안내
+                    toastState.show(if (wantOn) "수신 동의 처리되었습니다." else "수신 동의가 철회되었습니다.")
+                },
+            )
+            Text(
+                text = "*수신 거부 및 철회는 언제든 본 페이지에서 변경 가능합니다.",
+                fontSize = 13.sp,
+                color = Color(0xFFA1A1AA), // ColorGray400 계열
+                modifier = Modifier.padding(horizontal = Margin20)
             )
         }
     }
