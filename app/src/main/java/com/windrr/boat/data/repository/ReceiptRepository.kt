@@ -44,7 +44,7 @@ class ReceiptRepository(
             if (cursor == null) {
                 dao.upsertAll(data.receipts.map { it.toEntity() })
             }
-            data
+            data.excludeAlreadyExpiredFromExpiring(status)
         }.recoverCatching { error ->
             // 오프라인 폴백 — 로컬 캐시에서 필터/정렬
             val cached = dao.getAll().map { it.toItem() }
@@ -108,11 +108,31 @@ class ReceiptRepository(
     }
 }
 
+/**
+ * 서버가 status="expiring"으로 응답해도 이미 만료(warrantyDDay가 null이거나 음수)된
+ * 항목이 섞여 내려올 수 있어 방어적으로 재필터링한다. "만료"는 별도 탭에서 다뤄야 하므로
+ * "만료 예정" 리스트/카운트 어디에도 노출되면 안 된다. 단, warrantyDDay == 0(만료일 당일,
+ * D-Day)은 아직 만료된 게 아니라 만료 예정에 포함해야 한다. totalCount(홈 화면 배지 등에서
+ * 사용)도 제외된 만큼 함께 보정한다.
+ */
+private fun ReceiptListData.excludeAlreadyExpiredFromExpiring(status: String): ReceiptListData {
+    if (status != "expiring") return this
+    val filtered = receipts.filter { it.warrantyDDay != null && it.warrantyDDay >= 0 }
+    val removed = receipts.size - filtered.size
+    if (removed == 0) return this
+    return copy(
+        receipts = filtered,
+        totalCount = (totalCount - removed).coerceAtLeast(0),
+        pagination = pagination.copy(totalCount = (pagination.totalCount - removed).coerceAtLeast(0)),
+    )
+}
+
 // ── 오프라인 로컬 필터/정렬 ─────────────────────────────────────────────────────
 
 private fun List<ReceiptItem>.filterByStatus(status: String): List<ReceiptItem> = when (status) {
-    "expiring" -> filter { it.warrantyDDay != null && it.warrantyDDay in 1..30 }
-    "expired"  -> filter { it.warrantyDDay == null || it.warrantyDDay <= 0 }
+    // dDay == 0(만료일 당일, D-Day)은 아직 만료 전이므로 만료 예정에 포함
+    "expiring" -> filter { it.warrantyDDay != null && it.warrantyDDay in 0..30 }
+    "expired"  -> filter { it.warrantyDDay == null || it.warrantyDDay < 0 }
     else       -> this  // "all"
 }
 
