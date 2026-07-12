@@ -30,6 +30,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -135,12 +137,18 @@ fun ReceiptDetailScreen(
         }
     }
 
-    // 삭제 성공 — 토스트 표시 후 잠시 뒤 이전 화면(목록)으로 복귀
+    // 삭제 성공 — 토스트 표시 후 잠시 뒤 메인 화면(목록 탭)으로 강제 이동
+    // (검색 결과에서 진입한 경우 등 검색 페이지로 돌아가면 삭제 결과가 반영되지 않은 상태일 수 있으므로 메인을 새로 띄운다)
     LaunchedEffect(state.deleted) {
         if (state.deleted) {
             toastState.show(deletedMessage)
             delay(1000)
-            onBack()
+            context.startActivity(
+                Intent(context, com.windrr.boat.feature.home.HomeActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+            )
+            (context as? Activity)?.finish()
         }
     }
     LaunchedEffect(state.deleteError) {
@@ -512,10 +520,19 @@ private fun ReceiptDetailContent(
             }
         }
 
-        // ── 실물 영수증 보관 여부 (읽기 전용 표시) ──
+        // ── 실물 영수증 보관 여부 (체크박스 읽기 전용) ──
         SectionBand()
-        Column(modifier = Modifier.padding(horizontal = Margin20, vertical = Margin20)) {
+        Column(modifier = Modifier.padding(horizontal = Margin20, vertical = 20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(
+                    checked = receipt.requiresPhysicalReceipt,
+                    onCheckedChange = null,
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = ColorBrandPrimary,
+                        uncheckedColor = ColorGray300,
+                        checkmarkColor = ColorWhite
+                    )
+                )
                 Text(
                     text = stringResource(R.string.manual_keep_receipt_title),
                     fontSize = 18.sp,
@@ -525,15 +542,6 @@ private fun ReceiptDetailContent(
                 Spacer(Modifier.width(6.dp))
                 InfoTooltipIcon(tooltipText = stringResource(R.string.manual_as_guide))
             }
-            Spacer(Modifier.height(Margin12))
-            ReadOnlyRadioRow(
-                label = stringResource(R.string.manual_keep_receipt_yes),
-                selected = receipt.requiresPhysicalReceipt,
-            )
-            ReadOnlyRadioRow(
-                label = stringResource(R.string.manual_keep_receipt_no),
-                selected = !receipt.requiresPhysicalReceipt,
-            )
         }
 
         // ── 보증 정보 ──
@@ -693,25 +701,5 @@ private fun SectionBand() {
     )
 }
 
-/** 읽기 전용 라디오 행 — 상세 화면에서 이미 저장된 선택값만 보여준다(수정 불가). */
-@Composable
-private fun ReadOnlyRadioRow(label: String, selected: Boolean) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(
-            selected = selected,
-            onClick = null,
-            colors = RadioButtonDefaults.colors(
-                selectedColor = ColorBrandPrimary,
-                unselectedColor = ColorGray300,
-            ),
-        )
-        Text(text = label, fontSize = 15.sp, color = ColorGray900)
-    }
-}
 
 

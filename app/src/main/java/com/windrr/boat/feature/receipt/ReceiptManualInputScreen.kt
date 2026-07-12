@@ -35,6 +35,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
@@ -288,7 +290,7 @@ fun ReceiptManualInputScreen(
     var brand               by remember { mutableStateOf(ocrData?.brandName.orEmpty()) }
     var price               by remember { mutableStateOf(ocrData?.totalAmount?.toString().orEmpty()) }
     var serial              by remember { mutableStateOf("") }
-    var keepReceipt         by remember { mutableStateOf<Boolean?>(null) }
+    var keepReceipt         by remember { mutableStateOf(false) }
     var showDatePicker      by remember { mutableStateOf(false) }
     var showAddSheet        by remember { mutableStateOf(false) }
     var productInfoExpanded by remember { mutableStateOf(true) }
@@ -343,7 +345,7 @@ fun ReceiptManualInputScreen(
                         category = selectedCategory.displayName,
                         subCategory = selectedSubCategory,
                         memo = memo.trim().ifBlank { null },
-                        requiresPhysicalReceipt = keepReceipt ?: false,
+                        requiresPhysicalReceipt = keepReceipt,
                         receiptFileIds = fileIds,
                     )
                     repository.createReceipt(request).fold(
@@ -625,10 +627,23 @@ fun ReceiptManualInputScreen(
 
                 Spacer(Modifier.height(Margin20))
 
-                // ── 실물 영수증 보관 여부 (라디오) ─────────
-                // 다른 섹션과 동일하게 흰색 카드로 감싸 회색 배경과 명확히 분리한다.
+                // ── 실물 영수증 보관 여부 (체크박스) ─────────
                 SectionCard {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { keepReceipt = !keepReceipt },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = keepReceipt,
+                            onCheckedChange = { keepReceipt = it },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = ColorBrandPrimary,
+                                uncheckedColor = ColorGray300,
+                                checkmarkColor = ColorWhite
+                            )
+                        )
                         Text(
                             text = stringResource(R.string.manual_keep_receipt_title),
                             fontSize = 16.sp,
@@ -638,17 +653,6 @@ fun ReceiptManualInputScreen(
                         Spacer(Modifier.width(6.dp))
                         InfoTooltipIcon(tooltipText = stringResource(R.string.manual_as_guide))
                     }
-                    Spacer(Modifier.height(Margin12))
-                    KeepReceiptRadioRow(
-                        label = stringResource(R.string.manual_keep_receipt_yes),
-                        selected = keepReceipt == true,
-                        onClick = { keepReceipt = true },
-                    )
-                    KeepReceiptRadioRow(
-                        label = stringResource(R.string.manual_keep_receipt_no),
-                        selected = keepReceipt == false,
-                        onClick = { keepReceipt = false },
-                    )
                 }
 
                 Spacer(Modifier.height(Margin20))
@@ -980,29 +984,6 @@ private fun ImageThumbnail(uri: Uri, onRemove: () -> Unit) {
         }
     }
 }
-
-/** 실물 영수증 보관 라디오 행 */
-@Composable
-private fun KeepReceiptRadioRow(label: String, selected: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(
-            selected = selected,
-            onClick = onClick,
-            colors = RadioButtonDefaults.colors(
-                selectedColor = ColorBrandPrimary,
-                unselectedColor = ColorGray300,
-            ),
-        )
-        Text(text = label, fontSize = 15.sp, color = ColorGray900)
-    }
-}
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

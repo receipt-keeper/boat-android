@@ -5,6 +5,10 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.media.RingtoneManager
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.windrr.boat.MainActivity
 import com.windrr.boat.R
@@ -17,14 +21,23 @@ object NotificationHelper {
     /** 서버(FCM)에서 내려오는 일반 푸시용 채널. 종류가 세분화되면 채널을 추가로 분리한다. */
     const val CHANNEL_GENERAL = "general_push"
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun createChannels(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
+        val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+        val audioAttributes = AudioAttributes.Builder()
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .build()
+
         val warrantyChannel = NotificationChannel(
             CHANNEL_WARRANTY,
             "AS 기간 알림",
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
             description = "AS(애프터서비스) 기간 만료 전 미리 알려드립니다"
+            setSound(soundUri, audioAttributes)
+            enableVibration(true)
         }
         val generalChannel = NotificationChannel(
             CHANNEL_GENERAL,
@@ -32,6 +45,8 @@ object NotificationHelper {
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
             description = "이벤트 및 서비스 안내 알림"
+            setSound(soundUri, audioAttributes)
+            enableVibration(true)
         }
         manager.createNotificationChannel(warrantyChannel)
         manager.createNotificationChannel(generalChannel)
@@ -77,6 +92,7 @@ object NotificationHelper {
             .setContentTitle(title)
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setDefaults(NotificationCompat.DEFAULT_ALL) // 💡 소리, 진동 등 시스템 기본값 사용
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .build()
@@ -111,6 +127,7 @@ object NotificationHelper {
             .setContentTitle(productName)
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setDefaults(NotificationCompat.DEFAULT_ALL) // 💡 소리, 진동 등 시스템 기본값 사용
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .build()

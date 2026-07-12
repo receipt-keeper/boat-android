@@ -31,6 +31,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -271,6 +273,7 @@ fun ReceiptEditScreen(
                         receiptId = receiptId,
                         receipt = state.receipt!!,
                         isSubmitting = state.isSubmitting,
+                        toastState = toastState,
                         onSubmit = { remainingFileIds, newPhotoParts, buildRequest ->
                             viewModel.submit(receiptId, buildRequest, remainingFileIds, newPhotoParts)
                         },
@@ -308,6 +311,7 @@ private fun ReceiptEditForm(
     receiptId: String,
     receipt: ReceiptItem,
     isSubmitting: Boolean,
+    toastState: com.windrr.boat.ui.component.BoatToastState,
     onSubmit: (
         remainingFileIds: List<String>,
         newPhotoParts: List<MultipartBody.Part>,
@@ -399,7 +403,7 @@ private fun ReceiptEditForm(
     var showDatePicker by remember { mutableStateOf(false) }
 
     // ── 실물 영수증 보관 여부 ──
-    var keepReceipt by remember { mutableStateOf<Boolean?>(receipt.requiresPhysicalReceipt) }
+    var keepReceipt by remember { mutableStateOf(receipt.requiresPhysicalReceipt) }
 
     // ── 보증 정보 ──
     var brand by remember { mutableStateOf(receipt.brandName.orEmpty().take(BRAND_MAX)) }
@@ -466,7 +470,7 @@ private fun ReceiptEditForm(
                     category = selectedCategory.displayName,
                     subCategory = selectedSubCategory,
                     memo = memo.trim().ifBlank { null },
-                    requiresPhysicalReceipt = keepReceipt ?: false,
+                    requiresPhysicalReceipt = keepReceipt,
                     receiptFileIds = finalFileIds,
                 )
             }
@@ -659,9 +663,23 @@ private fun ReceiptEditForm(
 
             Spacer(Modifier.height(Margin20))
 
-            // ── 실물 영수증 보관 여부 (수정 가능) ──
+            // ── 실물 영수증 보관 여부 (체크박스) ──
             EditSectionCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { keepReceipt = !keepReceipt },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = keepReceipt,
+                        onCheckedChange = { keepReceipt = it },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = ColorBrandPrimary,
+                            uncheckedColor = ColorGray300,
+                            checkmarkColor = ColorWhite
+                        )
+                    )
                     Text(
                         text = stringResource(R.string.manual_keep_receipt_title),
                         fontSize = 16.sp,
@@ -671,17 +689,6 @@ private fun ReceiptEditForm(
                     Spacer(Modifier.width(6.dp))
                     InfoTooltipIcon(tooltipText = stringResource(R.string.manual_as_guide))
                 }
-                Spacer(Modifier.height(Margin12))
-                EditRadioRow(
-                    label = stringResource(R.string.manual_keep_receipt_yes),
-                    selected = keepReceipt == true,
-                    onClick = { keepReceipt = true },
-                )
-                EditRadioRow(
-                    label = stringResource(R.string.manual_keep_receipt_no),
-                    selected = keepReceipt == false,
-                    onClick = { keepReceipt = false },
-                )
             }
 
             Spacer(Modifier.height(Margin20))
@@ -766,12 +773,10 @@ private fun ReceiptEditForm(
                                 viewerInitialIndex = index
                                 showImageViewer = true
                             },
-                            onRemove = if (totalPhotoCount > 1) {
-                                {
-                                    galleryViewModel.handleIntent(GalleryIntent.ClearError)
-                                    galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri))
-                                }
-                            } else null,
+                            onRemove = {
+                                galleryViewModel.handleIntent(GalleryIntent.ClearError)
+                                galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri))
+                            },
                             modifier = Modifier.size(100.dp),
                         )
                     }
@@ -783,9 +788,7 @@ private fun ReceiptEditForm(
                                 viewerInitialIndex = newPhotos.size + index
                                 showImageViewer = true
                             },
-                            onRemove = if (totalPhotoCount > 1) {
-                                { remoteFileIds.remove(fileId) }
-                            } else null,
+                            onRemove = { remoteFileIds.remove(fileId) },
                             modifier = Modifier.size(100.dp),
                         )
                     }
@@ -804,9 +807,16 @@ private fun ReceiptEditForm(
             }
 
             Spacer(Modifier.height(Margin24))
+            val isFormComplete = productName.isNotBlank() && purchaseDate.isNotBlank() && warrantyMonths != null
             Button(
-                onClick = { handleSubmit() },
-                enabled = canSubmit,
+                onClick = {
+                    if (totalPhotoCount == 0) {
+                        toastState.showError("영수증 이미지를 1장 이상 등록해 주세요.")
+                    } else {
+                        handleSubmit()
+                    }
+                },
+                enabled = isFormComplete,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = Margin20)
@@ -1081,17 +1091,3 @@ private fun EditWarrantyUnitChip(label: String, selected: Boolean, onClick: () -
     )
 }
 
-@Composable
-private fun EditRadioRow(label: String, selected: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(
-            selected = selected,
-            onClick = onClick,
-            colors = RadioButtonDefaults.colors(selectedColor = ColorBrandPrimary, unselectedColor = ColorGray300),
-        )
-        Text(text = label, fontSize = 15.sp, color = ColorGray900)
-    }
-}

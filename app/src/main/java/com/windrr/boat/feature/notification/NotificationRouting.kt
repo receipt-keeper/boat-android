@@ -18,11 +18,16 @@ fun resolveNotificationRoute(
     kind: String?,
     messageType: String?,
 ): NotificationRoute = when {
+    // 💡 1순위: 마케팅 또는 상시유도 알림은 무조건 홈으로 이동
+    messageType == "marketing" || kind == "registration_prompt" -> NotificationRoute.Home
+
+    // 💡 2순위: 영수증 관련 상세 리소스가 있는 경우 해당 상세로 이동
     resourceType == "receipt" && !resourceId.isNullOrBlank() -> NotificationRoute.ReceiptDetail(resourceId)
-    kind == "registration_prompt" -> NotificationRoute.ReceiptRegister
+
+    // 💡 3순위: 기타 리마인더성 알림들 (홈 이동)
     kind == "receipt_registration_reminder" ||
         kind == "receipt_inactivity_reminder" ||
-        kind == "receipt_analysis_reminder" ||
-        messageType == "marketing" -> NotificationRoute.Home
+        kind == "receipt_analysis_reminder" -> NotificationRoute.Home
+
     else -> NotificationRoute.None
 }

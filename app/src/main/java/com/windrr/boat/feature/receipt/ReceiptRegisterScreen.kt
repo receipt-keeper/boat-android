@@ -602,11 +602,15 @@ fun ReceiptRegisterScreen(
                                     networkErrorMessage
                                 )
 
+                                photos.isEmpty() -> toastState.showError(
+                                    "영수증 이미지를 1장 이상 등록해 주세요."
+                                )
+
                                 remoteCanAnalyze && freeAnalysisTokens > 0 -> analyzeReceipt()
                                 else -> openNoTokenSheet()
                             }
                         },
-                        enabled = photos.isNotEmpty() && !isAnalyzing,
+                        enabled = !isAnalyzing,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
@@ -720,7 +724,6 @@ fun ReceiptRegisterScreen(
                                                     uri
                                                 )
                                             )
-                                            // 삭제 시 실패 인덱스 갱신 (간소화를 위해 에러 상태 초기화 권장되나 현재는 유지)
                                         },
                                         onClick = {
                                             initialImageIndex = orderedPhotos.indexOf(uri)

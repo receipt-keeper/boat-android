@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 
@@ -44,15 +43,9 @@ class NotificationBadgeViewModel : ViewModel() {
                         // 기록이 없으면 읽지 않은 알림이 있는 것만으로 Red Dot 노출
                         _hasUnread.value = true
                     } else {
-                        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.KOREA).apply {
-                            timeZone = TimeZone.getTimeZone("UTC")
-                        }
-                        val lastViewedMs = sdf.parse(lastViewedAt)?.time ?: 0L
-                        
-                        // 서버 리스트 중 하나라도 lastViewedMs 이후에 생성된 알림이 있으면 Red Dot 노출
+                        // 💡 단순히 문자열 사전순 비교만으로도 ISO 8601 시각 선후 관계 파악 가능 (포맷이 동일하므로)
                         val hasNewNotif = list.any { 
-                            val createdMs = sdf.parse(it.createdAt ?: "")?.time ?: 0L
-                            createdMs > lastViewedMs
+                            (it.readAt == null) && (it.createdAt ?: "") > lastViewedAt
                         }
                         _hasUnread.value = hasNewNotif
                     }

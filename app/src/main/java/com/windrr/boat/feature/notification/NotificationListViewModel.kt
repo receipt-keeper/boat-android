@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -65,6 +64,12 @@ class NotificationListViewModel : ViewModel() {
                     cachedAllNotifications = dtos.map { it.toAppNotification() }
                     applyFiltersAndSort()
                     _state.update { it.copy(isLoading = false) }
+                    
+                    // 💡 서버에서 받아온 원본 알림 중 가장 최신 생성 시각을 기록 (Red Dot 제거용)
+                    // (기기 시각에 의존하지 않고 서버가 준 데이터 중 가장 최신 기준점을 잡음)
+                    dtos.maxByOrNull { it.createdAt ?: "" }?.createdAt?.let { latest ->
+                        markAsViewed(latest)
+                    }
                 }
                 .onFailure { e ->
                     BoatLog.e("알림 목록 조회 실패", e)
@@ -113,13 +118,11 @@ class NotificationListViewModel : ViewModel() {
         }
     }
 
-    /** 사용자가 알림 목록을 '확인'했음을 기록 (Red Dot 제거용) */
-    fun markAsViewed() {
+    /** 서버에서 받아온 알림 중 가장 최신 것의 시각을 기록하여 Red Dot 제거 */
+    fun markAsViewed(latestCreatedAt: String?) {
+        if (latestCreatedAt.isNullOrBlank()) return
         viewModelScope.launch {
-            val now = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.KOREA).apply {
-                timeZone = TimeZone.getTimeZone("UTC")
-            }.format(Date())
-            userDataStore.updateLastNotifViewedAt(now)
+            userDataStore.updateLastNotifViewedAt(latestCreatedAt)
         }
     }
 
