@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -65,6 +66,7 @@ fun TermsScreen(
     onComplete: (termsAccepted: Boolean, privacyAccepted: Boolean, marketingConsent: Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     var ageConsent by remember { mutableStateOf(false) }
     var serviceTerms by remember { mutableStateOf(false) }
     var privacyPolicy by remember { mutableStateOf(false) }
@@ -163,18 +165,21 @@ fun TermsScreen(
                 checked = serviceTerms,
                 onClick = { serviceTerms = !serviceTerms },
                 showViewLink = true,
+                onViewClick = { context.startActivity(TermsDetailActivity.intent(context)) }
             )
             TermsItem(
                 text = stringResource(R.string.terms_privacy),
                 checked = privacyPolicy,
                 onClick = { privacyPolicy = !privacyPolicy },
                 showViewLink = true,
+                onViewClick = { context.startActivity(PrivacyPolicyDetailActivity.intent(context)) }
             )
             TermsItem(
                 text = stringResource(R.string.terms_marketing),
                 checked = marketing,
                 onClick = { marketing = !marketing },
                 showViewLink = true,
+                onViewClick = { context.startActivity(MarketingConsentDetailActivity.intent(context)) }
             )
 
             Spacer(Modifier.weight(1f))
@@ -209,6 +214,7 @@ private fun TermsItem(
     checked: Boolean,
     onClick: () -> Unit,
     showViewLink: Boolean = false,
+    onViewClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -237,7 +243,9 @@ private fun TermsItem(
                 fontSize = 13.sp,
                 color = ColorGray500,
                 textDecoration = TextDecoration.Underline,
-                modifier = Modifier.padding(start = Margin8),
+                modifier = Modifier
+                    .padding(start = Margin8)
+                    .clickable(onClick = onViewClick),
             )
         }
     }

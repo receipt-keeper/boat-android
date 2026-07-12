@@ -663,31 +663,41 @@ private fun ReceiptEditForm(
 
             Spacer(Modifier.height(Margin20))
 
-            // ── 실물 영수증 보관 여부 (체크박스) ──
+            // ── 실물 영수증 보관 여부 (디자인 스펙 정밀 반영) ──
             EditSectionCard {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { keepReceipt = !keepReceipt },
-                    verticalAlignment = Alignment.CenterVertically
+                        .clickable { keepReceipt = !keepReceipt }
                 ) {
-                    Checkbox(
-                        checked = keepReceipt,
-                        onCheckedChange = { keepReceipt = it },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = ColorBrandPrimary,
-                            uncheckedColor = ColorGray300,
-                            checkmarkColor = ColorWhite
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = stringResource(R.string.manual_keep_receipt_title),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ColorGray900,
                         )
-                    )
+                        Checkbox(
+                            checked = keepReceipt,
+                            onCheckedChange = { keepReceipt = it },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = ColorBrandPrimary,
+                                uncheckedColor = ColorGray300,
+                                checkmarkColor = ColorWhite
+                            )
+                        )
+                    }
+                    Spacer(Modifier.height(8.dp))
                     Text(
-                        text = stringResource(R.string.manual_keep_receipt_title),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = ColorGray900,
+                        text = "제조사 정책에 따라 수리 시 실물 영수증이\n필요할 수 있으니, 확인 후 보관 여부를 선택해 주세요.",
+                        fontSize = 14.sp,
+                        color = ColorGray600,
+                        lineHeight = 22.sp
                     )
-                    Spacer(Modifier.width(6.dp))
-                    InfoTooltipIcon(tooltipText = stringResource(R.string.manual_as_guide))
                 }
             }
 
@@ -753,14 +763,26 @@ private fun ReceiptEditForm(
 
             // ── 원본 영수증 (추가/삭제 가능) ──
             Column(modifier = Modifier.padding(vertical = Margin8)) {
-                Text(
-                    text = stringResource(R.string.receipt_detail_original),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = ColorGray900,
-                    modifier = Modifier.padding(horizontal = Margin20),
-                )
-                Spacer(Modifier.height(Margin16))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Margin20),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.receipt_detail_original),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ColorGray900,
+                    )
+                    Text(
+                        text = " *",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ColorSystemError
+                    )
+                }
+                Spacer(Modifier.height(16.dp))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = Margin20),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -792,17 +814,6 @@ private fun ReceiptEditForm(
                             modifier = Modifier.size(100.dp),
                         )
                     }
-                }
-                // 서버 스펙: 첨부 이미지는 수정 후에도 1장 이상이어야 함
-                if (totalPhotoCount == 0) {
-                    Spacer(Modifier.height(Margin8))
-                    Text(
-                        text = stringResource(R.string.edit_photo_required_hint),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = ColorSystemError,
-                        modifier = Modifier.padding(horizontal = Margin20),
-                    )
                 }
             }
 

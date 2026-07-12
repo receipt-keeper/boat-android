@@ -221,7 +221,7 @@
 
     <!-- 알림 설정 화면 -->
     <string name="notif_settings_title">알림</string>
-    <string name="notif_settings_alarm">알림</string>
+    <string name="notif_settings_alarm">푸시 알림 동의</string>
     <string name="notif_settings_marketing">마케팅 정보 수신 동의</string>
 
     <!-- 로그아웃 다이얼로그 -->

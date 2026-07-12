@@ -17,6 +17,7 @@ import java.io.IOException
 object ApiErrorParser {
 
     const val NETWORK_MESSAGE = "네트워크 연결상태를 확인해주세요"
+    const val TIMEOUT_MESSAGE = "요청 시간이 초과되었습니다. 다시 시도해 주세요."
     private const val UNKNOWN_MESSAGE = "오류가 발생했습니다. 잠시 후 다시 시도해주세요"
 
     private val gson = Gson()
@@ -33,6 +34,7 @@ object ApiErrorParser {
     /** 예외 기반 (직접 반환 타입 API → HttpException, 연결 실패 → IOException) */
     fun message(t: Throwable): String = when (t) {
         is HttpException -> resolve(t.code()) { t.response()?.errorBody()?.string() }
+        is java.net.SocketTimeoutException -> TIMEOUT_MESSAGE
         is IOException -> NETWORK_MESSAGE
         else -> UNKNOWN_MESSAGE
     }

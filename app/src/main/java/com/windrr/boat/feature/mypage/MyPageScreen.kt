@@ -44,6 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.windrr.boat.R
 import com.windrr.boat.feature.notification.NotificationBadgeViewModel
 import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
+import com.windrr.boat.feature.terms.TermsDetailActivity
 import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatHeader
 import com.windrr.boat.ui.component.BoatToastHost
@@ -185,7 +186,9 @@ fun MyPageScreen(
         // 도움말
         SectionLabel(stringResource(R.string.mypage_section_help))
         SettingRow(stringResource(R.string.mypage_inquiry)) { openInquiryEmail() }
-        SettingRow(stringResource(R.string.mypage_terms)) { /* TODO: 서비스 이용약관 */ }
+        SettingRow(stringResource(R.string.mypage_terms)) {
+            context.startActivity(TermsDetailActivity.intent(context))
+        }
 
         Spacer(Modifier.weight(1f))
 

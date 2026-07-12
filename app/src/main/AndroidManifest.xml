@@ -86,6 +86,21 @@
 
         <!-- 푸시 알림 탭 트램폴린 — 화면 없이 읽음 처리 + 딥링크 이동만 수행 -->
         <activity
+            android:name=".feature.terms.TermsDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Boat" />
+
+        <activity
+            android:name=".feature.terms.PrivacyPolicyDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Boat" />
+
+        <activity
+            android:name=".feature.terms.MarketingConsentDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Boat" />
+
+        <activity
             android:name=".feature.notification.PushNotificationRouterActivity"
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"

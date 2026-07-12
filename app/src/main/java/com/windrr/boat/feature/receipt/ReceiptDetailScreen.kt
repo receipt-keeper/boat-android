@@ -85,6 +85,7 @@ import com.windrr.boat.ui.theme.ColorGray300
 import com.windrr.boat.ui.theme.ColorGray400
 import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray500
+import com.windrr.boat.ui.theme.ColorGray600
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorSystemError
 import com.windrr.boat.ui.theme.ColorWhite
@@ -520,10 +521,20 @@ private fun ReceiptDetailContent(
             }
         }
 
-        // ── 실물 영수증 보관 여부 (체크박스 읽기 전용) ──
+        // ── 실물 영수증 보관 여부 (디자인 스펙 정밀 반영) ──
         SectionBand()
         Column(modifier = Modifier.padding(horizontal = Margin20, vertical = 20.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = stringResource(R.string.manual_keep_receipt_title),
+                    fontSize = 18.sp, // 상세 페이지는 18sp 유지
+                    fontWeight = FontWeight.Bold,
+                    color = ColorGray900,
+                )
                 Checkbox(
                     checked = receipt.requiresPhysicalReceipt,
                     onCheckedChange = null,
@@ -533,15 +544,14 @@ private fun ReceiptDetailContent(
                         checkmarkColor = ColorWhite
                     )
                 )
-                Text(
-                    text = stringResource(R.string.manual_keep_receipt_title),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = ColorGray900,
-                )
-                Spacer(Modifier.width(6.dp))
-                InfoTooltipIcon(tooltipText = stringResource(R.string.manual_as_guide))
             }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = "제조사 정책에 따라 수리 시 실물 영수증이\n필요할 수 있으니, 확인 후 보관 여부를 선택해 주세요.",
+                fontSize = 14.sp,
+                color = ColorGray600,
+                lineHeight = 22.sp
+            )
         }
 
         // ── 보증 정보 ──
