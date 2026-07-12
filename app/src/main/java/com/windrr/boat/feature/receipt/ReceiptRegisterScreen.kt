@@ -325,6 +325,8 @@ fun ReceiptRegisterScreen(
     var isAnalyzing by rememberSaveable { mutableStateOf(false) }
     // OCR 분석 실패 여부 — 실패 시 각 썸네일에 에러 오버레이 표시
     var isAnalysisFailed by rememberSaveable { mutableStateOf(false) }
+    // 💡 분석에 실패한 구체적인 이미지 인덱스 목록
+    var failedFileIndices by rememberSaveable { mutableStateOf(emptySet<Int>()) }
     // 월간 크레딧 충전 진행 중 여부 (버튼 중복 클릭 방지 + 로딩 오버레이)
     var isRecharging by rememberSaveable { mutableStateOf(false) }
     // 이번 달 충전 프로모션 수령 가능 여부 (조회 전 null → 조회 완료 시 결정). 시트 충전 버튼 노출 제어.
@@ -402,6 +404,14 @@ fun ReceiptRegisterScreen(
                 isAnalyzing = false
                 isAnalysisFailed = true
                 BoatLog.e("OCR 분석 실패", e)
+
+                // 💡 422 에러 시 실패한 이미지 인덱스 추출
+                val errorResponse = ApiErrorParser.parse(e)
+                failedFileIndices = errorResponse?.data?.errors
+                    ?.filter { it.field == "file" && it.fileIndex != null }
+                    ?.mapNotNull { it.fileIndex }
+                    ?.toSet() ?: emptySet()
+
                 analysisErrorMessage = ApiErrorParser.message(e)
                 showAnalysisFailedSheet = true
             }
@@ -468,6 +478,12 @@ fun ReceiptRegisterScreen(
             toastState.showError(it)
             galleryViewModel.handleIntent(GalleryIntent.ClearError)
         }
+    }
+
+    // 💡 사진이 추가되거나 삭제되면 기존 분석 실패 상태를 초기화
+    LaunchedEffect(photos) {
+        isAnalysisFailed = false
+        failedFileIndices = emptySet()
     }
 
     // 남은 등록 가능 장수 (이미 올린 만큼 제외)
@@ -691,19 +707,23 @@ fun ReceiptRegisterScreen(
                                 // 💡 사용자가 방금 등록한 사진이 항상 앞에 오도록 역순(reversed)으로 노출
                                 val orderedPhotos = photos.reversed()
                                 items(orderedPhotos) { uri ->
-                                    val index = orderedPhotos.indexOf(uri)
+                                    val indexInOriginal = photos.indexOf(uri)
+                                    val isThisFileFailed = isAnalysisFailed && 
+                                            (failedFileIndices.isEmpty() || failedFileIndices.contains(indexInOriginal))
+                                    
                                     ReceiptAttachmentThumbnail(
                                         model = uri,
-                                        showError = isAnalysisFailed,
+                                        showError = isThisFileFailed,
                                         onRemove = {
                                             galleryViewModel.handleIntent(
                                                 GalleryIntent.RemovePhoto(
                                                     uri
                                                 )
                                             )
+                                            // 삭제 시 실패 인덱스 갱신 (간소화를 위해 에러 상태 초기화 권장되나 현재는 유지)
                                         },
                                         onClick = {
-                                            initialImageIndex = index
+                                            initialImageIndex = orderedPhotos.indexOf(uri)
                                             showImageViewer = true
                                         },
                                         modifier = Modifier.size(ThumbnailSize),

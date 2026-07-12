@@ -21,6 +21,15 @@ object ApiErrorParser {
 
     private val gson = Gson()
 
+    /** 에러 응답 객체 직접 반환 (특수 필드 접근용) */
+    fun parse(t: Throwable): ErrorResponse? = runCatching {
+        if (t is HttpException) {
+            val raw = t.response()?.errorBody()?.string()
+            if (raw.isNullOrBlank()) return null
+            gson.fromJson(raw, ErrorResponse::class.java)
+        } else null
+    }.getOrNull()
+
     /** 예외 기반 (직접 반환 타입 API → HttpException, 연결 실패 → IOException) */
     fun message(t: Throwable): String = when (t) {
         is HttpException -> resolve(t.code()) { t.response()?.errorBody()?.string() }

@@ -20,6 +20,7 @@ data class ErrorData(
 )
 
 data class FieldError(
-    @SerializedName("field")   val field: String? = null,
-    @SerializedName("message") val message: String? = null,
+    @SerializedName("field")     val field: String? = null,
+    @SerializedName("fileIndex") val fileIndex: Int? = null,
+    @SerializedName("message")   val message: String? = null,
 )
