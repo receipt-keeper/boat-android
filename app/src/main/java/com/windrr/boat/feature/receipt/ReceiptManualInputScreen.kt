@@ -996,17 +996,24 @@ private fun ImageThumbnail(uri: Uri, onRemove: () -> Unit) {
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize().clip(RoundedXl),
         )
+        // 시각적 크기(24.dp)는 그대로 두고, 탭 영역만 사방 2dp씩 넓힌 바깥 Box에 clickable을 건다.
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(6.dp)
-                .size(24.dp)
-                .clip(CircleShape)
-                .background(Color.Black.copy(alpha = 0.4f))
+                .size(28.dp)
                 .clickable(onClick = onRemove),
             contentAlignment = Alignment.Center,
         ) {
-            Text(text = "✕", color = ColorWhite, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.4f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(text = "✕", color = ColorWhite, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
