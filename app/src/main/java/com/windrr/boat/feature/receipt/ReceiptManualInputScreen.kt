@@ -675,9 +675,11 @@ fun ReceiptManualInputScreen(
                 ) {
                     BoatInputField(
                         value = brand,
-                        onValueChange = { brand = it },
+                        onValueChange = { brand = it.take(ITEM_NAME_MAX) },
                         label = stringResource(R.string.manual_brand),
                         placeholder = stringResource(R.string.manual_brand_hint),
+                        isError = brand.length >= ITEM_NAME_MAX,
+                        errorText = stringResource(R.string.edit_max_length, ITEM_NAME_MAX),
                     )
                     Spacer(Modifier.height(Margin16))
                     BoatInputField(
@@ -697,15 +699,26 @@ fun ReceiptManualInputScreen(
                         InfoTooltipIcon(tooltipText = stringResource(R.string.manual_serial_help))
                     }
                     Spacer(Modifier.height(Margin8))
+                    val serialAtMax = serial.length >= ITEM_NAME_MAX
                     OutlinedTextField(
                         value = serial,
-                        onValueChange = { serial = it },
+                        onValueChange = { serial = it.take(ITEM_NAME_MAX) },
                         placeholder = { Text(stringResource(R.string.manual_serial_hint), color = ColorGray400, fontSize = 15.sp) },
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         singleLine = true,
                         shape = RoundedLg,
+                        isError = serialAtMax,
                         colors = formFieldColors(),
                     )
+                    if (serialAtMax) {
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = stringResource(R.string.edit_max_length, ITEM_NAME_MAX),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = ColorSystemError,
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(Margin24))
