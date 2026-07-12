@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.Collator
+import java.util.Locale
 
 data class ReceiptListState(
     val receipts: List<ReceiptItem> = emptyList(),
@@ -122,7 +124,7 @@ class ReceiptListViewModel : ViewModel() {
                 onSuccess = { data ->
                     if (token != generation) return@fold  // 더 최신 요청이 들어왔으면 폐기
                     _state.update { it.copy(
-                        receipts   = data.receipts,
+                        receipts   = applySort(data.receipts, s.selectedSort),
                         totalCount = data.totalCount,
                         hasNext    = data.pagination.hasNext,
                         nextCursor = data.pagination.nextCursor,
@@ -157,7 +159,7 @@ class ReceiptListViewModel : ViewModel() {
                     if (token != generation) return@fold
                     _state.update {
                         it.copy(
-                            receipts   = it.receipts + data.receipts,
+                            receipts   = applySort(it.receipts + data.receipts, s.selectedSort),
                             totalCount = data.totalCount,
                             hasNext    = data.pagination.hasNext,
                             nextCursor = data.pagination.nextCursor,
@@ -175,6 +177,13 @@ class ReceiptListViewModel : ViewModel() {
         }
     }
 
+    /** "가나다 순"(DEFAULT)은 서버가 지원하지 않는 정렬이라 클라이언트에서 itemName 기준으로
+     *  재정렬한다. 그 외 정렬은 서버가 내려준 순서를 그대로 유지한다. iOS applySort 대응. */
+    private fun applySort(items: List<ReceiptItem>, sort: ReceiptSort): List<ReceiptItem> {
+        if (sort != ReceiptSort.DEFAULT) return items
+        return items.sortedWith(compareBy(Collator.getInstance(Locale.KOREA)) { it.itemName })
+    }
+
     companion object {
         private const val PAGE_SIZE = 20
     }
@@ -186,8 +195,11 @@ private fun ReceiptTab.toApiStatus() = when (this) {
     ReceiptTab.EXPIRED  -> "expired"
 }
 
+// 서버 sort 파라미터는 "recent"/"expiresOn"/"purchaseDate"만 허용한다(422: Input should be
+// 'recent', 'expiresOn' or 'purchaseDate'). "가나다 순"(DEFAULT)은 서버가 지원하지 않는
+// 정렬이라 "recent"로 요청한 뒤 클라이언트에서 itemName 기준으로 재정렬한다(iOS 동일 패턴).
 private fun ReceiptSort.toApiSort() = when (this) {
-    ReceiptSort.DEFAULT     -> "title"
+    ReceiptSort.DEFAULT     -> "recent"
     ReceiptSort.RECENT      -> "recent"
     ReceiptSort.EXPIRING    -> "expiresOn"
     ReceiptSort.PURCHASE    -> "purchaseDate"
