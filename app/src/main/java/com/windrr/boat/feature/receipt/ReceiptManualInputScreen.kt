@@ -10,6 +10,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -65,10 +66,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -307,6 +310,7 @@ fun ReceiptManualInputScreen(
     else null
 
     val isFormComplete = productName.isNotBlank() && purchaseDate.isNotBlank() && warrantyMonths != null
+    val productNameAtMax = productName.length >= ITEM_NAME_MAX
     val canSubmit = isFormComplete && photos.isNotEmpty()
 
     // ── 등록 ──────────────────────────────────────────────
@@ -365,7 +369,15 @@ fun ReceiptManualInputScreen(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    val focusManager = LocalFocusManager.current
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { focusManager.clearFocus() })
+            }
+    ) {
         Scaffold(
             containerColor = ColorGray50,
             topBar = {
@@ -447,12 +459,15 @@ fun ReceiptManualInputScreen(
                     Spacer(Modifier.height(Margin16))
                     // 소분류(대표 기기명) 아이콘 — 가로 스크롤. OCR로 미리 선택된 항목이 있으면 보이도록 스크롤.
                     val subCategoryListState = rememberLazyListState()
+                    // 💡 OCR로 분석되어 최초 설정된 소분류만 맨 왼쪽에 고정하고, 이후 직접 변경 시에는 위치 변화 없음
                     val initialSubCategory = remember(ocrData) { ocrData?.subCategory }
-                    
+                    val orderedSubCategories = remember(selectedCategory, initialSubCategory) {
+                        SUBCATEGORIES[selectedCategory].orEmpty()
+                            .sortedByDescending { it == initialSubCategory }
+                    }
+
                     LaunchedEffect(selectedCategory) {
-                        val idx = SUBCATEGORIES[selectedCategory].orEmpty()
-                            .indexOf(selectedSubCategory)
-                            .coerceAtLeast(0)
+                        val idx = orderedSubCategories.indexOf(selectedSubCategory).coerceAtLeast(0)
                         subCategoryListState.scrollToItem(idx)
                     }
                     LazyRow(
@@ -460,9 +475,6 @@ fun ReceiptManualInputScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        // 💡 OCR로 분석되어 최초 설정된 소분류만 맨 왼쪽에 고정하고, 이후 직접 변경 시에는 위치 변화 없음
-                        val orderedSubCategories = SUBCATEGORIES[selectedCategory].orEmpty()
-                            .sortedByDescending { it == initialSubCategory }
                         items(orderedSubCategories) { sub ->
                             SubCategoryItem(
                                 label = sub,
@@ -484,10 +496,12 @@ fun ReceiptManualInputScreen(
                 ) {
                     BoatInputField(
                         value = productName,
-                        onValueChange = { productName = it },
+                        onValueChange = { productName = it.take(ITEM_NAME_MAX) },
                         label = stringResource(R.string.manual_product_name),
                         required = true,
                         placeholder = stringResource(R.string.manual_product_name_hint),
+                        isError = productNameAtMax,
+                        errorText = stringResource(R.string.edit_max_length, ITEM_NAME_MAX),
                     )
 
                     Spacer(Modifier.height(Margin16))
@@ -654,11 +668,13 @@ fun ReceiptManualInputScreen(
                     Spacer(Modifier.height(Margin16))
                     BoatInputField(
                         value = price,
-                        onValueChange = { price = it.filter { c -> c.isDigit() } },
+                        onValueChange = { price = it.filter { c -> c.isDigit() }.take(9) },
                         label = stringResource(R.string.manual_price),
                         placeholder = stringResource(R.string.manual_price_hint),
                         keyboardType = KeyboardType.Number,
                         visualTransformation = PriceVisualTransformation(),
+                        isError = price.length >= 9,
+                        errorText = "최대 9,999,999,999원까지 입력 가능합니다.",
                     )
                     Spacer(Modifier.height(Margin16))
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -991,7 +1007,14 @@ private fun KeepReceiptRadioRow(label: String, selected: Boolean, onClick: () ->
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PurchaseDatePicker(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
-    val dpState = rememberDatePickerState()
+    // 💡 오늘 이후의 날짜는 선택할 수 없도록 제한
+    val dpState = rememberDatePickerState(
+        selectableDates = object : androidx.compose.material3.SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                return utcTimeMillis <= System.currentTimeMillis()
+            }
+        }
+    )
     DatePickerDialog(
         onDismissRequest = onDismiss,
         colors = boatDatePickerColors(),

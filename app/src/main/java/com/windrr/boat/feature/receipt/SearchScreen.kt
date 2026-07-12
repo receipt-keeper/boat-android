@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,7 +42,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -80,6 +83,7 @@ fun SearchScreen(
 ) {
     val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
@@ -88,6 +92,9 @@ fun SearchScreen(
         modifier = modifier
             .fillMaxSize()
             .background(ColorGray50)
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { focusManager.clearFocus() })
+            }
             .navigationBarsPadding(),
     ) {
         // 상단 검색 바 (뒤로 + 입력 필드)

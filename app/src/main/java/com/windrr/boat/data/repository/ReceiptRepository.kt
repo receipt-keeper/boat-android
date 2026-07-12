@@ -117,7 +117,8 @@ private fun List<ReceiptItem>.filterByStatus(status: String): List<ReceiptItem> 
 }
 
 private fun List<ReceiptItem>.filterByCategory(category: String?): List<ReceiptItem> =
-    if (category.isNullOrBlank()) this else filter { it.category == category }
+    if (category.isNullOrBlank()) this 
+    else filter { it.category?.trim()?.replace(" ", "")?.lowercase() == category.trim().replace(" ", "").lowercase() }
 
 private fun List<ReceiptItem>.filterByQuery(q: String?): List<ReceiptItem> {
     if (q.isNullOrBlank()) return this
@@ -129,6 +130,8 @@ private fun List<ReceiptItem>.filterByQuery(q: String?): List<ReceiptItem> {
 }
 
 private fun List<ReceiptItem>.sortedBy(sort: String): List<ReceiptItem> = when (sort) {
+    // 제품명 오름차순 (가나다 순)
+    "title"        -> sortedBy { it.itemName }
     // 만료일 오름차순 — 값 없으면 맨 뒤로
     "expiresOn"    -> sortedBy { it.expiresOn ?: "9999-99-99" }
     // 구매일 내림차순 — 값 없으면(빈 문자열) 맨 뒤로

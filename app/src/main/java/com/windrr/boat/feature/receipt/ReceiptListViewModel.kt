@@ -127,9 +127,10 @@ private fun ReceiptTab.toApiStatus() = when (this) {
 }
 
 private fun ReceiptSort.toApiSort() = when (this) {
-    ReceiptSort.DEFAULT, ReceiptSort.RECENT -> "recent"
-    ReceiptSort.EXPIRING                    -> "expiresOn"
-    ReceiptSort.PURCHASE                    -> "purchaseDate"
+    ReceiptSort.DEFAULT     -> "title"
+    ReceiptSort.RECENT      -> "recent"
+    ReceiptSort.EXPIRING    -> "expiresOn"
+    ReceiptSort.PURCHASE    -> "purchaseDate"
 }
 
 // 서버 category 문자열과 정확히 일치해야 필터가 걸린다 (등록/OCR과 동일한 가이드 기준 문자열)

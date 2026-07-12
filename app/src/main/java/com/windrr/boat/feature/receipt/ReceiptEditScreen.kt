@@ -167,6 +167,8 @@ private const val BRAND_MAX = 50
 private const val SERIAL_MAX = 30
 private const val MEMO_MAX = 100
 
+internal const val ITEM_NAME_MAX = PRODUCT_NAME_MAX
+
 private fun String.editNormalizeDate(): String = replace("-", ".")
 
 private fun editCalculateExpiryDate(purchaseDateDisplay: String, months: Int): String? = runCatching {
@@ -505,8 +507,10 @@ private fun ReceiptEditForm(
                 ) {
                     // 💡 진입 시점의 기존 소분류만 맨 왼쪽에 고정하고, 이후 직접 변경 시에는 위치 변화 없음
                     val initialSubCategory = remember(receipt) { receipt.subCategory }
-                    val orderedSubCategories = EDIT_SUBCATEGORIES[selectedCategory].orEmpty()
-                        .sortedByDescending { it == initialSubCategory }
+                    val orderedSubCategories = remember(selectedCategory, initialSubCategory) {
+                        EDIT_SUBCATEGORIES[selectedCategory].orEmpty()
+                            .sortedByDescending { it == initialSubCategory }
+                    }
                     orderedSubCategories.forEach { sub ->
                         EditSubCategoryItem(
                             label = sub,
@@ -702,11 +706,13 @@ private fun ReceiptEditForm(
                 Spacer(Modifier.height(Margin16))
                 BoatInputField(
                     value = price,
-                    onValueChange = { price = it.filter { c -> c.isDigit() } },
+                    onValueChange = { price = it.filter { c -> c.isDigit() }.take(9) },
                     label = stringResource(R.string.manual_price),
                     placeholder = stringResource(R.string.manual_price_hint),
                     keyboardType = KeyboardType.Number,
                     visualTransformation = PriceVisualTransformation(),
+                    isError = price.length >= 9,
+                    errorText = "최대 9,999,999,999원까지 입력 가능합니다.",
                 )
                 Spacer(Modifier.height(Margin16))
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -973,7 +979,14 @@ private fun EditAddImageTile(onClick: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EditPurchaseDatePicker(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
-    val dpState = rememberDatePickerState()
+    // 💡 오늘 이후의 날짜는 선택할 수 없도록 제한
+    val dpState = rememberDatePickerState(
+        selectableDates = object : androidx.compose.material3.SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                return utcTimeMillis <= System.currentTimeMillis()
+            }
+        }
+    )
     DatePickerDialog(
         onDismissRequest = onDismiss,
         colors = boatDatePickerColors(),
