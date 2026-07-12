@@ -259,15 +259,17 @@ private fun ExpiringWarrantySection(
                 contentPadding = PaddingValues(horizontal = Margin20),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                itemsIndexed(expiring, key = { _, item -> item.receiptId }) { index, item ->
+                itemsIndexed(expiring, key = { _, item -> item.receiptId }) { _, item ->
                     ExpiringWarrantyCard(
                         item = item,
                         width = cardWidth,
                         onClick = { onItemClick(item) },
-                        // 첫 카드의 실측 높이를 "더보기" 카드에 그대로 물려준다.
-                        modifier = if (index == 0) {
-                            Modifier.onSizeChanged { cardHeightPx = it.height }
-                        } else Modifier,
+                        // 실측 높이를 "더보기" 카드에 그대로 물려준다. 첫 카드(index 0)만 측정하면,
+                        // 목록 화면에 갔다가 돌아왔을 때 스크롤이 "더보기" 카드 쪽에 남아있어 첫 카드가
+                        // LazyRow 컴포지션 창 밖으로 벗어나 다시 측정되지 않고, cardHeightPx가 갱신되지
+                        // 않아 "더보기" 카드가 높이 0(콘텐츠만큼만)으로 찌그러지는 문제가 있었다.
+                        // 모든 카드가 동일한 높이이므로, 현재 컴포즈된 카드 아무거나 계속 갱신해도 안전하다.
+                        modifier = Modifier.onSizeChanged { cardHeightPx = it.height },
                     )
                 }
                 if (showMoreCard) {
