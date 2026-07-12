@@ -1,6 +1,7 @@
 package com.windrr.boat.data.repository
 
 import com.windrr.boat.core.ApiResult
+import com.windrr.boat.core.log.BoatLog
 import com.windrr.boat.data.remote.model.BaseResponse
 import retrofit2.Response
 import java.io.IOException
@@ -47,10 +48,12 @@ abstract class BaseRepository {
             }
 
         } catch (e: IOException) {
-            // 네트워크 연결 문제
+            // 네트워크 연결 문제 — 실패 사유를 Crashlytics에 non-fatal로 기록
+            BoatLog.e("네트워크 통신 실패: ${e.message}", e, tag = "Network")
             ApiResult.Error(code = -1, message = "네트워크 연결을 확인해주세요")
         } catch (e: Exception) {
             // 파싱 오류 등 예외
+            BoatLog.e("API 호출 실패: ${e.message}", e, tag = "Network")
             ApiResult.Error(code = -1, message = e.message ?: "알 수 없는 오류가 발생했습니다")
         }
     }
