@@ -3,6 +3,7 @@ package com.windrr.boat.feature.notification
 import com.windrr.boat.data.remote.model.NotificationDto
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.TimeZone
 
 /**
  * 알림 목록 화면용 표시 모델.
@@ -49,9 +50,20 @@ private fun String?.toDisplayDate(): String {
  */
 private fun String?.toRelativeDisplayTime(): String {
     if (this.isNullOrBlank()) return ""
-    val createdMs = runCatching {
-        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.KOREA).parse(this)?.time
-    }.getOrNull() ?: return toDisplayDate()
+    
+    // 💡 서버는 UTC 시각을 보내주므로 명시적으로 UTC로 파싱해야 함 (미지정 시 기기 로컬 시각으로 해석되어 오차 발생)
+    val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.KOREA).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
+    
+    val createdMs = runCatching { sdf.parse(this)?.time }.getOrNull() 
+        ?: runCatching { 
+            // 밀리초가 포함된 포맷(.SSS)에 대한 폴백
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.KOREA).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }.parse(this)?.time 
+        }.getOrNull()
+        ?: return toDisplayDate()
 
     val diffMs = (System.currentTimeMillis() - createdMs).coerceAtLeast(0)
     val minute = 60_000L

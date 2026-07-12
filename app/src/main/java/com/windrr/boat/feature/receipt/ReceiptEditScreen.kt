@@ -467,6 +467,7 @@ private fun ReceiptEditForm(
                     paymentDate = purchaseDate.replace(".", "-").trim().ifBlank { null },
                     totalAmount = price.toIntOrNull(),
                     periodMonths = warrantyMonths,
+                    expiresOn = expiryDate?.replace(".", "-"),
                     category = selectedCategory.displayName,
                     subCategory = selectedSubCategory,
                     memo = memo.trim().ifBlank { null },

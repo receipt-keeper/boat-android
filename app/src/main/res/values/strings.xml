@@ -181,8 +181,6 @@
     <string name="mypage_analysis_view">보기</string>
     <string name="mypage_promo_title">지금 바로 영수증을 쉽고\n빠르게 등록해 보세요!</string>
     <string name="mypage_promo_notice_title">오픈 이벤트 안내</string>
-    <string name="mypage_promo_notice_1">무료 분석 5회를 제공해 드리고 있습니다. 지급일 기준 30일 이내에 사용해야 하며, 기간이 지나면 자동으로 소멸됩니다.</string>
-    <string name="mypage_promo_notice_2">이미 지급받은 경우에는 추가 지급되지 않으며, 별도 공지가 없는 경우 매월 1일 무료 분석 5회가 지급될 예정입니다.</string>
     <string name="mypage_promo_register">지금 영수증 등록하기</string>
     <string name="mypage_section_settings">설정</string>
     <string name="mypage_section_notification">알림</string>

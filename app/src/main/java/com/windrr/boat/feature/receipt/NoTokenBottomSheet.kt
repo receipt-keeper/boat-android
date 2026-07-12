@@ -30,8 +30,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -145,9 +149,15 @@ private fun NoTokenPromoContent(
         )
         Spacer(Modifier.height(8.dp))
 
-        // 서브타이틀 (블루 & 볼드 하이라이트)
+        // 서브타이틀 (블루, "무료 분석 5회"만 강조)
         Text(
-            text = "오픈 기념으로 무료 연장해 드려요.",
+            text = buildAnnotatedString {
+                append("오픈 이벤트로 ")
+                withStyle(SpanStyle(color = colorBrandPrimary)) {
+                    append("무료 분석 5회")
+                }
+                append("를 추가로 드려요.")
+            },
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = colorBrandPrimary,
@@ -178,7 +188,18 @@ private fun NoTokenPromoContent(
                     modifier = Modifier.padding(end = 8.dp, top = 1.dp),
                 )
                 Text(
-                    text = "이벤트로 제공되는 무료 분석 5회는 지급일 기준 30일 이내에 사용해야 하며 기간이 지나면 자동으로 소멸됩니다.",
+                    text = buildAnnotatedString {
+                        append("이벤트로 제공되는 ")
+                        withStyle(
+                            SpanStyle(
+                                color = colorBrandPrimary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        ) {
+                            append("추가 5회")
+                        }
+                        append("는 지급된 달의 말일까지 사용할 수 있으며, 사용하지 않은 횟수는 자동으로 소멸됩니다. (계정당 1회)")
+                    },
                     fontSize = 14.sp,
                     color = colorGray600,
                     lineHeight = 22.sp,
