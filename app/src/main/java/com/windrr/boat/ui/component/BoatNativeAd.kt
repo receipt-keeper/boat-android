@@ -71,7 +71,7 @@ fun BoatNativeAdBanner(
         AndroidView(
             modifier = modifier
                 .fillMaxWidth()
-                .height(110.dp),
+                .height(130.dp),
             factory = { ctx ->
                 val adView = LayoutInflater.from(ctx)
                     .inflate(R.layout.layout_native_ad_banner, null) as NativeAdView
@@ -91,7 +91,7 @@ fun BoatNativeAdBanner(
         )
     } else {
         // 로딩 중: 공간만 차지하도록 빈 박스 처리 (또는 스켈레톤)
-        Box(modifier = modifier.fillMaxWidth().height(110.dp))
+        Box(modifier = modifier.fillMaxWidth().height(130.dp))
     }
 }
 
