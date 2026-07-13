@@ -148,7 +148,7 @@
         <!-- Google AdMob Application ID (보트랩 실 앱 ID) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-2156013754929909~6714703261" />
+            android:value="ca-app-pub-2156013754929909~9724009989" />
 
         <!-- 카메라 촬영 임시 파일 공유용 FileProvider -->
         <provider

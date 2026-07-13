@@ -30,12 +30,12 @@ import com.windrr.boat.feature.home.AccessoryBanner
 /**
  * 기존 AccessoryBanner 디자인을 계승하는 구글 네이티브 광고 컴포넌트.
  *
- * @param adUnitId 광고 단위 ID (보트랩_네이티브_배너, 네이티브 광고 고급형)
+ * @param adUnitId 광고 단위 ID (네이티브 광고용 테스트 ID)
  */
 @Composable
 fun BoatNativeAdBanner(
     modifier: Modifier = Modifier,
-    adUnitId: String = "ca-app-pub-2156013754929909/4511633211" // 보트랩_네이티브_배너
+    adUnitId: String = "ca-app-pub-2156013754929909/7289005642" // 네이티브 고급 광고 ID
 ) {
     val context = LocalContext.current
     var nativeAd by remember { mutableStateOf<NativeAd?>(null) }
