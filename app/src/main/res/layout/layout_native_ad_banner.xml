@@ -14,6 +14,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:layout_marginEnd="12dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/ad_app_icon"
             app:layout_constraintStart_toStartOf="parent"
@@ -25,7 +26,9 @@
                 android:layout_height="wrap_content"
                 android:textColor="#333333"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:ellipsize="end"
+                android:maxLines="1" />
 
             <TextView
                 android:id="@+id/ad_body"
@@ -34,29 +37,43 @@
                 android:layout_marginTop="4dp"
                 android:textColor="#777777"
                 android:textSize="13sp"
-                android:lineSpacingExtra="2dp" />
+                android:lineSpacingExtra="2dp"
+                android:ellipsize="end"
+                android:maxLines="2" />
         </LinearLayout>
 
         <ImageView
             android:id="@+id/ad_app_icon"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:scaleType="fitCenter"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:scaleType="centerInside"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- 필수 표시 요소: "광고" 라벨 -->
+        <!-- 필수 표시 요소: "Ad" 라벨 (iOS 스타일: 좌측 상단 반투명 회색) -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="4dp"
+            android:layout_marginTop="8dp"
             android:background="#40000000"
             android:paddingHorizontal="4dp"
+            android:paddingVertical="1dp"
             android:text="Ad"
             android:textColor="#FFFFFF"
             android:textSize="10sp"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- AdChoices(광고 선택 옵션) 아이콘 — 구글이 명시적으로 요구하는 필수 표시 요소.
+             지정하지 않으면 SDK가 기본 위치(우상단)에 자체적으로 얹지만, 우리 아이콘 뷰와
+             겹칠 수 있어 직접 자리를 잡아준다. -->
+        <com.google.android.gms.ads.nativead.AdChoicesView
+            android:id="@+id/ad_choices_view"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_margin="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

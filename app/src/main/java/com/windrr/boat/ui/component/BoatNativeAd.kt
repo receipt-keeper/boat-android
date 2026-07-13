@@ -21,6 +21,7 @@ import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.nativead.AdChoicesView
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
 import com.windrr.boat.R
@@ -110,6 +111,9 @@ private fun populateNativeAdView(nativeAd: NativeAd, adView: NativeAdView) {
         iconView.setImageDrawable(nativeAd.icon?.drawable)
     }
     adView.iconView = iconView
+
+    // AdChoices(광고 선택 옵션) 아이콘 — setNativeAd 호출 전에 반드시 지정해야 한다.
+    adView.adChoicesView = adView.findViewById<AdChoicesView>(R.id.ad_choices_view)
 
     // 광고 객체 등록
     adView.setNativeAd(nativeAd)
