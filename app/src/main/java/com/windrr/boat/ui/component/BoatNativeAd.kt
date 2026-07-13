@@ -2,7 +2,6 @@ package com.windrr.boat.ui.component
 
 import android.util.Log
 import android.view.LayoutInflater
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +21,7 @@ import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.nativead.AdChoicesView
+import com.google.android.gms.ads.nativead.MediaView
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
 import com.windrr.boat.R
@@ -105,12 +105,11 @@ private fun populateNativeAdView(nativeAd: NativeAd, adView: NativeAdView) {
     bodyView.text = nativeAd.body
     adView.bodyView = bodyView
 
-    // 아이콘 매핑
-    val iconView = adView.findViewById<ImageView>(R.id.ad_app_icon)
-    if (nativeAd.icon != null) {
-        iconView.setImageDrawable(nativeAd.icon?.drawable)
-    }
-    adView.iconView = iconView
+    // 메인 이미지/동영상 매핑 — 아이콘 전용 ImageView가 아니라 MediaView를 써야 한다
+    // (AdMob Native Ad Validator: "MediaView not used for main image or video asset").
+    val mediaView = adView.findViewById<MediaView>(R.id.ad_media)
+    mediaView.mediaContent = nativeAd.mediaContent
+    adView.mediaView = mediaView
 
     // AdChoices(광고 선택 옵션) 아이콘 — setNativeAd 호출 전에 반드시 지정해야 한다.
     adView.adChoicesView = adView.findViewById<AdChoicesView>(R.id.ad_choices_view)

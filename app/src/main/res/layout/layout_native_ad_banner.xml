@@ -16,7 +16,7 @@
             android:orientation="vertical"
             android:layout_marginEnd="12dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/ad_app_icon"
+            app:layout_constraintEnd_toStartOf="@+id/ad_media"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
@@ -42,11 +42,12 @@
                 android:maxLines="2" />
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/ad_app_icon"
+        <!-- 광고 메인 이미지/동영상 — 아이콘 전용 ImageView가 아니라 MediaView를 써야 한다
+             (AdMob Native Ad Validator: "MediaView not used for main image or video asset"). -->
+        <com.google.android.gms.ads.nativead.MediaView
+            android:id="@+id/ad_media"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:scaleType="centerInside"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
