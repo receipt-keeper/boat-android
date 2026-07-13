@@ -9,6 +9,7 @@ import coil3.SingletonImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.util.DebugLogger
 import android.os.Build
+import com.google.android.gms.ads.MobileAds
 import com.windrr.boat.core.crash.CrashReporter
 import com.windrr.boat.core.notification.NotificationHelper
 import com.windrr.boat.data.remote.ApiClient
@@ -34,6 +35,9 @@ class AppCore : Application(), SingletonImageLoader.Factory {
         CrashReporter.setCollectionEnabled(true)
 
         NotificationHelper.createChannels(this)
+
+        // Google AdMob 초기화
+        MobileAds.initialize(this) {}
     }
 
     /**

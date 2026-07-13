@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Image
 import com.windrr.boat.R
+import com.windrr.boat.ui.component.BoatNativeAdBanner
 import com.windrr.boat.core.ocr.DeviceImage
 import com.windrr.boat.feature.receipt.WarrantyDayBadge
 import com.windrr.boat.ui.theme.BottomBarClearance
@@ -107,11 +108,12 @@ fun HomeGeneralContent(
             )
         }
 
-        // ── 가전제품 소모품/액세서리 배너 ───────────────
+        // ── 구글 네이티브 광고 (기존 AccessoryBanner 대체) ───────────────
         Spacer(Modifier.height(Margin20))
-        AccessoryBanner(
-            onClick = { /* TODO: 소모품/액세서리 페이지 연결 */ },
-            modifier = Modifier.padding(horizontal = Margin20),
+        BoatNativeAdBanner(
+            modifier = Modifier
+                .padding(horizontal = Margin20)
+                .clip(RoundedXl)
         )
 
         // ── 최근 등록된 영수증 ────────────────────────

@@ -132,8 +132,9 @@ dependencies {
     // Lottie
     implementation(libs.lottie.compose)
 
-    // Google Sign-In
+    // Google Sign-In & Ads
     implementation(libs.play.services.auth)
+    implementation(libs.play.services.ads)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -145,6 +146,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.core)
+    implementation(libs.androidx.constraintlayout)
 
     // Retrofit
     implementation(libs.retrofit)

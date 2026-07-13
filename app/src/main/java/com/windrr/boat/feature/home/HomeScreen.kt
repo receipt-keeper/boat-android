@@ -55,6 +55,7 @@ import com.windrr.boat.feature.notification.NotificationBadgeViewModel
 import com.windrr.boat.feature.receipt.ReceiptDetailActivity
 import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
 import com.windrr.boat.ui.component.BoatHeader
+import com.windrr.boat.ui.component.BoatNativeAdBanner
 import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.RefreshOnResume
 import com.windrr.boat.ui.component.rememberBoatToastState
@@ -384,7 +385,12 @@ private fun HomeInitialContent(
         Spacer(Modifier.height(Margin8))
         ReceiptRegisterBanner(onClick = onRegisterClick)
         Spacer(Modifier.height(Margin20))
-        AccessoryBanner(onClick = { /* TODO: 소모품/액세서리 페이지 연결 */ })
+        // 구글 네이티브 광고 (기존 AccessoryBanner 디자인 대체)
+        BoatNativeAdBanner(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedXl)
+        )
         Spacer(Modifier.height(Margin20))
     }
 }
