@@ -199,12 +199,13 @@ fun LoginScreen(
 
         Spacer(Modifier.weight(1.5f))
 
-        // Google 로그인 버튼
         OutlinedButton(
             onClick = {
+                if (state.isLoading) return@OutlinedButton
                 BoatLog.i("[GOOGLE-1] Google 로그인 버튼 클릭 — 계정 선택창 실행")
                 googleLauncher.launch(googleSignInClient.signInIntent)
             },
+            enabled = !state.isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -235,7 +236,8 @@ fun LoginScreen(
 
         // Apple 로그인 버튼
         Button(
-            onClick = { handleAppleSignIn() },
+            onClick = { if (!state.isLoading) handleAppleSignIn() },
+            enabled = !state.isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),

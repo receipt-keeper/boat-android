@@ -1,6 +1,5 @@
 package com.windrr.boat.feature.notification
 
-import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -66,13 +65,8 @@ fun NotificationListScreen(
                 context.startActivity(ReceiptDetailActivity.intent(context, target.receiptId))
             NotificationRoute.ReceiptRegister ->
                 context.startActivity(ReceiptRegisterActivity.intent(context))
-            // 상시 유도/마케팅 알림 — 태스크를 MainActivity(기본 홈 탭)로 리셋한다.
-            // 푸시 탭(PushNotificationRouterActivity)과 동일한 방식.
-            NotificationRoute.Home -> context.startActivity(
-                Intent(context, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-            )
+            // 상시 유도/마케팅 알림 — 단순히 현재 화면을 닫아 밑에 있는 홈으로 돌아간다.
+            NotificationRoute.Home -> onBack()
             NotificationRoute.None -> Unit
         }
     }

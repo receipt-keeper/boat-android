@@ -236,6 +236,16 @@
     <string name="account_delete_confirm">탈퇴하기</string>
     <string name="account_delete_error">탈퇴 처리에 실패했습니다. 잠시 후 다시 시도해주세요.</string>
 
+    <!-- 서비스 피드백 -->
+    <string name="feedback_title">보트랩 서비스는 어떠셨나요?</string>
+    <string name="feedback_subtitle">영수증 등록 기능을 이용하며\n느끼신 소중한 의견을 남겨주세요.</string>
+    <string name="feedback_placeholder">(선택) 서비스를 이용하며 느낀 점을 자유롭게 알려주세요.</string>
+    <string name="feedback_counter">(%1$d/100)</string>
+    <string name="feedback_submit">의견 보내기</string>
+    <string name="feedback_next">다음에</string>
+    <string name="feedback_submit_success">소중한 의견 감사합니다!</string>
+    <string name="feedback_submit_error">전송에 실패했습니다. 다시 시도해주세요.</string>
+
     <!-- Loading -->
     <string name="loading_sync_message">잠시만 기다려 주세요.</string>
     <string name="loading_ocr_message">영수증을 분석하는 중이에요.</string>

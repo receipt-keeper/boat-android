@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "925770804748-t9j3oa6nqpicirclcfceqtr9oo5ndfpg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.windrr.boat",
+            "certificate_hash": "5df6b35e4348d32efe51a7cf696d36b8151928fb"
+          }
+        },
+        {
           "client_id": "925770804748-qcf9f1juj4jsv4snkeg3k943n8ii0rvu.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -47,10 +55,10 @@
               "client_type": 3
             },
             {
-              "client_id": "925770804748-rdiej9mn3loeufoais4t8lda2i89io5u.apps.googleusercontent.com",
+              "client_id": "925770804748-33kag0oats9m03ltql3t0ki3992l3f77.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.receipt-keeper.BOAT"
+                "bundle_id": "com.windrr.boat"
               }
             }
           ]

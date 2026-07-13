@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -14,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -28,6 +31,9 @@ import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
 import com.windrr.boat.feature.receipt.ReceiptSort
 import com.windrr.boat.feature.receipt.ReceiptTab
 import com.windrr.boat.feature.receipt.SearchScreen
+import com.windrr.boat.ui.component.BoatToastState
+import com.windrr.boat.ui.component.UserFeedbackBottomSheet
+import com.windrr.boat.ui.component.UserFeedbackViewModel
 import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
@@ -43,6 +49,8 @@ fun MainScreen(
     onSignOut: () -> Unit,
     onDeleteAccount: () -> Unit,
     onShowExitToast: () -> Unit,
+    toastState: BoatToastState,
+    feedbackViewModel: UserFeedbackViewModel,
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -53,6 +61,11 @@ fun MainScreen(
     // 홈 → 목록 탭 진입 시 적용할 inner 탭/정렬 1회성 신호
     var pendingListTab by remember { mutableStateOf<ReceiptTab?>(null) }
     var pendingListSort by remember { mutableStateOf<ReceiptSort?>(null) }
+
+    val showFeedbackSheet by feedbackViewModel.showFeedbackSheet.collectAsState()
+    val isFeedbackSubmitting by feedbackViewModel.isSubmitting.collectAsState()
+    val msgFeedbackSuccess = stringResource(R.string.feedback_submit_success)
+    val msgFeedbackError = stringResource(R.string.feedback_submit_error)
 
     fun goSearch() {
         navController.navigate("search")
@@ -189,6 +202,23 @@ fun MainScreen(
                 isAddMenuOpen = showAddMenu,
                 onAddClick = { showAddMenu = !showAddMenu },
                 modifier = Modifier.align(Alignment.BottomCenter),
+            )
+        }
+
+        if (showFeedbackSheet) {
+            UserFeedbackBottomSheet(
+                onDismiss = { feedbackViewModel.onFeedbackDismissed() },
+                onNext = { feedbackViewModel.onFeedbackPostponed() },
+                onSubmit = { rating, comment ->
+                    feedbackViewModel.submitFeedback(rating, comment) { success ->
+                        if (success) {
+                            toastState.showSuccess(msgFeedbackSuccess)
+                        } else {
+                            toastState.showError(msgFeedbackError)
+                        }
+                    }
+                },
+                isSubmitting = isFeedbackSubmitting
             )
         }
     }

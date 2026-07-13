@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.windrr.boat.MainActivity
 import com.windrr.boat.R
 import com.windrr.boat.core.notification.FcmDeviceManager
@@ -27,6 +28,8 @@ import com.windrr.boat.data.repository.AuthRepositoryImpl
 import com.windrr.boat.feature.auth.AuthIntent
 import com.windrr.boat.feature.auth.AuthViewModel
 import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.RefreshOnResume
+import com.windrr.boat.ui.component.UserFeedbackViewModel
 import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.BoatTheme
 
@@ -54,6 +57,18 @@ class HomeActivity : ComponentActivity() {
                     }
                 )
                 val state by authViewModel.state.collectAsState()
+
+                val feedbackViewModel: UserFeedbackViewModel = viewModel(
+                    factory = object : ViewModelProvider.Factory {
+                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                            @Suppress("UNCHECKED_CAST")
+                            return UserFeedbackViewModel(
+                                ApiClient.userDataStore,
+                                FirebaseAnalytics.getInstance(this@HomeActivity)
+                            ) as T
+                        }
+                    }
+                )
 
                 // 메인 진입 시(앱 시작/로그인 성공 모두 이 화면을 거침) 서버에서 내 정보 동기화
                 LaunchedEffect(Unit) { authViewModel.syncUser() }
@@ -99,6 +114,8 @@ class HomeActivity : ComponentActivity() {
                         onSignOut = { authViewModel.handleIntent(AuthIntent.SignOut) },
                         onDeleteAccount = { authViewModel.handleIntent(AuthIntent.DeleteAccount) },
                         onShowExitToast = { toastState.show(msgBackExit) },
+                        toastState = toastState,
+                        feedbackViewModel = feedbackViewModel,
                     )
                 }
             }

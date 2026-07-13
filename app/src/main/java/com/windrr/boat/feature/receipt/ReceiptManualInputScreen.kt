@@ -105,6 +105,7 @@ import com.windrr.boat.feature.gallery.GalleryViewModel
 import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatInputField
 import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.FeedbackTrigger
 import com.windrr.boat.ui.component.InfoTooltipIcon
 import com.windrr.boat.ui.component.PhotoSourceSheet
 import com.windrr.boat.ui.component.PriceVisualTransformation
@@ -352,6 +353,8 @@ fun ReceiptManualInputScreen(
                     repository.createReceipt(request).fold(
                         onSuccess = { item ->
                             isSubmitting = false
+                            // 영수증 등록 성공 시 피드백 시트 노출 트리거
+                            FeedbackTrigger.trigger()
                             context.startActivity(
                                 ReceiptRegisterCompleteActivity.intent(context, item.receiptId)
                             )

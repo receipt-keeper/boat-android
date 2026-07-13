@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.windrr.boat.ui.component.FeedbackTrigger
 import com.windrr.boat.ui.theme.BoatTheme
 
 class NotificationListActivity : ComponentActivity() {
@@ -13,7 +14,10 @@ class NotificationListActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             BoatTheme {
-                NotificationListScreen(onBack = { finish() })
+                NotificationListScreen(onBack = {
+                    FeedbackTrigger.trigger()
+                    finish()
+                })
             }
         }
     }

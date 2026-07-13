@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.windrr.boat.data.model.User
@@ -31,6 +32,7 @@ class UserDataStore(private val context: Context) {
         private val KEY_MARKETING_CONSENT = booleanPreferencesKey("marketing_consent")
         private val KEY_FREE_ANALYSIS_TOKENS = intPreferencesKey("free_analysis_tokens_remaining")
         private val KEY_LAST_NOTIF_VIEWED_AT = stringPreferencesKey("last_notif_viewed_at")
+        private val KEY_NEXT_FEEDBACK_DISPLAY_AT = longPreferencesKey("next_feedback_display_at")
     }
 
     /** 저장된 사용자 정보를 Flow로 관찰 (값이 없으면 기본값) */
@@ -83,6 +85,15 @@ class UserDataStore(private val context: Context) {
     /** 마지막으로 알림 목록을 확인한 시각 갱신 */
     suspend fun updateLastNotifViewedAt(timestamp: String) {
         context.userDataStore.edit { it[KEY_LAST_NOTIF_VIEWED_AT] = timestamp }
+    }
+
+    /** 피드백 시트가 다시 노출될 수 있는 최소 시점 (타임스탬프) */
+    val nextFeedbackDisplayAt: Flow<Long> = context.userDataStore.data
+        .map { it[KEY_NEXT_FEEDBACK_DISPLAY_AT] ?: 0L }
+
+    /** 피드백 시트 노출 연기 설정 (현재 시점 + 30일 등) */
+    suspend fun updateNextFeedbackDisplayAt(timestamp: Long) {
+        context.userDataStore.edit { it[KEY_NEXT_FEEDBACK_DISPLAY_AT] = timestamp }
     }
 
     /** 로그아웃/탈퇴 시 사용자 정보 전체 삭제 */
