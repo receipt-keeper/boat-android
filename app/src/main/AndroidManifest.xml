@@ -145,11 +145,10 @@
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="general_push" />
 
-        <!-- Google AdMob Application ID (테스트용 ID) -->
-        <!-- 실 서비스 시 AdMob 콘솔에서 발급받은 ID로 교체 필요 -->
+        <!-- Google AdMob Application ID (보트랩 실 앱 ID) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3833104326342504~4284779803" />
+            android:value="ca-app-pub-2156013754929909~6714703261" />
 
         <!-- 카메라 촬영 임시 파일 공유용 FileProvider -->
         <provider
