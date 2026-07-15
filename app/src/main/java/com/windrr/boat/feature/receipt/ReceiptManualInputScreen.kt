@@ -696,7 +696,7 @@ fun ReceiptManualInputScreen(
                         keyboardType = KeyboardType.Number,
                         visualTransformation = PriceVisualTransformation(),
                         isError = price.length >= 9,
-                        errorText = "최대 9,999,999,999원까지 입력 가능합니다.",
+                        errorText = "최대 999,999,999원까지 입력 가능합니다.",
                     )
                     Spacer(Modifier.height(Margin16))
                     Row(verticalAlignment = Alignment.CenterVertically) {

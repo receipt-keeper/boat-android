@@ -33,6 +33,7 @@ import com.windrr.boat.ui.component.RefreshOnResume
 import com.windrr.boat.ui.component.UserFeedbackViewModel
 import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.BoatTheme
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class HomeActivity : ComponentActivity() {
 
@@ -47,9 +48,15 @@ class HomeActivity : ComponentActivity() {
             }
     }
 
+    private val targetTabState = MutableStateFlow(MainTab.START)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // 초기 인텐트 처리
+        handleIntent(intent)
+
         setContent {
             BoatTheme {
                 val authViewModel: AuthViewModel = viewModel(
@@ -82,6 +89,8 @@ class HomeActivity : ComponentActivity() {
                     }
                 )
 
+                val targetTab by targetTabState.collectAsState()
+
                 // 메인 진입 시(앱 시작/로그인 성공 모두 이 화면을 거침) 서버에서 내 정보 동기화
                 LaunchedEffect(Unit) { authViewModel.syncUser() }
                 // FCM 디바이스 등록 — 로그인 상태에서 멱등 upsert (PUT /notifications/devices)
@@ -92,12 +101,6 @@ class HomeActivity : ComponentActivity() {
 
                 val toastState = rememberBoatToastState()
                 val msgBackExit = stringResource(R.string.home_back_exit)
-
-                // 인텐트로 넘어온 타겟 탭 확인 (없으면 기본 탭)
-                val targetTabRoute = intent.getStringExtra(EXTRA_TARGET_TAB)
-                var targetTab by remember(targetTabRoute) {
-                    mutableStateOf(MainTab.entries.find { it.route == targetTabRoute } ?: MainTab.START)
-                }
 
                 BoatToastHost(state = toastState)
 
@@ -130,7 +133,7 @@ class HomeActivity : ComponentActivity() {
                     MainScreen(
                         user = state.user,
                         initialTab = targetTab,
-                        onTabSelected = { targetTab = it },
+                        onTabSelected = { targetTabState.value = it },
                         onSignOut = { authViewModel.handleIntent(AuthIntent.SignOut) },
                         onDeleteAccount = { authViewModel.handleIntent(AuthIntent.DeleteAccount) },
                         onShowExitToast = { toastState.show(msgBackExit) },
@@ -139,6 +142,19 @@ class HomeActivity : ComponentActivity() {
                     )
                 }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent) {
+        val route = intent.getStringExtra(EXTRA_TARGET_TAB)
+        MainTab.entries.find { it.route == route }?.let {
+            targetTabState.value = it
         }
     }
 }

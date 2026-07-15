@@ -63,7 +63,9 @@ class BoatToastState {
     fun showError(message: String) = show(message, BoatToastType.ERROR)
     fun showSuccess(message: String) = show(message, BoatToastType.SUCCESS)
 
-    fun dismiss() { current = null }
+    fun dismiss() {
+        current = null
+    }
 }
 
 @Composable
@@ -95,14 +97,22 @@ fun BoatToastHost(
         offset = IntOffset(x = 0, y = topOffsetPx),
         properties = PopupProperties(focusable = false)
     ) {
-        AnimatedVisibility(
-            visible = current != null,
-            enter = fadeIn() + slideInVertically { -it },
-            exit  = fadeOut() + slideOutVertically { -it }
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.TopCenter
         ) {
-            snapshot?.let { (message, type) ->
-                Box(modifier = Modifier.padding(horizontal = Margin20)) {
-                    BoatToastItem(message = message, type = type)
+            AnimatedVisibility(
+                visible = current != null,
+                enter = fadeIn() + slideInVertically(initialOffsetY = { -it }),
+                exit = fadeOut() + slideOutVertically(targetOffsetY = { -it })
+            ) {
+                snapshot?.let { (message, type) ->
+                    Box(
+                        modifier = Modifier.padding(horizontal = Margin20),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        BoatToastItem(message = message, type = type)
+                    }
                 }
             }
         }
@@ -119,7 +129,7 @@ private fun BoatToastItem(
     val iconRes = if (isError) R.drawable.toast_red else R.drawable.toast_info
     // 아이콘 배경: FE395B @10% / 0088FF @10%
     val bgColor = if (isError) Color(0x1AFE395B) else Color(0x1A0088FF)
-    val tint    = if (isError) ColorSystemError else ColorBrandPrimary
+    val tint = if (isError) ColorSystemError else ColorBrandPrimary
 
     Row(
         modifier = modifier
