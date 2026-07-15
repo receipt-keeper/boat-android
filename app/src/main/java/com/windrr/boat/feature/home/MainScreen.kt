@@ -51,6 +51,8 @@ fun MainScreen(
     onShowExitToast: () -> Unit,
     toastState: BoatToastState,
     feedbackViewModel: UserFeedbackViewModel,
+    initialTab: MainTab = MainTab.START,
+    onTabSelected: (MainTab) -> Unit = {},
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -108,6 +110,17 @@ fun MainScreen(
         }
     }
 
+    // initialTab이 변경되면(Intent 재수신 등) 해당 탭으로 내비게이션
+    LaunchedEffect(initialTab) {
+        if (currentRoute != initialTab.route) {
+            navController.navigate(initialTab.route) {
+                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
+
     // 홈/검색은 #F5F7FA 배경(상태바 영역까지) — 목록/마이는 헤더가 흰색이라 흰색 유지
     val systemBackground = if (currentRoute == MainTab.HOME.route || currentRoute == "search") ColorGray50 else ColorWhite
 
@@ -117,7 +130,7 @@ fun MainScreen(
         ) { innerPadding ->
             NavHost(
                 navController = navController,
-                startDestination = MainTab.START.route,
+                startDestination = initialTab.route,
                 // 이 콘텐츠가 하단 플로팅 바의 블러 소스가 된다.
                 // innerPadding(상태바/네비바 inset)은 화면별로 적용한다 —
                 // 홈은 상단 그라데이션이 상태바 영역까지 꽉 차도록 top inset을 적용하지 않는다.
@@ -201,6 +214,7 @@ fun MainScreen(
                 showAddButton = true,
                 isAddMenuOpen = showAddMenu,
                 onAddClick = { showAddMenu = !showAddMenu },
+                onTabClick = { onTabSelected(it) }, // 💡 탭 클릭 시 상위 상태 동기화
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
         }

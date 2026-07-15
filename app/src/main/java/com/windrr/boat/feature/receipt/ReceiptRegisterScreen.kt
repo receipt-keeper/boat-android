@@ -602,15 +602,11 @@ fun ReceiptRegisterScreen(
                                     networkErrorMessage
                                 )
 
-                                photos.isEmpty() -> toastState.showError(
-                                    "영수증 이미지를 1장 이상 등록해 주세요."
-                                )
-
                                 remoteCanAnalyze && freeAnalysisTokens > 0 -> analyzeReceipt()
                                 else -> openNoTokenSheet()
                             }
                         },
-                        enabled = !isAnalyzing,
+                        enabled = !isAnalyzing && photos.isNotEmpty(),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),

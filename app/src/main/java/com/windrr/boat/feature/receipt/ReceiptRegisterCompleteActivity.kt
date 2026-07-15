@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.windrr.boat.feature.home.HomeActivity
+import com.windrr.boat.feature.home.MainTab
 import com.windrr.boat.ui.theme.BoatTheme
 
 /**
@@ -31,11 +32,7 @@ class ReceiptRegisterCompleteActivity : ComponentActivity() {
         val receiptId = intent.getStringExtra(EXTRA_RECEIPT_ID).orEmpty()
 
         fun goHome() {
-            startActivity(
-                Intent(this, HomeActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                }
-            )
+            startActivity(HomeActivity.intent(this, MainTab.HOME))
         }
 
         setContent {

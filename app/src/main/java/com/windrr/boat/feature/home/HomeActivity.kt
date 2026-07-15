@@ -1,5 +1,6 @@
 package com.windrr.boat.feature.home
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -34,6 +35,17 @@ import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.BoatTheme
 
 class HomeActivity : ComponentActivity() {
+
+    companion object {
+        private const val EXTRA_TARGET_TAB = "extra_target_tab"
+
+        /** 홈 화면으로 이동하며 특정 탭을 선택하기 위한 Intent */
+        fun intent(context: Context, targetTab: MainTab? = null): Intent =
+            Intent(context, HomeActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                targetTab?.let { putExtra(EXTRA_TARGET_TAB, it.route) }
+            }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,6 +93,12 @@ class HomeActivity : ComponentActivity() {
                 val toastState = rememberBoatToastState()
                 val msgBackExit = stringResource(R.string.home_back_exit)
 
+                // 인텐트로 넘어온 타겟 탭 확인 (없으면 기본 탭)
+                val targetTabRoute = intent.getStringExtra(EXTRA_TARGET_TAB)
+                var targetTab by remember(targetTabRoute) {
+                    mutableStateOf(MainTab.entries.find { it.route == targetTabRoute } ?: MainTab.START)
+                }
+
                 BoatToastHost(state = toastState)
 
                 // API 실패(탈퇴/동기화 등) 시 에러 토스트 (서버 message 또는 네트워크 안내)
@@ -111,6 +129,8 @@ class HomeActivity : ComponentActivity() {
                 Box(Modifier.fillMaxSize()) {
                     MainScreen(
                         user = state.user,
+                        initialTab = targetTab,
+                        onTabSelected = { targetTab = it },
                         onSignOut = { authViewModel.handleIntent(AuthIntent.SignOut) },
                         onDeleteAccount = { authViewModel.handleIntent(AuthIntent.DeleteAccount) },
                         onShowExitToast = { toastState.show(msgBackExit) },

@@ -66,9 +66,6 @@ private val TabIconSize = 24.dp
  *
  * Scaffold의 bottomBar 슬롯이 아니라 콘텐츠 위 오버레이(Box 최상단)로 배치한다.
  * 그래야 리스트가 바 아래로 자연스럽게 스크롤되어 "떠 있는" 느낌이 산다.
- *
- * 실시간 배경 블러는 적용하지 않고 반투명 흰색 + 테두리 + 그림자로 유리질감을 근사한다
- * (minSdk 24에서 실시간 블러는 별도 라이브러리가 필요).
  */
 @Composable
 fun BoatFloatingBottomBar(
@@ -78,6 +75,7 @@ fun BoatFloatingBottomBar(
     isAddMenuOpen: Boolean,
     onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onTabClick: (MainTab) -> Unit = {},
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -123,6 +121,7 @@ fun BoatFloatingBottomBar(
                     tab = tab,
                     selected = currentRoute == tab.route,
                     onClick = {
+                        onTabClick(tab) // 💡 상위 상태 알림
                         if (currentRoute != tab.route) {
                             navController.navigate(tab.route) {
                                 // 시작 목적지까지 pop하되 상태 저장 → 탭별 백스택/상태 보존
