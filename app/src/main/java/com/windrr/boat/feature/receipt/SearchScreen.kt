@@ -3,6 +3,7 @@ package com.windrr.boat.feature.receipt
 import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -60,6 +61,7 @@ import com.windrr.boat.data.remote.model.ReceiptItem
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorGray100
 import com.windrr.boat.ui.theme.ColorGray200
+import com.windrr.boat.ui.theme.ColorGray300
 import com.windrr.boat.ui.theme.ColorGray400
 import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray500
@@ -70,6 +72,7 @@ import com.windrr.boat.ui.theme.Margin12
 import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
 import com.windrr.boat.ui.theme.RoundedFull
+import com.windrr.boat.ui.theme.RoundedLg
 import com.windrr.boat.ui.theme.RoundedXl
 
 /**
@@ -110,11 +113,13 @@ fun SearchScreen(
                 painter = painterResource(R.drawable.ic_arrow_back),
                 contentDescription = stringResource(R.string.common_back),
                 tint = Color.Unspecified,
-                modifier = Modifier.clickable(
-                    interactionSource = noRipple,
-                    indication = null,
-                    onClick = onBack,
-                ),
+                modifier = Modifier
+                    .clickable(
+                        interactionSource = noRipple,
+                        indication = null,
+                        onClick = onBack,
+                    )
+                    .size(30.dp),
             )
             Spacer(Modifier.width(12.dp))
             SearchField(
@@ -138,6 +143,7 @@ fun SearchScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) { CircularProgressIndicator(color = ColorBrandPrimary) }
+
             state.results.isEmpty() -> SearchEmptyState(
                 onRegisterClick = {
                     context.startActivity(Intent(context, ReceiptRegisterActivity::class.java))
@@ -146,6 +152,7 @@ fun SearchScreen(
                     .fillMaxSize()
                     .padding(horizontal = Margin20),
             )
+
             else -> SearchResultList(
                 results = state.results,
                 totalCount = state.totalCount,
@@ -170,9 +177,18 @@ private fun SearchResultList(
                 .padding(horizontal = Margin20, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(text = stringResource(R.string.receipt_filter_all), fontSize = 14.sp, color = ColorGray600)
+            Text(
+                text = stringResource(R.string.receipt_filter_all),
+                fontSize = 14.sp,
+                color = ColorGray600
+            )
             Text(text = "  |  ", fontSize = 14.sp, color = ColorGray200)
-            Text(text = "$totalCount", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = ColorBrandPrimary)
+            Text(
+                text = "$totalCount",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = ColorBrandPrimary
+            )
         }
 
         LazyColumn(
@@ -273,23 +289,35 @@ private fun SearchField(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedFull)
+                    .height(40.dp)
+                    .clip(RoundedLg)
                     .background(ColorWhite)
-                    .padding(horizontal = Margin16, vertical = 10.dp),
+                    .border(1.dp, ColorGray300, RoundedLg)
+                    .padding(horizontal = Margin16),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box(modifier = Modifier.weight(1f)) {
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.CenterStart
+                ) {
                     if (query.isEmpty()) {
                         Text(
                             text = stringResource(R.string.search_placeholder),
                             fontSize = 15.sp,
                             color = ColorGray400,
+                            modifier = Modifier.padding(start = 2.dp)
                         )
                     }
                     innerTextField()
                 }
-                if (query.isNotEmpty()) {
-                    Spacer(Modifier.width(8.dp))
+                if (query.isEmpty()) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_search),
+                        contentDescription = null,
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(16.dp),
+                    )
+                } else {
                     val clearRipple = remember { MutableInteractionSource() }
                     Icon(
                         painter = painterResource(R.drawable.icon_close_search),

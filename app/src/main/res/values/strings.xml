@@ -267,7 +267,7 @@
 
     <!-- Terms (약관동의) -->
     <string name="terms_title_bar">회원가입</string>
-    <string name="terms_headline">더 나은 서비스 사용을 위해\n이용약관에 동의 해주세요.</string>
+    <string name="terms_headline">더 나은 서비스 사용을 위해\n이용약관에 동의해 주세요.</string>
     <string name="terms_agree_all">전체 동의 (선택 포함)</string>
     <string name="terms_age">(필수) 만 14세 이상입니다.</string>
     <string name="terms_service">(필수) 서비스 이용약관에 동의</string>

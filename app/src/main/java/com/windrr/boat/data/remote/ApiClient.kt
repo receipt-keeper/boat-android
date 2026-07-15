@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit
  */
 object ApiClient {
 
-    const val BASE_URL_PROD  = "https://boatlab-dev.luigi99.cloud/"
+    const val BASE_URL_PROD  = "https://api.boatlab.co.kr/"
     const val BASE_URL_LOCAL = "http://localhost:8000/"
 
     /** DEBUG 빌드에서 SharedPreferences의 use_local_url 키로 URL 전환 가능 */

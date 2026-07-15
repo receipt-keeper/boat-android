@@ -8,8 +8,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -46,12 +48,12 @@ import com.windrr.boat.core.log.BoatLog
 import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.ColorBrandPrimary
-import com.windrr.boat.ui.theme.ColorGray500
+import com.windrr.boat.ui.theme.ColorGray700
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
-import com.windrr.boat.ui.theme.RoundedXl
+import com.windrr.boat.ui.theme.RoundedLg
 
 @Composable
 fun LoginScreen(
@@ -66,9 +68,9 @@ fun LoginScreen(
 
     BoatToastHost(state = toastState)
 
-    val msgCancelled  = stringResource(R.string.login_error_cancelled)
+    val msgCancelled = stringResource(R.string.login_error_cancelled)
     val msgGoogleFail = stringResource(R.string.login_error_google)
-    val msgAppleFail  = stringResource(R.string.login_error_apple)
+    val msgAppleFail = stringResource(R.string.login_error_apple)
 
     val googleSignInClient = remember {
         BoatLog.i("[GOOGLE-0] GoogleSignInClient 생성 — webClientId=${webClientId.takeLast(12)}")
@@ -100,16 +102,21 @@ fun LoginScreen(
                             displayName = account.displayName,
                         )
                     )
-                } ?: BoatLog.e("[GOOGLE-3-FAIL] idToken이 null — requestIdToken(webClientId) 설정/SHA-1 등록 확인 필요")
+                }
+                    ?: BoatLog.e("[GOOGLE-3-FAIL] idToken이 null — requestIdToken(webClientId) 설정/SHA-1 등록 확인 필요")
             } catch (e: ApiException) {
                 when (e.statusCode) {
                     12501 -> {
                         BoatLog.i("[GOOGLE-2-CANCEL] 사용자 취소 (statusCode=12501)")
                         toastState.showError(msgCancelled)
                     }
-                    else  -> {
+
+                    else -> {
                         // 10=DEVELOPER_ERROR(SHA-1/OAuth 클라이언트 설정 불일치), 7=NETWORK_ERROR 등
-                        BoatLog.e("[GOOGLE-2-FAIL] statusCode=${e.statusCode} message=${e.message}", e)
+                        BoatLog.e(
+                            "[GOOGLE-2-FAIL] statusCode=${e.statusCode} message=${e.message}",
+                            e
+                        )
                         toastState.showError(msgGoogleFail)
                     }
                 }
@@ -141,7 +148,7 @@ fun LoginScreen(
                 val nameMap = result.additionalUserInfo?.profile?.get("name") as? Map<*, *>
                 val displayName = if (nameMap != null) {
                     val first = nameMap["firstName"] as? String ?: ""
-                    val last  = nameMap["lastName"]  as? String ?: ""
+                    val last = nameMap["lastName"] as? String ?: ""
                     "$first $last".trim().ifBlank { null }
                 } else {
                     result.user?.displayName
@@ -174,16 +181,19 @@ fun LoginScreen(
         Spacer(Modifier.weight(1f))
 
         // 로고 — "Boat"(검정) + "Lab"(파란색) 텍스트
-        Row(horizontalArrangement = Arrangement.Center) {
+        Row(
+            modifier = Modifier.width(210.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
             Text(
                 text = "Boat ",
-                fontSize = 40.sp,
+                fontSize = 48.sp,
                 fontWeight = FontWeight.Bold,
                 color = ColorGray900,
             )
             Text(
                 text = "Lab",
-                fontSize = 40.sp,
+                fontSize = 48.sp,
                 fontWeight = FontWeight.Bold,
                 color = ColorBrandPrimary,
             )
@@ -193,8 +203,9 @@ fun LoginScreen(
 
         Text(
             text = stringResource(R.string.login_subtitle),
-            fontSize = 15.sp,
-            color = ColorGray500,
+            style = MaterialTheme.typography.titleMedium,
+            color = ColorGray700,
+            textAlign = TextAlign.Center,
         )
 
         Spacer(Modifier.weight(1.5f))
@@ -209,7 +220,7 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            shape = RoundedXl,
+            shape = RoundedLg,
             border = BorderStroke(1.dp, ColorBrandPrimary),
             colors = ButtonDefaults.outlinedButtonColors(containerColor = ColorWhite),
             contentPadding = PaddingValues(horizontal = Margin16),
@@ -226,7 +237,7 @@ fun LoginScreen(
                     text = stringResource(R.string.login_btn_google),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFF3C3C3C),
+                    color = ColorGray900,
                     modifier = Modifier.align(Alignment.Center),
                 )
             }
@@ -241,7 +252,7 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            shape = RoundedXl,
+            shape = RoundedLg,
             colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
             contentPadding = PaddingValues(horizontal = Margin16),
         ) {

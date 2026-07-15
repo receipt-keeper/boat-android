@@ -54,7 +54,9 @@ import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandSenary
 import com.windrr.boat.ui.theme.ColorBrandTertiary
 import com.windrr.boat.ui.theme.ColorGray200
+import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray500
+import com.windrr.boat.ui.theme.ColorGray600
 import com.windrr.boat.ui.theme.ColorGray800
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
@@ -88,8 +90,10 @@ fun MyPageScreen(
 
     LaunchedEffect(Unit) { badgeViewModel.refresh() }
 
-    val nameText = name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.mypage_name_placeholder)
-    val emailText = email?.takeIf { it.isNotBlank() } ?: stringResource(R.string.mypage_email_placeholder)
+    val nameText =
+        name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.mypage_name_placeholder)
+    val emailText =
+        email?.takeIf { it.isNotBlank() } ?: stringResource(R.string.mypage_email_placeholder)
 
     val inquiryEmail = stringResource(R.string.mypage_inquiry_email)
     val inquirySubject = stringResource(R.string.mypage_inquiry_subject)
@@ -107,104 +111,119 @@ fun MyPageScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        BoatHeader(
-            title = stringResource(R.string.mypage_title),
-            hasUnreadNotification = hasUnreadNotification,
-            onSearchClick = onSearchClick,
-            onNotificationClick = {
-                context.startActivity(
-                    Intent(context, com.windrr.boat.feature.notification.NotificationListActivity::class.java)
-                )
-            },
-        )
-
-        // 프로필
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Margin20, vertical = 20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            val avatarModifier = Modifier
-                .size(64.dp)
-                .clip(CircleShape)
-                .background(ColorBrandSenary)
-            if (!profileImageUrl.isNullOrBlank()) {
-                AsyncImage(
-                    model = profileImageUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = avatarModifier,
-                )
-            } else {
-                Image(
-                    painter = painterResource(R.drawable.img_profile),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = avatarModifier,
-                )
-            }
-            Spacer(Modifier.width(Margin16))
-            Column {
-                Text(text = nameText, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = ColorGray900)
-                Spacer(Modifier.height(4.dp))
-                Text(text = emailText, fontSize = 14.sp, color = ColorGray800)
-            }
-        }
-
-        // 영수증 분석 잔여 횟수 배너
-        AnalysisCreditBanner(
-            remaining = freeAnalysisTokens,
-            onViewClick = { showAnalysisPromoSheet = true },
-            modifier = Modifier.padding(horizontal = Margin20),
-        )
-        Spacer(Modifier.height(Margin20))
-
-        // 섹션 구분 밴드
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .background(com.windrr.boat.ui.theme.ColorGray50),
-        )
-
-        // 알림 설정
-        SectionLabel(stringResource(R.string.mypage_section_settings))
-        SettingRow(stringResource(R.string.mypage_section_notification)) {
-            context.startActivity(
-                Intent(context, com.windrr.boat.feature.notification.NotificationSettingsActivity::class.java)
+        Column(modifier = Modifier.fillMaxSize()) {
+            BoatHeader(
+                title = stringResource(R.string.mypage_title),
+                hasUnreadNotification = hasUnreadNotification,
+                onSearchClick = onSearchClick,
+                onNotificationClick = {
+                    context.startActivity(
+                        Intent(
+                            context,
+                            com.windrr.boat.feature.notification.NotificationListActivity::class.java
+                        )
+                    )
+                },
             )
+
+            // 프로필
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Margin20, vertical = 20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                val avatarModifier = Modifier
+                    .size(54.dp)
+                    .clip(CircleShape)
+                    .background(ColorBrandSenary)
+                if (!profileImageUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = profileImageUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = avatarModifier,
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(R.drawable.img_profile),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = avatarModifier,
+                    )
+                }
+                Spacer(Modifier.width(Margin16))
+                Column {
+                    Text(
+                        text = nameText,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ColorGray900
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(text = emailText, fontSize = 14.sp, color = ColorGray900)
+                }
+            }
+
+            // 영수증 분석 잔여 횟수 배너
+            AnalysisCreditBanner(
+                remaining = freeAnalysisTokens,
+                onViewClick = { showAnalysisPromoSheet = true },
+                modifier = Modifier.padding(horizontal = Margin20),
+            )
+            Spacer(Modifier.height(Margin20))
+
+            // 섹션 구분 밴드
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .background(com.windrr.boat.ui.theme.ColorGray50),
+            )
+
+            // 알림 설정
+            SectionLabel(stringResource(R.string.mypage_section_settings))
+            SettingRow(stringResource(R.string.mypage_section_notification)) {
+                context.startActivity(
+                    Intent(
+                        context,
+                        com.windrr.boat.feature.notification.NotificationSettingsActivity::class.java
+                    )
+                )
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = Margin20, vertical = 9.dp),
+                thickness = 1.dp,
+                color = ColorGray200,
+            )
+
+            // 도움말
+            SectionLabel(stringResource(R.string.mypage_section_help))
+            SettingRow(stringResource(R.string.mypage_inquiry)) { openInquiryEmail() }
+            SettingRow(stringResource(R.string.mypage_terms)) {
+                context.startActivity(TermsDetailActivity.intent(context))
+            }
+
+            Spacer(Modifier.weight(1f))
+
+            // 로그아웃 | 회원탈퇴 — 플로팅 하단 바에 가려지지 않도록 여백 확보
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = BottomBarClearance),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                BottomTextButton(
+                    stringResource(R.string.common_logout),
+                    onClick = { showLogoutDialog = true })
+                Text(text = "  |  ", fontSize = 14.sp, color = ColorGray600)
+                BottomTextButton(
+                    stringResource(R.string.mypage_withdraw),
+                    onClick = { showDeleteDialog = true })
+            }
         }
-
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = Margin20),
-            thickness = 1.dp,
-            color = ColorGray200,
-        )
-
-        // 도움말
-        SectionLabel(stringResource(R.string.mypage_section_help))
-        SettingRow(stringResource(R.string.mypage_inquiry)) { openInquiryEmail() }
-        SettingRow(stringResource(R.string.mypage_terms)) {
-            context.startActivity(TermsDetailActivity.intent(context))
-        }
-
-        Spacer(Modifier.weight(1f))
-
-        // 로그아웃 | 회원탈퇴 — 플로팅 하단 바에 가려지지 않도록 여백 확보
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = BottomBarClearance),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            BottomTextButton(stringResource(R.string.common_logout), onClick = { showLogoutDialog = true })
-            Text(text = "  |  ", fontSize = 14.sp, color = ColorGray200)
-            BottomTextButton(stringResource(R.string.mypage_withdraw), onClick = { showDeleteDialog = true })
-        }
-    }
 
         BoatToastHost(state = toastState)
     }
@@ -261,9 +280,9 @@ private fun AnalysisCreditBanner(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(52.dp)
+            .height(53.dp)
             .clip(RoundedXl)
-            .background(ColorBrandSenary)
+            .background(ColorGray50)
             .border(1.dp, ColorBrandTertiary, RoundedXl)
             .padding(horizontal = Margin16),
         verticalAlignment = Alignment.CenterVertically,
@@ -275,7 +294,12 @@ private fun AnalysisCreditBanner(
             modifier = Modifier.size(20.dp),
         )
         Spacer(Modifier.width(8.dp))
-        Text(text = stringResource(R.string.mypage_analysis_label), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = ColorGray900)
+        Text(
+            text = stringResource(R.string.mypage_analysis_label),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = ColorGray900
+        )
         Spacer(Modifier.width(4.dp))
         Text(
             text = stringResource(R.string.mypage_analysis_count, remaining),
@@ -284,16 +308,23 @@ private fun AnalysisCreditBanner(
             color = ColorBrandPrimary,
         )
         Spacer(Modifier.width(4.dp))
-        Text(text = stringResource(R.string.mypage_analysis_suffix), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = ColorGray900)
+        Text(
+            text = stringResource(R.string.mypage_analysis_suffix),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = ColorGray900
+        )
 
         Spacer(Modifier.weight(1f))
 
         Box(
             modifier = Modifier
+                .height(29.dp) // 💡 1. 원하는 고정 높이 선언
                 .clip(RoundedFull)
                 .background(ColorBrandPrimary)
                 .clickable(onClick = onViewClick)
-                .padding(horizontal = 16.dp, vertical = 6.dp),
+                .padding(horizontal = 16.dp), // 💡 2. vertical 패딩 제거 (좌우 여백만 유지)
+            contentAlignment = Alignment.Center // 💡 3. Box 내부 콘텐츠를 정중앙에 배치
         ) {
             Text(
                 text = stringResource(R.string.mypage_analysis_view),
@@ -311,7 +342,7 @@ private fun SectionLabel(text: String) {
         text = text,
         fontSize = 13.sp,
         color = ColorGray500,
-        modifier = Modifier.padding(start = Margin20, end = Margin20, top = 24.dp, bottom = 8.dp),
+        modifier = Modifier.padding(start = Margin20, end = Margin20, top = 8.dp, bottom = 8.dp),
     )
 }
 
@@ -321,7 +352,7 @@ private fun SettingRow(text: String, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = Margin20, vertical = 18.dp),
+            .padding(horizontal = Margin20, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(text = text, fontSize = 16.sp, color = ColorGray900, modifier = Modifier.weight(1f))
@@ -339,7 +370,11 @@ private fun BottomTextButton(text: String, onClick: () -> Unit) {
     Text(
         text = text,
         fontSize = 14.sp,
-        color = ColorGray500,
-        modifier = Modifier.clickable(interactionSource = noRipple, indication = null, onClick = onClick),
+        color = ColorGray600,
+        modifier = Modifier.clickable(
+            interactionSource = noRipple,
+            indication = null,
+            onClick = onClick
+        ),
     )
 }

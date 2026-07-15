@@ -2,6 +2,7 @@ package com.windrr.boat.feature.terms
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,7 +34,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -42,11 +45,14 @@ import androidx.compose.ui.unit.sp
 import com.windrr.boat.R
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandSenary
+import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray100
 import com.windrr.boat.ui.theme.ColorGray200
+import com.windrr.boat.ui.theme.ColorGray300
 import com.windrr.boat.ui.theme.ColorGray400
 import com.windrr.boat.ui.theme.ColorGray500
 import com.windrr.boat.ui.theme.ColorGray700
+import com.windrr.boat.ui.theme.ColorGray800
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin12
@@ -91,9 +97,9 @@ fun TermsScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = null,
-                            tint = ColorGray900,
+                            painter = painterResource(R.drawable.ic_arrow_back),
+                            contentDescription = stringResource(R.string.common_back),
+                            tint = ColorGray900
                         )
                     }
                 },
@@ -107,14 +113,17 @@ fun TermsScreen(
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = Margin20),
+                .padding(
+                    top = innerPadding.calculateTopPadding() - 20.dp,
+                    bottom = innerPadding.calculateBottomPadding(),
+                    start = Margin20,
+                    end = Margin20
+                ),
         ) {
-            Spacer(Modifier.height(Margin4))
 
             Text(
                 text = stringResource(R.string.terms_headline),
-                fontSize = 22.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 32.sp,
                 color = ColorGray900,
@@ -127,7 +136,12 @@ fun TermsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedLg)
-                    .background(if (allAgreed) ColorBrandSenary else ColorGray100)
+                    .background(if (allAgreed) ColorBrandSenary else ColorGray50)
+                    .border(
+                        width = 1.dp,
+                        color = if (allAgreed) ColorBrandPrimary else ColorGray200,
+                        shape = RoundedLg
+                    )
                     .clickable {
                         val next = !allAgreed
                         ageConsent = next
@@ -141,7 +155,7 @@ fun TermsScreen(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    tint = if (allAgreed) ColorBrandPrimary else ColorGray400,
+                    tint = if (allAgreed) ColorBrandPrimary else ColorGray300,
                     modifier = Modifier.size(20.dp),
                 )
                 Spacer(Modifier.width(Margin12))
@@ -149,7 +163,7 @@ fun TermsScreen(
                     text = stringResource(R.string.terms_agree_all),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp,
-                    color = ColorGray900,
+                    color = if (allAgreed) ColorGray800 else ColorGray700,
                 )
             }
 
@@ -227,7 +241,7 @@ private fun TermsItem(
         Icon(
             imageVector = Icons.Default.Check,
             contentDescription = null,
-            tint = if (checked) ColorBrandPrimary else ColorGray400,
+            tint = if (checked) ColorBrandPrimary else ColorGray300,
             modifier = Modifier.size(20.dp),
         )
         Spacer(Modifier.width(Margin12))
@@ -240,7 +254,7 @@ private fun TermsItem(
         if (showViewLink) {
             Text(
                 text = stringResource(R.string.terms_view),
-                fontSize = 13.sp,
+                fontSize = 11.sp,
                 color = ColorGray500,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier
