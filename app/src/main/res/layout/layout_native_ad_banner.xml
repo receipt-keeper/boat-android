@@ -7,14 +7,14 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#E9F4FF"
-        android:paddingHorizontal="24dp">
+        android:background="#E9F4FF">
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:layout_marginStart="24dp"
             android:layout_marginEnd="12dp"
+            android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/ad_media"
             app:layout_constraintStart_toStartOf="parent"
@@ -24,22 +24,22 @@
                 android:id="@+id/ad_headline"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:textColor="#333333"
                 android:textSize="18sp"
-                android:textStyle="bold"
-                android:ellipsize="end"
-                android:maxLines="1" />
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/ad_body"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textColor="#777777"
-                android:textSize="13sp"
-                android:lineSpacingExtra="2dp"
                 android:ellipsize="end"
-                android:maxLines="2" />
+                android:lineSpacingExtra="2dp"
+                android:maxLines="2"
+                android:textColor="#777777"
+                android:textSize="13sp" />
         </LinearLayout>
 
         <!-- 광고 메인 이미지/동영상 — 아이콘 전용 ImageView가 아니라 MediaView를 써야 한다
@@ -48,15 +48,15 @@
             android:id="@+id/ad_media"
             android:layout_width="120dp"
             android:layout_height="120dp"
+            android:layout_marginHorizontal="24dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- 필수 표시 요소: "Ad" 라벨 (iOS 스타일: 좌측 상단 반투명 회색) -->
+        <!-- 필수 표시 요소: "Ad" 라벨 (좌측 상단 모서리 완전 밀착) -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
             android:background="#40000000"
             android:paddingHorizontal="4dp"
             android:paddingVertical="1dp"
