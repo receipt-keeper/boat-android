@@ -407,6 +407,14 @@ fun ReceiptRegisterScreen(
 
                 // 💡 422 에러 시 실패한 이미지 인덱스 추출
                 val errorResponse = ApiErrorParser.parse(e)
+
+                // 💡 UNSUPPORTED_RECEIPT 에러 처리: 시트 대신 토스트 표시
+                if (errorResponse?.data?.code == "UNSUPPORTED_RECEIPT") {
+                    val msg = errorResponse.data.message ?: ApiErrorParser.message(e)
+                    toastState.show(msg)
+                    return@onFailure
+                }
+
                 failedFileIndices = errorResponse?.data?.errors
                     ?.filter { it.field == "file" && it.fileIndex != null }
                     ?.mapNotNull { it.fileIndex }

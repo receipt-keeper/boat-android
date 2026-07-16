@@ -14,6 +14,7 @@ data class ErrorResponse(
 
 data class ErrorData(
     @SerializedName("timestamp") val timestamp: String? = null,
+    @SerializedName("code")      val code: String? = null,
     @SerializedName("message")   val message: String? = null,
     @SerializedName("path")      val path: String? = null,
     @SerializedName("errors")    val errors: List<FieldError>? = null,
