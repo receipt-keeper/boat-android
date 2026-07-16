@@ -41,6 +41,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
@@ -51,6 +52,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -682,17 +684,21 @@ private fun ReceiptEditForm(
                             fontWeight = FontWeight.Bold,
                             color = ColorGray900,
                         )
-                        Checkbox(
-                            checked = keepReceipt,
-                            onCheckedChange = { keepReceipt = it },
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = ColorBrandPrimary,
-                                uncheckedColor = ColorGray300,
-                                checkmarkColor = ColorWhite
+                        // 💡 체크박스의 기본 최소 터치 영역(48dp)을 제거하여 디자인 가이드의 간격 준수
+                        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+                            Checkbox(
+                                checked = keepReceipt,
+                                onCheckedChange = { keepReceipt = it },
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = ColorBrandPrimary,
+                                    uncheckedColor = ColorGray300,
+                                    checkmarkColor = ColorWhite
+                                ),
+                                modifier = Modifier.size(24.dp)
                             )
-                        )
+                        }
                     }
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(10.dp))
                     Text(
                         text = "제조사 정책에 따라 수리 시 실물 영수증이\n필요할 수 있으니, 확인 후 보관 여부를 선택해 주세요.",
                         fontSize = 14.sp,
