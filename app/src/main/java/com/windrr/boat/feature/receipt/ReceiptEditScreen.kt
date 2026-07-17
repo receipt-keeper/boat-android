@@ -830,23 +830,26 @@ private fun ReceiptEditForm(
             val isFormComplete = productName.isNotBlank() && purchaseDate.isNotBlank() && warrantyMonths != null
             Button(
                 onClick = {
-                    if (totalPhotoCount == 0) {
-                        toastState.showError("영수증 이미지를 1장 이상 등록해 주세요.")
-                    } else {
-                        handleSubmit()
+                    // 비활성 버튼 탭 시 화면 최상단부터 순서대로 누락 항목을 확인해 안내한다.
+                    when {
+                        productName.isBlank() -> toastState.showError("제품명을 입력해주세요.")
+                        purchaseDate.isBlank() -> toastState.showError("구매일을 선택해주세요.")
+                        warrantyMonths == null -> toastState.showError("무상 AS 만료기간을 선택해주세요.")
+                        totalPhotoCount == 0 -> toastState.showError("영수증 이미지를 1장 이상 등록해 주세요.")
+                        else -> handleSubmit()
                     }
                 },
-                enabled = isFormComplete,
+                // 비활성 상태에서도 탭은 받아 안내 토스트를 띄워야 하므로 enabled는 제출 중 여부만 반영하고,
+                // 회색/파란색 표시는 isFormComplete로 별도 계산한다.
+                enabled = !isSubmitting,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = Margin20)
                     .height(56.dp),
                 shape = RoundedXl,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = ColorBrandPrimary,
-                    contentColor = ColorWhite,
-                    disabledContainerColor = ColorGray200,
-                    disabledContentColor = ColorGray500,
+                    containerColor = if (isFormComplete) ColorBrandPrimary else ColorGray200,
+                    contentColor = if (isFormComplete) ColorWhite else ColorGray500,
                 ),
             ) {
                 Text(stringResource(R.string.edit_submit), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
