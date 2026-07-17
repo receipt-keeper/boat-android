@@ -18,16 +18,17 @@ fun resolveNotificationRoute(
     kind: String?,
     messageType: String?,
 ): NotificationRoute = when {
-    // 💡 1순위: 마케팅 또는 상시유도 알림(등록/미사용/분석 리마인더 포함)은 무조건 홈으로 이동.
+    // 💡 1순위: 상시 유도 알림(등록/미사용/분석 리마인더)은 영수증 업로드 화면으로 이동.
     // 서버가 이 kind들에도 resourceType/resourceId를 함께 내려줄 수 있어, 상세로 새는 걸 막기
-    // 위해 리소스 라우팅(2순위)보다 먼저 확인해야 한다(iOS NotificationRouter와 동일 규칙).
-    messageType == "marketing" ||
-        kind == "registration_prompt" ||
-        kind == "receipt_registration_reminder" ||
+    // 위해 리소스 라우팅(3순위)보다 먼저 확인해야 한다(iOS NotificationRouter와 동일 규칙).
+    kind == "receipt_registration_reminder" ||
         kind == "receipt_inactivity_reminder" ||
-        kind == "receipt_analysis_reminder" -> NotificationRoute.Home
+        kind == "receipt_analysis_reminder" -> NotificationRoute.ReceiptRegister
 
-    // 💡 2순위: 영수증 관련 상세 리소스가 있는 경우 해당 상세로 이동
+    // 💡 2순위: 마케팅 또는 registration_prompt 알림은 홈으로 이동.
+    messageType == "marketing" || kind == "registration_prompt" -> NotificationRoute.Home
+
+    // 💡 3순위: 영수증 관련 상세 리소스가 있는 경우 해당 상세로 이동
     resourceType == "receipt" && !resourceId.isNullOrBlank() -> NotificationRoute.ReceiptDetail(resourceId)
 
     else -> NotificationRoute.None

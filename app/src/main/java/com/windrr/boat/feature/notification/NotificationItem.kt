@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.windrr.boat.core.ocr.DeviceImage
@@ -46,7 +47,11 @@ fun NotificationItem(
     onClick: () -> Unit = {},
 ) {
     val alpha = if (notification.isRead) 0.5f else 1f
-    val isPersistent = notification.kind == "registration_prompt" || notification.messageType == "marketing"
+    // 상시 유도 알림(마케팅/등록·미사용·분석 리마인더) 여부 — resolveNotificationRoute와 동일 기준 재사용.
+    val route = resolveNotificationRoute(
+        notification.resourceType, notification.resourceId, notification.kind, notification.messageType
+    )
+    val isPersistent = route == NotificationRoute.Home || route == NotificationRoute.ReceiptRegister
 
     Surface(
         modifier = modifier
@@ -120,6 +125,9 @@ fun NotificationItem(
                     text = notification.message,
                     fontSize = 14.sp,
                     color = ColorGray600.copy(alpha = alpha),
+                    // 상시 유도 알림 문구는 화면 너비를 넘으면 4줄까지만 표시 후 말줄임표 처리.
+                    maxLines = if (isPersistent) 4 else Int.MAX_VALUE,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
