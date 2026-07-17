@@ -95,19 +95,10 @@ fun MyPageScreen(
     val emailText =
         email?.takeIf { it.isNotBlank() } ?: stringResource(R.string.mypage_email_placeholder)
 
-    val inquiryEmail = stringResource(R.string.mypage_inquiry_email)
-    val inquirySubject = stringResource(R.string.mypage_inquiry_subject)
-    val noEmailAppMsg = stringResource(R.string.mypage_inquiry_no_app)
-
-    // 1:1 문의 — 메일 앱으로 작성 화면 열기
-    fun openInquiryEmail() {
-        val intent = Intent(Intent.ACTION_SENDTO).apply {
-            data = Uri.parse("mailto:")
-            putExtra(Intent.EXTRA_EMAIL, arrayOf(inquiryEmail))
-            putExtra(Intent.EXTRA_SUBJECT, inquirySubject)
-        }
+    // 1:1 문의 — 구글 폼 웹 페이지 열기
+    fun openInquiryForm() {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://forms.gle/HKZgwcqCPsEqBYfo9"))
         runCatching { context.startActivity(intent) }
-            .onFailure { toastState.showError(noEmailAppMsg) }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -200,7 +191,7 @@ fun MyPageScreen(
 
             // 도움말
             SectionLabel(stringResource(R.string.mypage_section_help))
-            SettingRow(stringResource(R.string.mypage_inquiry)) { openInquiryEmail() }
+            SettingRow(stringResource(R.string.mypage_inquiry)) { openInquiryForm() }
             SettingRow(stringResource(R.string.mypage_terms)) {
                 context.startActivity(TermsDetailActivity.intent(context))
             }
@@ -287,10 +278,9 @@ private fun AnalysisCreditBanner(
             .padding(horizontal = Margin16),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            painter = painterResource(R.drawable.ai_color),
+        AsyncImage(
+            model = R.drawable.shiny_white,
             contentDescription = null,
-            tint = androidx.compose.ui.graphics.Color.Unspecified,
             modifier = Modifier.size(20.dp),
         )
         Spacer(Modifier.width(8.dp))

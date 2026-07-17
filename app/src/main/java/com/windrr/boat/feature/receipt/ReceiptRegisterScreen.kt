@@ -62,6 +62,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -128,10 +129,9 @@ fun AnalysisCountPill(remaining: Int) {
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            painter = painterResource(R.drawable.ai_color),
+        AsyncImage(
+            model = R.drawable.shiny_white,
             contentDescription = null,
-            tint = Color.Unspecified,
             modifier = Modifier.size(16.dp),
         )
         Spacer(Modifier.width(6.dp))
