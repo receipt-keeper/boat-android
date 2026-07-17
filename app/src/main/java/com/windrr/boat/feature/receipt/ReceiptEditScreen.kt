@@ -449,8 +449,9 @@ private fun ReceiptEditForm(
 
     // 첨부 이미지는 수정 후에도 1장 이상 5장 이하여야 한다 (서버 스펙)
     val totalPhotoCount = remoteFileIds.size + newPhotos.size
+    // 원본 대비 변경된 내용이 1개 이상 있어야 제출 가능 (변경 없이 재저장하는 것을 막는다)
     val canSubmit = productName.isNotBlank() && purchaseDate.isNotBlank() && warrantyMonths != null &&
-        totalPhotoCount in 1..GalleryState.MAX_PHOTOS && !isSubmitting
+        totalPhotoCount in 1..GalleryState.MAX_PHOTOS && isChanged && !isSubmitting
 
     val editScope = rememberCoroutineScope()
     fun handleSubmit() {
@@ -827,15 +828,16 @@ private fun ReceiptEditForm(
             }
 
             Spacer(Modifier.height(Margin24))
-            val isFormComplete = productName.isNotBlank() && purchaseDate.isNotBlank() && warrantyMonths != null
+            val isFormComplete = productName.isNotBlank() && purchaseDate.isNotBlank() && warrantyMonths != null && isChanged
             Button(
                 onClick = {
-                    // 비활성 버튼 탭 시 화면 최상단부터 순서대로 누락 항목을 확인해 안내한다.
+                    // 비활성 버튼 탭 시 화면 최상단부터 순서대로 누락/미변경 항목을 확인해 안내한다.
                     when {
                         productName.isBlank() -> toastState.showError("제품명을 입력해주세요.")
                         purchaseDate.isBlank() -> toastState.showError("구매일을 선택해주세요.")
                         warrantyMonths == null -> toastState.showError("무상 AS 만료기간을 선택해주세요.")
                         totalPhotoCount == 0 -> toastState.showError("영수증 이미지를 1장 이상 등록해 주세요.")
+                        !isChanged -> toastState.showError("변경된 내용이 없습니다.")
                         else -> handleSubmit()
                     }
                 },
