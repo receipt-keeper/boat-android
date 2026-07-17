@@ -197,9 +197,9 @@ fun AnalysisFailedBottomSheet(
     }
 }
 
-/** 불릿(•) 아이템 컴포넌트 */
+/** 불릿(•) 아이템 컴포넌트 — UnsupportedReceiptBottomSheet도 재사용. */
 @Composable
-private fun InfoBulletText(text: String, color: Color) {
+fun InfoBulletText(text: String, color: Color) {
     Row(verticalAlignment = Alignment.Top) {
         Text(
             text = "•",
@@ -216,9 +216,9 @@ private fun InfoBulletText(text: String, color: Color) {
     }
 }
 
-/** 영수증 아이콘 + 에러 뱃지 (비율 최적화) */
+/** 영수증 아이콘 + 에러 뱃지 (비율 최적화) — UnsupportedReceiptBottomSheet도 재사용. */
 @Composable
-private fun ReceiptErrorIcon() {
+fun ReceiptErrorIcon() {
     Box(
         modifier = Modifier.size(80.dp),
         contentAlignment = Alignment.BottomEnd,

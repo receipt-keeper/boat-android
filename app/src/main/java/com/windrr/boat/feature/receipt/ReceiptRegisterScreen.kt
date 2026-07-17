@@ -320,6 +320,8 @@ fun ReceiptRegisterScreen(
     var showNoTokenSheet by rememberSaveable { mutableStateOf(false) }
     // 분석 실패 BottomSheet 표시 여부
     var showAnalysisFailedSheet by rememberSaveable { mutableStateOf(false) }
+    // UNSUPPORTED_RECEIPT(미지원 영수증) BottomSheet 표시 여부
+    var showUnsupportedReceiptSheet by rememberSaveable { mutableStateOf(false) }
     var analysisErrorMessage by remember { mutableStateOf<String?>(null) }
     // OCR 분석 진행 중 여부 (버튼 로딩/중복 호출 방지)
     var isAnalyzing by rememberSaveable { mutableStateOf(false) }
@@ -408,10 +410,9 @@ fun ReceiptRegisterScreen(
                 // 💡 422 에러 시 실패한 이미지 인덱스 추출
                 val errorResponse = ApiErrorParser.parse(e)
 
-                // 💡 UNSUPPORTED_RECEIPT 에러 처리: 시트 대신 토스트 표시
+                // 💡 UNSUPPORTED_RECEIPT 에러 처리: 지원 카테고리 안내 시트 노출
                 if (errorResponse?.data?.code == "UNSUPPORTED_RECEIPT") {
-                    val msg = errorResponse.data.message ?: ApiErrorParser.message(e)
-                    toastState.show(msg)
+                    showUnsupportedReceiptSheet = true
                     return@onFailure
                 }
 
@@ -788,6 +789,13 @@ fun ReceiptRegisterScreen(
                     // 💡 분석 실패 표시(빨간 테두리)는 유지하여 사용자에게 상태를 알림
                 },
                 errorMessage = analysisErrorMessage,
+            )
+        }
+
+        if (showUnsupportedReceiptSheet) {
+            UnsupportedReceiptBottomSheet(
+                onDismiss = { showUnsupportedReceiptSheet = false },
+                onRetry = { showUnsupportedReceiptSheet = false },
             )
         }
 
