@@ -696,7 +696,7 @@ fun ReceiptRegisterScreen(
                             ) {
                                 Text(
                                     text = stringResource(R.string.receipt_register_attachments),
-                                    fontSize = 18.sp,
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = ColorGray900,
                                     modifier = Modifier.weight(1f),
