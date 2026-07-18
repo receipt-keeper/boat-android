@@ -74,6 +74,8 @@ fun NotificationListScreen(
             val result = viewModel.delete(item)
             if (result.isFailure) {
                 toastState.showError("알림 삭제에 실패했어요. 잠시 후 다시 시도해 주세요.")
+            } else {
+                toastState.show("알림이 삭제되었습니다.")
             }
         }
     }
