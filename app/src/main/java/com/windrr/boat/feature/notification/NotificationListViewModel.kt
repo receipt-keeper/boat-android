@@ -147,4 +147,16 @@ class NotificationListViewModel : ViewModel() {
                 .onFailure { BoatLog.e("알림 읽음 처리 실패 id=${item.id}", it) }
         }
     }
+
+    /**
+     * 케밥 → "삭제하기" — 삭제 API 호출 성공 후에만 목록을 다시 불러와 반영한다.
+     * 실패 시 호출부(Screen)가 토스트로 안내할 수 있도록 결과를 반환한다.
+     * Response<Unit>은 2xx가 아니어도 예외를 던지지 않으므로 isSuccessful을 직접 확인해
+     * 실패를 Result.failure로 변환한다.
+     */
+    suspend fun delete(item: AppNotification): Result<Unit> = runCatching {
+        val response = api.deleteNotification(item.id)
+        check(response.isSuccessful) { "알림 삭제 실패 code=${response.code()}" }
+    }.onSuccess { load() }
+        .onFailure { BoatLog.e("알림 삭제 실패 id=${item.id}", it) }
 }

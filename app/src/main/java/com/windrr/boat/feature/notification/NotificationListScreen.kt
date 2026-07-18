@@ -19,6 +19,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,12 +37,15 @@ import com.windrr.boat.MainActivity
 import com.windrr.boat.R
 import com.windrr.boat.feature.receipt.ReceiptDetailActivity
 import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
+import com.windrr.boat.ui.component.BoatToastHost
+import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray500
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin20
+import kotlinx.coroutines.launch
 
 /**
  * 알림 목록 화면 — 상단 헤더의 종 아이콘으로 진입.
@@ -54,8 +61,22 @@ fun NotificationListScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val toastState = rememberBoatToastState()
+    // 케밥 → "삭제하기" 확인 시트 대상. null이 아니면 시트 노출.
+    var itemPendingDeletion by remember { mutableStateOf<AppNotification?>(null) }
 
     LaunchedEffect(Unit) { viewModel.load() }
+
+    // 삭제 API 호출 성공 후에만 목록을 다시 불러와 반영한다.
+    fun deleteNotification(item: AppNotification) {
+        scope.launch {
+            val result = viewModel.delete(item)
+            if (result.isFailure) {
+                toastState.showError("알림 삭제에 실패했어요. 잠시 후 다시 시도해 주세요.")
+            }
+        }
+    }
 
     // 앱이 처리할 수 있는 resourceType만 라우팅, 그 외/없음은 목록에 머문다.
     // 실제 푸시 탭(PushNotificationRouterActivity)과 동일한 규칙을 쓴다 — resolveNotificationRoute 참고.
@@ -121,10 +142,23 @@ fun NotificationListScreen(
                                 viewModel.onNotificationClicked(notification)
                                 route(notification)
                             },
+                            onDeleteClick = { itemPendingDeletion = notification },
                         )
                     }
                 }
             }
         }
     }
+
+    itemPendingDeletion?.let { item ->
+        NotificationDeleteActionSheet(
+            onDelete = {
+                itemPendingDeletion = null
+                deleteNotification(item)
+            },
+            onDismiss = { itemPendingDeletion = null },
+        )
+    }
+
+    BoatToastHost(state = toastState)
 }

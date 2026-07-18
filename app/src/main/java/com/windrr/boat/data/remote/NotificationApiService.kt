@@ -25,6 +25,12 @@ interface NotificationApiService {
         @Path("notificationId") notificationId: String,
     ): NotificationDetailResponse
 
+    /** 알림 삭제 — 성공 시 204(본문 없음). */
+    @DELETE("api/v1/notifications/{notificationId}")
+    suspend fun deleteNotification(
+        @Path("notificationId") notificationId: String,
+    ): Response<Unit>
+
     @GET("api/v1/notifications/settings")
     suspend fun getNotificationSettings(): NotificationSettingsResponse
 

@@ -49,6 +49,7 @@ fun NotificationItem(
     notification: AppNotification,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {},
 ) {
     val alpha = if (notification.isRead) 0.5f else 1f
     // 상시 유도 알림(마케팅/등록·미사용·분석 리마인더) 여부 — resolveNotificationRoute와 동일 기준 재사용.
@@ -116,9 +117,8 @@ fun NotificationItem(
                         fontSize = 14.sp,
                         color = ColorGray500.copy(alpha = alpha),
                     )
-                    // 1단계: 자리와 모양만 배치. 삭제 메뉴 연결은 다음 단계에서 진행.
                     IconButton(
-                        onClick = { /* TODO: 알림 삭제 메뉴 연결 (다음 단계) */ },
+                        onClick = onDeleteClick,
                         modifier = Modifier.size(24.dp),
                     ) {
                         Icon(
