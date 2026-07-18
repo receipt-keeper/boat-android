@@ -675,7 +675,7 @@ private fun ReceiptEditForm(
             Spacer(Modifier.height(Margin20))
 
             // ── 실물 영수증 보관 여부 (디자인 스펙 정밀 반영) ──
-            EditSectionCard {
+            EditSectionCard(modifier = Modifier.height(112.dp)) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -709,9 +709,9 @@ private fun ReceiptEditForm(
                     Spacer(Modifier.height(10.dp))
                     Text(
                         text = "제조사 정책에 따라 수리 시 실물 영수증이\n필요할 수 있으니, 확인 후 보관 여부를 선택해 주세요.",
-                        fontSize = 14.sp,
-                        color = ColorGray600,
-                        lineHeight = 22.sp
+                        fontSize = 12.sp,
+                        color = ColorGray700,
+                        lineHeight = 20.sp
                     )
                 }
             }
@@ -907,9 +907,9 @@ private fun ReceiptEditForm(
 // ── 서브 컴포저블 (이 화면 전용, ReceiptManualInputScreen과 이름 충돌 방지를 위해 Edit 접두) ──
 
 @Composable
-private fun EditSectionCard(content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
+private fun EditSectionCard(modifier: Modifier = Modifier, content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = Margin20)
             .clip(Rounded2xl)
