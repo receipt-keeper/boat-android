@@ -13,6 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -112,6 +116,17 @@ fun NotificationItem(
                         fontSize = 14.sp,
                         color = ColorGray500.copy(alpha = alpha),
                     )
+                    // 1단계: 자리와 모양만 배치. 삭제 메뉴 연결은 다음 단계에서 진행.
+                    IconButton(
+                        onClick = { /* TODO: 알림 삭제 메뉴 연결 (다음 단계) */ },
+                        modifier = Modifier.size(24.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = null,
+                            tint = ColorGray500.copy(alpha = alpha),
+                        )
+                    }
                 }
                 Spacer(Modifier.height(8.dp))
                 Text(
