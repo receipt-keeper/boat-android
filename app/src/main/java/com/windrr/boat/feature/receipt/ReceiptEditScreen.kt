@@ -718,15 +718,16 @@ private fun ReceiptEditForm(
 
             Spacer(Modifier.height(Margin20))
 
-            // ── 보증 정보 ──
+            // ── 보증 정보 ── (디자인 가이드: 섹션 타이틀은 흰 박스 밖(페이지 배경)에 위치)
+            Text(
+                text = stringResource(R.string.manual_warranty_section),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = ColorGray900,
+                modifier = Modifier.padding(horizontal = Margin20),
+            )
+            Spacer(Modifier.height(Margin12))
             EditSectionCard {
-                Text(
-                    text = stringResource(R.string.manual_warranty_section),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = ColorGray900,
-                )
-                Spacer(Modifier.height(Margin16))
                 BoatInputField(
                     value = brand,
                     onValueChange = { brand = it.take(BRAND_MAX) },
@@ -797,6 +798,12 @@ private fun ReceiptEditForm(
                         color = ColorSystemError
                     )
                 }
+                Text(
+                    text = stringResource(R.string.receipt_detail_original_hint),
+                    fontSize = 12.sp,
+                    color = ColorGray500,
+                    modifier = Modifier.padding(horizontal = Margin20),
+                )
                 Spacer(Modifier.height(16.dp))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = Margin20),
