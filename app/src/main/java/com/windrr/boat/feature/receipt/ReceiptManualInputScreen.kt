@@ -615,23 +615,25 @@ fun ReceiptManualInputScreen(
                     Spacer(Modifier.height(Margin16))
                     FieldLabel(stringResource(R.string.manual_memo), required = false)
                     Spacer(Modifier.height(Margin8))
-                    OutlinedTextField(
-                        value = memo,
-                        onValueChange = { if (it.length <= 100) memo = it },
-                        placeholder = { Text(stringResource(R.string.manual_memo_hint), color = ColorGray400, fontSize = 15.sp) },
-                        modifier = Modifier.fillMaxWidth().height(120.dp),
-                        shape = RoundedLg,
-                        colors = formFieldColors(),
-                        supportingText = {
-                            Text(
-                                text = stringResource(R.string.manual_memo_counter),
-                                fontSize = 12.sp,
-                                color = ColorGray400,
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.End,
-                            )
-                        },
-                    )
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
+                            value = memo,
+                            onValueChange = { if (it.length <= 100) memo = it },
+                            placeholder = { Text(stringResource(R.string.manual_memo_hint), color = ColorGray400, fontSize = 15.sp) },
+                            modifier = Modifier.fillMaxWidth().height(120.dp),
+                            shape = RoundedLg,
+                            colors = formFieldColors(),
+                        )
+                        // 디자인 가이드: "최대 100자" 안내문구는 박스 밖이 아니라 박스 안 우측 하단에 표시.
+                        Text(
+                            text = stringResource(R.string.manual_memo_counter),
+                            fontSize = 12.sp,
+                            color = ColorGray400,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(end = 12.dp, bottom = 10.dp),
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(Margin20))
@@ -1128,16 +1130,22 @@ private fun FieldBox(onClick: () -> Unit, content: @Composable () -> Unit) {
 private fun WarrantyChip(label: String, selected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .height(18.dp)
-            .widthIn(min = 29.dp)
-            .background(if (selected) ColorBrandPrimary else ColorWhite, RoundedFull)
-            .border(1.dp, if (selected) ColorBrandPrimary else ColorGray200, RoundedFull)
+            // 💡 1. 디자인 가이드의 정확한 스펙인 28.dp를 적용합니다.
+            .height(28.dp)
+            .clip(RoundedFull)
+            .background(if (selected) ColorBrandPrimary else ColorWhite)
+            .border(
+                width = 1.dp,
+                color = if (selected) Color.Transparent else ColorGray200,
+                shape = RoundedFull
+            )
             .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 16.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = label,
+            // 💡 2. 디자인 가이드의 정확한 스펙인 12.sp를 적용합니다.
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
             color = if (selected) ColorWhite else ColorGray600,
