@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -1125,18 +1126,23 @@ private fun FieldBox(onClick: () -> Unit, content: @Composable () -> Unit) {
 
 @Composable
 private fun WarrantyChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    Text(
-        text = label,
-        fontSize = 15.sp,
-        fontWeight = FontWeight.Medium,
-        color = if (selected) ColorWhite else ColorGray600,
+    Box(
         modifier = Modifier
-            .clip(RoundedFull)
-            .background(if (selected) ColorBrandPrimary else ColorWhite)
+            .height(18.dp)
+            .widthIn(min = 29.dp)
+            .background(if (selected) ColorBrandPrimary else ColorWhite, RoundedFull)
             .border(1.dp, if (selected) ColorBrandPrimary else ColorGray200, RoundedFull)
             .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 10.dp),
-    )
+            .padding(horizontal = 8.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            color = if (selected) ColorWhite else ColorGray600,
+        )
+    }
 }
 
 @Composable

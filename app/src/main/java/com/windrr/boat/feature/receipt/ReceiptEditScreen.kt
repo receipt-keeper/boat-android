@@ -22,10 +22,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -44,8 +44,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -272,7 +270,6 @@ fun ReceiptEditScreen(
                         }
                     }
                     else -> ReceiptEditForm(
-                        receiptId = receiptId,
                         receipt = state.receipt!!,
                         isSubmitting = state.isSubmitting,
                         toastState = toastState,
@@ -310,7 +307,6 @@ fun ReceiptEditScreen(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 private fun ReceiptEditForm(
-    receiptId: String,
     receipt: ReceiptItem,
     isSubmitting: Boolean,
     toastState: com.windrr.boat.ui.component.BoatToastState,
@@ -1089,18 +1085,23 @@ private fun EditFieldBox(onClick: () -> Unit, content: @Composable () -> Unit) {
 
 @Composable
 private fun EditWarrantyChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    Text(
-        text = label,
-        fontSize = 15.sp,
-        fontWeight = FontWeight.Medium,
-        color = if (selected) ColorWhite else ColorGray600,
+    Box(
         modifier = Modifier
-            .clip(RoundedFull)
-            .background(if (selected) ColorBrandPrimary else ColorWhite)
+            .height(18.dp)
+            .widthIn(min = 29.dp)
+            .background(if (selected) ColorBrandPrimary else ColorWhite, RoundedFull)
             .border(1.dp, if (selected) ColorBrandPrimary else ColorGray200, RoundedFull)
             .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 10.dp),
-    )
+            .padding(horizontal = 8.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            color = if (selected) ColorWhite else ColorGray600,
+        )
+    }
 }
 
 @Composable
