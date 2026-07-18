@@ -1073,9 +1073,9 @@ private fun PurchaseDatePicker(onDismiss: () -> Unit, onConfirm: (String) -> Uni
 @Composable
 private fun SectionTitle(text: String, modifier: Modifier = Modifier, required: Boolean = false) {
     Row(modifier = modifier) {
-        Text(text = text, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = ColorGray900)
+        Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = ColorGray900)
         if (required) {
-            Text(" *", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = ColorSystemError)
+            Text(" *", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = ColorSystemError)
         }
     }
 }

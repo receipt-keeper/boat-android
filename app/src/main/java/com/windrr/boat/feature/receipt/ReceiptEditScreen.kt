@@ -787,13 +787,13 @@ private fun ReceiptEditForm(
                 ) {
                     Text(
                         text = stringResource(R.string.receipt_detail_original),
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = ColorGray900,
                     )
                     Text(
                         text = " *",
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = ColorSystemError
                     )
