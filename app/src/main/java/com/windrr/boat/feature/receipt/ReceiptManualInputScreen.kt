@@ -981,8 +981,9 @@ private fun AddImageTile(onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(100.dp)
-            .clip(RoundedXl)
-            .background(ColorWhite)
+            // clip()을 먼저 적용하면 border()의 바깥쪽 절반이 잘려 테두리가 흐릿해 보인다.
+            // background(color, shape)로 직접 모양을 지정하면 별도 clip 없이도 잘리지 않는다.
+            .background(ColorWhite, RoundedXl)
             .border(1.dp, ColorBrandTertiary, RoundedXl)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
