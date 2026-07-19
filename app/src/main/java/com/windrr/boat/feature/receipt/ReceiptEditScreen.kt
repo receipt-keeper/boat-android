@@ -375,7 +375,7 @@ private fun ReceiptEditForm(
 
     // ── 카테고리 ──
     val initCategory = remember(receipt) {
-        DeviceCategory.entries.find { it.displayName == receipt.category } ?: DeviceCategory.KITCHEN
+        DeviceCategory.from(receipt.category) ?: DeviceCategory.KITCHEN
     }
     var selectedCategory by remember { mutableStateOf(initCategory) }
     var selectedSubCategory by remember { mutableStateOf(receipt.subCategory) }

@@ -278,7 +278,7 @@ fun ReceiptManualInputScreen(
         if (m != null && !PRESET_MONTHS.contains(m)) m.toString() else ""
     }
     val initCategory = remember(ocrData) {
-        ocrData?.category?.let { c -> DeviceCategory.entries.find { it.displayName == c } }
+        DeviceCategory.from(ocrData?.category)
             ?: DeviceCategory.KITCHEN   // 디자인: 기본 선택 = 첫 카테고리
     }
 
