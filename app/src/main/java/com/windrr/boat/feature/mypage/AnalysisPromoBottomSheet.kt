@@ -1,5 +1,6 @@
 package com.windrr.boat.feature.mypage
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -27,6 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -35,7 +37,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
 import com.windrr.boat.R
 
 /** \"영수증 분석\" 배너 \"보기\" 클릭 시 뜨는 무료 분석 이벤트 안내 BottomSheet. */
@@ -76,20 +77,23 @@ fun AnalysisPromoBottomSheet(
 
             Column(modifier = Modifier.padding(horizontal = 20.dp)) {
 
-                AsyncImage(
-                    model = R.drawable.shiny_white,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                )
-
-                Spacer(Modifier.height(16.dp))
-
                 Text(
                     text = "지금 바로 영수증을 쉽고\n빠르게 등록해 보세요!",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF111827), // ColorGray900
                     lineHeight = 32.sp,
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                Image(
+                    painter = painterResource(id = R.drawable.bobo_mypage),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp),
                 )
 
                 Spacer(Modifier.height(24.dp))
