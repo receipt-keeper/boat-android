@@ -511,11 +511,10 @@ private fun ReceiptDetailContent(
                     .background(ColorGray50)
                     .padding(Margin16),
             ) {
-                val memo = receipt.memo?.takeIf { it.isNotBlank() }
                 Text(
-                    text = memo ?: stringResource(R.string.receipt_detail_memo_empty),
+                    text = receipt.memo.orEmpty(),
                     fontSize = 14.sp,
-                    color = if (memo != null) ColorGray900 else ColorGray400,
+                    color = ColorGray900,
                     lineHeight = 20.sp,
                 )
             }
