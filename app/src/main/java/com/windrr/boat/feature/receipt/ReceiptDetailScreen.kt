@@ -506,7 +506,7 @@ private fun ReceiptDetailContent(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 64.dp)
+                    .heightIn(min = 132.dp)
                     .clip(RoundedLg)
                     .background(ColorGray50)
                     .padding(Margin16),
@@ -519,26 +519,46 @@ private fun ReceiptDetailContent(
                 )
             }
         }
+        Spacer(Modifier.height(18.dp))
 
         // ── 실물 영수증 보관 여부 ──
         SectionBand()
-        Column(modifier = Modifier.padding(horizontal = Margin20, vertical = 20.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Margin20)
+        ) {
+            Spacer(modifier = Modifier.height(20.dp)) // 상단 여백
+
             Text(
                 text = stringResource(R.string.manual_keep_receipt_title),
-                fontSize = 18.sp, // 상세 페이지는 18sp 유지
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = ColorGray900,
             )
-            Spacer(Modifier.height(8.dp))
+
+            Spacer(Modifier.height(12.dp)) // 제목과 본문 사이 간격
+
             Text(
                 text = stringResource(
                     if (receipt.requiresPhysicalReceipt) R.string.receipt_detail_physical_kept
                     else R.string.receipt_detail_physical_not_kept
                 ),
                 fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
                 color = ColorBrandPrimary,
             )
+
+            // 💡 수정됨: 20.dp -> 12.dp로 줄여서 스크린샷처럼 구분선을 텍스트에 더 가깝게 붙였습니다.
+            Spacer(Modifier.height(6.dp))
+
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = ColorGray100, // 💡 선이 너무 진해 보일 수 있어 한 톤 더 연한 색상 토큰(Gray100~200)을 추천합니다.
+            )
         }
+
+        Spacer(Modifier.height(18.dp))
 
         // ── 보증 정보 ──
         SectionBand()
