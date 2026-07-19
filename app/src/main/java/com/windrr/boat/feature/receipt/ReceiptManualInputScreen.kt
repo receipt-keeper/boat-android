@@ -27,9 +27,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -72,7 +72,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -88,7 +87,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.compose.AsyncImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -109,9 +107,11 @@ import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatInputField
 import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.FeedbackTrigger
+import com.windrr.boat.ui.component.ImageViewerScreen
 import com.windrr.boat.ui.component.InfoTooltipIcon
 import com.windrr.boat.ui.component.PhotoSourceSheet
 import com.windrr.boat.ui.component.PriceVisualTransformation
+import com.windrr.boat.ui.component.ReceiptAttachmentThumbnail
 import com.windrr.boat.ui.component.SyncLoadingOverlay
 import com.windrr.boat.ui.component.rememberBoatToastState
 import kotlinx.coroutines.async
@@ -297,6 +297,8 @@ fun ReceiptManualInputScreen(
     var keepReceipt         by remember { mutableStateOf(false) }
     var showDatePicker      by remember { mutableStateOf(false) }
     var showAddSheet        by remember { mutableStateOf(false) }
+    var showImageViewer     by remember { mutableStateOf(false) }
+    var viewerInitialIndex  by remember { mutableStateOf(0) }
     var productInfoExpanded by remember { mutableStateOf(true) }
     var warrantyInfoExpanded by remember { mutableStateOf(true) }
 
@@ -434,16 +436,21 @@ fun ReceiptManualInputScreen(
                     contentPadding = PaddingValues(horizontal = Margin20),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
+                    itemsIndexed(photos, key = { _, uri -> uri.toString() }) { index, uri ->
+                        ReceiptAttachmentThumbnail(
+                            model = uri,
+                            onClick = {
+                                viewerInitialIndex = index
+                                showImageViewer = true
+                            },
+                            onRemove = { galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri)) },
+                            modifier = Modifier.size(100.dp),
+                        )
+                    }
                     if (remainingSlots > 0) {
                         item {
                             AddImageTile(onClick = { showAddSheet = true })
                         }
-                    }
-                    items(photos, key = { it.toString() }) { uri ->
-                        ImageThumbnail(
-                            uri = uri,
-                            onRemove = { galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri)) },
-                        )
                     }
                 }
 
@@ -789,6 +796,15 @@ fun ReceiptManualInputScreen(
         )
     }
 
+    // ── 이미지 뷰어 ──
+    if (showImageViewer && photos.isNotEmpty()) {
+        ImageViewerScreen(
+            images = photos,
+            initialIndex = viewerInitialIndex.coerceIn(0, photos.size - 1),
+            onClose = { showImageViewer = false },
+        )
+    }
+
     // 뒤로가기 확인 — OCR 결과 기반 입력이면 분석 횟수 재차감 경고, 직접 입력이면 작성 중 나가기 안내
     if (showExitConfirm) {
         val isFromOcr = ocrData != null
@@ -1001,38 +1017,6 @@ private fun AddImageTile(onClick: () -> Unit) {
                 fontSize = 12.sp,
                 color = ColorBrandPrimary
             )
-        }
-    }
-}
-
-/** 업로드 이미지 썸네일 + 우상단 X 삭제 */
-@Composable
-private fun ImageThumbnail(uri: Uri, onRemove: () -> Unit) {
-    Box(modifier = Modifier.size(100.dp)) {
-        AsyncImage(
-            model = uri,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize().clip(RoundedXl),
-        )
-        // 시각적 크기(24.dp)는 그대로 두고, 탭 영역만 사방 2dp씩 넓힌 바깥 Box에 clickable을 건다.
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(6.dp)
-                .size(28.dp)
-                .clickable(onClick = onRemove),
-            contentAlignment = Alignment.Center,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.4f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(text = "✕", color = ColorWhite, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            }
         }
     }
 }
