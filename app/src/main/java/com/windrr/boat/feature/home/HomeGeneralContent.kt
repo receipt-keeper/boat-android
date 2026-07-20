@@ -62,6 +62,7 @@ import com.windrr.boat.ui.theme.ColorGray100
 import com.windrr.boat.ui.theme.ColorGray400
 import com.windrr.boat.ui.theme.ColorGray50
 import com.windrr.boat.ui.theme.ColorGray500
+import com.windrr.boat.ui.theme.ColorGray600
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin8
@@ -121,7 +122,7 @@ fun HomeGeneralContent(
         Spacer(Modifier.height(16.dp))
         Text(
             text = stringResource(R.string.home_recent_title),
-            fontSize = 18.sp,
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = ColorGray900,
             modifier = Modifier.padding(horizontal = Margin20),
@@ -567,17 +568,20 @@ private fun RecentReceiptItem(
                     Text(
                         text = stringResource(R.string.home_label_purchase),
                         fontSize = 14.sp,
-                        color = Color(0xFF6B7280) // 텍스트용 그레이
+                        fontWeight = FontWeight.Medium,
+                        color = ColorGray600,
                     )
                     Text(
                         text = "  |  ",
-                        fontSize = 12.sp,
-                        color = Color(0xFFD1D5DB) // 구분선용 연한 그레이
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = ColorGray600,
                     )
                     Text(
                         text = item.purchaseDate,
                         fontSize = 14.sp,
-                        color = Color(0xFF6B7280)
+                        fontWeight = FontWeight.Medium,
+                        color = ColorGray600,
                     )
                 }
             }
