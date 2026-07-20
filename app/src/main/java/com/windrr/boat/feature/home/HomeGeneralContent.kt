@@ -55,6 +55,7 @@ import com.windrr.boat.core.ocr.DeviceImage
 import com.windrr.boat.feature.receipt.WarrantyDayBadge
 import com.windrr.boat.ui.theme.BottomBarClearance
 import com.windrr.boat.ui.theme.ColorBrandPrimary
+import com.windrr.boat.ui.theme.ColorBrandSecondary
 import com.windrr.boat.ui.theme.ColorBrandSenary
 import com.windrr.boat.ui.theme.ColorGray100
 import com.windrr.boat.ui.theme.ColorGray400
@@ -150,12 +151,12 @@ fun HomeGeneralContent(
                     stringResource(R.string.home_more),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    color = ColorBrandPrimary,
+                    color = ColorBrandSecondary,
                 )
                 Icon(
                     painter = painterResource(R.drawable.ic_chevron_right),
                     contentDescription = null,
-                    tint = ColorBrandPrimary,
+                    tint = ColorBrandSecondary,
                     modifier = Modifier
                         .padding(start = 2.dp)
                         .size(16.dp),
