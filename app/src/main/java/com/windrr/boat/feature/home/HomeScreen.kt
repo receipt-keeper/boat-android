@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -167,6 +168,9 @@ fun HomeScreenContent(
     modifier: Modifier = Modifier,
 ) {
     var showTestPushDialog by rememberSaveable { mutableStateOf(false) }
+    // iOS(LinearGradient .frame(height: 560))와 동일한 그라데이션 종료 지점을 맞추기 위해
+    // dp -> px 변환 사용 (기존 endY = 1000f는 raw px여서 기기 밀도에 따라 종료 지점이 달라졌음).
+    val gradientEndPx = with(LocalDensity.current) { 560.dp.toPx() }
 
     Box(
         modifier = modifier
@@ -178,7 +182,7 @@ fun HomeScreenContent(
                         Color(0xFFFFFFFF)
                     ),
                     startY = 0f,
-                    endY = 1000f
+                    endY = gradientEndPx
                 )
             )
     ) {
