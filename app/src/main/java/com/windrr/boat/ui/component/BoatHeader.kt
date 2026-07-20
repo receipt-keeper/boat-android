@@ -119,10 +119,7 @@ private fun HeaderActionIcon(
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .size(7.dp)
-                    .clip(CircleShape)
-                    .background(ColorWhite)
-                    .padding(1.dp)
+                    .size(6.dp)
                     .clip(CircleShape)
                     .background(ColorSystemError),
             )
