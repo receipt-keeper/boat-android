@@ -525,7 +525,13 @@ private fun RecentReceiptItem(
                 contentAlignment = Alignment.Center
             ) {
                 // 내부 썸네일 크기를 56dp 박스에 맞게 약간 축소
-                Thumbnail(category = item.category, subCategory = item.subCategory, sizeDp = 36)
+                // 바깥 박스가 이미 흰 배경이라 Thumbnail 기본 블루 배경(ColorBrandSenary)은 끔 (iOS와 동일하게 흰색만)
+                Thumbnail(
+                    category = item.category,
+                    subCategory = item.subCategory,
+                    sizeDp = 36,
+                    bg = Color.Transparent,
+                )
             }
 
             Spacer(Modifier.width(16.dp))
