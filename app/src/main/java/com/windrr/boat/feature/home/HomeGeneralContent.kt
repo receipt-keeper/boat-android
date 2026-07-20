@@ -614,13 +614,14 @@ private fun ExpiringEmptyBanner(
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .height(274.dp)
             .clip(Rounded2xl)
             .background(
                 Brush.verticalGradient(
                     colors = listOf(Color(0xFF3E82F7), Color(0xFF6FA1F8)),
                 )
             )
-            .padding(Margin20),
+            .padding(start = 12.dp, top = 32.dp, end = 12.dp, bottom = 16.dp),
     ) {
         // 1) 몸통 — 맨 아래. (Inner Banner에 의해 하단이 덮임)
         MascotImage(R.drawable.img_crying_bobo, bobo, endPadding = 32.dp)
@@ -663,7 +664,7 @@ private fun ExpiringEmptyBanner(
                     }
                 }
 
-                // 우측 화살표 (수직 중앙 및 우측 끝 정렬)
+                // 우측 화살표 (수직 중앙 및 우측 끝 정렬) — 카드 우측 끝에서 22px(카드 패딩 12px + 추가 10px)
                 Icon(
                     painter = painterResource(R.drawable.ic_chevron_right),
                     contentDescription = null,
@@ -671,9 +672,12 @@ private fun ExpiringEmptyBanner(
                     modifier = Modifier
                         .size(24.dp)
                         .align(Alignment.CenterEnd)
+                        .padding(end = 10.dp)
                         .clickable(onClick = onMoreClick),
                 )
             }
+
+            Spacer(Modifier.height(28.dp))
 
             // 2) 안내 박스 — 몸통 위, 손 아래
             // 몸통 하단을 덮어버려 "깔끔한 절취선" 효과를 내고, 손(태그)은 이 위로 오버랩 됨
@@ -692,6 +696,7 @@ private fun ExpiringEmptyBanner(
                     fontWeight = FontWeight.Medium,
                     color = ColorWhite,
                     textAlign = TextAlign.Center,
+                    maxLines = 1,
                 )
             }
         }
