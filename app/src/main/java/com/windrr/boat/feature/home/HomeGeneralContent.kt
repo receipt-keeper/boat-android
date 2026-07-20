@@ -54,7 +54,6 @@ import com.windrr.boat.ui.component.BoatNativeAdBanner
 import com.windrr.boat.core.ocr.DeviceImage
 import com.windrr.boat.feature.receipt.WarrantyDayBadge
 import com.windrr.boat.ui.theme.BottomBarClearance
-import com.windrr.boat.ui.theme.ColorBadgeSafeBg
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandSenary
 import com.windrr.boat.ui.theme.ColorGray100
@@ -117,7 +116,7 @@ fun HomeGeneralContent(
         )
 
         // ── 최근 등록된 영수증 ────────────────────────
-        Spacer(Modifier.height(Margin24))
+        Spacer(Modifier.height(16.dp))
         Text(
             text = stringResource(R.string.home_recent_title),
             fontSize = 18.sp,
@@ -128,26 +127,28 @@ fun HomeGeneralContent(
         Spacer(Modifier.height(Margin12))
         Column(
             modifier = Modifier.padding(horizontal = Margin20),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            recent.forEach { item ->
+            recent.forEachIndexed { index, item ->
                 RecentReceiptItem(item = item, onClick = { onRecentClick(item) })
+                if (index != recent.lastIndex) {
+                    Spacer(Modifier.height(12.dp))
+                }
             }
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(16.dp))
             // 더보기
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
+                    .height(52.dp)
                     .clip(RoundedXl)
-                    .background(ColorBadgeSafeBg)
+                    .background(ColorBrandSenary)
                     .clickable(onClick = onRecentMore),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     stringResource(R.string.home_more),
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = ColorBrandPrimary,
                 )
