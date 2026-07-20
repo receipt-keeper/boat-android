@@ -107,12 +107,12 @@ private fun HeaderActionIcon(
 ) {
     val noRipple = remember { MutableInteractionSource() }
     Box {
-        // 에셋 고유 크기(검색 20×20, 알림 18×20)로 렌더 — 정사각형 강제 금지(비율 왜곡 방지)
         Icon(
             painter = painterResource(icon),
             contentDescription = stringResource(description),
             tint = tint,
             modifier = Modifier
+                .size(24.dp)
                 .clickable(interactionSource = noRipple, indication = null, onClick = onClick),
         )
         if (showBadge) {
