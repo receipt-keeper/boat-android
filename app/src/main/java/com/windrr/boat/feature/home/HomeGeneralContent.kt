@@ -209,7 +209,7 @@ private fun ExpiringWarrantySection(
             ),
     ) {
         // 1) 몸통 — 맨 아래. 카드와 겹치는 부분은 카드에 가려진다. (endPadding을 키워 캐릭터를 안쪽으로)
-        MascotImage(R.drawable.img_happy_bobo, bobo, endPadding = 44.dp)
+        MascotImage(R.drawable.img_happy_bobo, bobo, endPadding = 60.dp)
 
         Column(modifier = Modifier
             .fillMaxWidth()
@@ -298,7 +298,7 @@ private fun ExpiringWarrantySection(
         }
 
         // 3) 손 + 보증 태그 — 맨 위. 몸통과 완전히 동일한 크기·위치라야 이어져 보인다.
-        MascotImage(R.drawable.img_happy_bobo_hand, bobo, endPadding = 44.dp)
+        MascotImage(R.drawable.img_happy_bobo_hand, bobo, endPadding = 60.dp)
     }
 }
 
