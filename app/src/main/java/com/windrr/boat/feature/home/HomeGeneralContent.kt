@@ -67,9 +67,7 @@ import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin8
 import com.windrr.boat.ui.theme.Margin12
-import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
-import com.windrr.boat.ui.theme.Margin24
 import com.windrr.boat.ui.theme.Rounded2xl
 import com.windrr.boat.ui.theme.RoundedFull
 import com.windrr.boat.ui.theme.RoundedXl
@@ -215,11 +213,11 @@ private fun ExpiringWarrantySection(
 
         Column(modifier = Modifier
             .fillMaxWidth()
-            .padding(top = Margin24, bottom = Margin20)) {
+            .padding(top = 32.dp, bottom = 12.dp)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = Margin20),
+                    .padding(horizontal = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // 캐릭터 세트는 안쪽으로 들여놓고(chevron과 겹치지 않게), 타이틀은 캐릭터 아래로 넘어가지 않도록 우측 여백 확보
@@ -248,17 +246,19 @@ private fun ExpiringWarrantySection(
                         )
                     }
                 }
+                // 카드 우측 끝에서 22px(카드 패딩 12px + 추가 10px) — 0건 배너와 동일
                 Icon(
                     painter = painterResource(R.drawable.ic_chevron_right),
                     contentDescription = null,
-                    tint = ColorWhite,
+                    tint = ColorBrandTertiary,
                     modifier = Modifier
-                        .size(20.dp)
+                        .size(24.dp)
+                        .padding(end = 10.dp)
                         .clickable(onClick = onMoreClick),
                 )
             }
 
-            Spacer(Modifier.height(30.dp)) // 헤더-카드 간격 확대 → 손 태그가 카드 텍스트를 덜 가리도록
+            Spacer(Modifier.height(28.dp)) // 헤더-카드 간격 확대 → 손 태그가 카드 텍스트를 덜 가리도록
             // 2) 카드 캐러셀 — 몸통 위, 손 아래(z-order로 몸통의 하단부를 가린다)
             LazyRow(
                 state = listState,
@@ -289,7 +289,7 @@ private fun ExpiringWarrantySection(
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(12.dp))
             CarouselIndicator(
                 count = pageCount,
                 listState = listState,
@@ -380,7 +380,7 @@ private fun ExpiringWarrantyCard(
             .clip(Rounded2xl)
             .background(ColorWhite)
             .clickable(onClick = onClick)
-            .padding(Margin16),
+            .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
