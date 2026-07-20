@@ -57,6 +57,7 @@ import com.windrr.boat.ui.theme.BottomBarClearance
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandSecondary
 import com.windrr.boat.ui.theme.ColorBrandSenary
+import com.windrr.boat.ui.theme.ColorBrandTertiary
 import com.windrr.boat.ui.theme.ColorGray100
 import com.windrr.boat.ui.theme.ColorGray400
 import com.windrr.boat.ui.theme.ColorGray50
@@ -656,7 +657,7 @@ private fun ExpiringEmptyBanner(
                 Icon(
                     painter = painterResource(R.drawable.ic_chevron_right),
                     contentDescription = null,
-                    tint = ColorWhite,
+                    tint = ColorBrandTertiary,
                     modifier = Modifier
                         .size(24.dp)
                         .align(Alignment.CenterEnd)
