@@ -513,7 +513,7 @@ private fun RecentReceiptItem(
         color = Color(0xFFF2F6FC), // 디자인 가이드 카드 배경색 (옅은 쿨블루) — 흰 배경 위에서 카드 경계가 드러남
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 22.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 💡 [수정] 썸네일을 감싸는 하얀색 라운드 박스 추가
