@@ -463,6 +463,7 @@ private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onEdit: () -> Un
                 ReceiptItemThumbnail(
                     category = item.category,
                     subCategory = item.subCategory,
+                    sizeDp = 50,
                 )
 
                 Column(
@@ -493,19 +494,26 @@ private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onEdit: () -> Un
                         )
                     }
 
-                    // 💡 교정 2: "AS 만료일 | 2026. 07. 16" 형식으로 타이포그래피 정교화
+                    // 💡 교정 2: "AS 만료일 | 2026. 07. 16" 형식으로 타이포그래피 정교화 (Body2 Medium)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "AS 만료일", // R.string.receipt_expiry_date_label 로 유지 가능
-                            fontSize = 13.sp,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
                             color = ColorGray400,
                             maxLines = 1,
                             softWrap = false,
                         )
-                        Text(text = "  |  ", fontSize = 13.sp, color = ColorGray200)
+                        Text(
+                            text = "  |  ",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = ColorGray200,
+                        )
                         Text(
                             text = item.expiresOn?.formatDate() ?: "-",
-                            fontSize = 13.sp,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
                             color = ColorGray500,
                             maxLines = 1,
                             softWrap = false,
