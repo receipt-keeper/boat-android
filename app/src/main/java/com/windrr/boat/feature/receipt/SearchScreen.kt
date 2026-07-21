@@ -289,11 +289,10 @@ private fun SearchField(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(40.dp)
                     .clip(RoundedLg)
                     .background(ColorWhite)
                     .border(1.dp, ColorGray300, RoundedLg)
-                    .padding(horizontal = Margin16),
+                    .padding(horizontal = Margin16, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
@@ -310,6 +309,7 @@ private fun SearchField(
                     }
                     innerTextField()
                 }
+                Spacer(Modifier.width(8.dp))
                 if (query.isEmpty()) {
                     Icon(
                         painter = painterResource(R.drawable.ic_search),
