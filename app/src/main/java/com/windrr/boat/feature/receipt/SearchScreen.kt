@@ -364,19 +364,23 @@ private fun SearchEmptyState(
                 fontWeight = FontWeight.Bold,
                 color = ColorGray900,
                 textAlign = TextAlign.Center,
+                lineHeight = 28.sp,
             )
             Spacer(Modifier.height(10.dp))
             Text(
                 text = stringResource(R.string.search_empty_subtitle),
-                fontSize = 14.sp,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
                 color = ColorGray500,
                 textAlign = TextAlign.Center,
-                lineHeight = 20.sp,
+                lineHeight = 24.sp,
             )
             Spacer(Modifier.height(28.dp))
             Button(
                 onClick = onRegisterClick,
-                shape = RoundedXl,
+                modifier = Modifier.size(width = 210.dp, height = 50.dp),
+                shape = RoundedLg,
+                contentPadding = PaddingValues(start = 20.dp, top = 8.dp, end = 20.dp, bottom = 8.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = ColorBrandPrimary,
                     contentColor = ColorWhite,
@@ -385,13 +389,13 @@ private fun SearchEmptyState(
                 Icon(
                     painter = painterResource(R.drawable.ic_plus),
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier.size(25.dp),
                 )
-                Spacer(Modifier.width(6.dp))
+                Spacer(Modifier.width(4.dp))
                 Text(
                     text = stringResource(R.string.search_empty_register),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
                 )
             }
         }
