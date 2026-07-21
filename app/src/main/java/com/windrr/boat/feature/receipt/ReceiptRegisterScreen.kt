@@ -166,7 +166,7 @@ fun UploadActionCard(
             painter = painterResource(icon),
             contentDescription = null,
             tint = ColorBrandPrimary,
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(28.dp),
         )
         Spacer(Modifier.height(12.dp))
         Text(
@@ -242,13 +242,13 @@ fun NoticeCard(
                     suffix = " 업로드할 수 있습니다.",
                 )
                 NoticeBulletRow(
-                    icon = R.drawable.ic_upload_single,
+                    icon = R.drawable.icon_download,
                     prefix = "영수증은 ",
                     highlight = "1장씩 개별 촬영하여",
                     suffix = " 업로드해 주세요.",
                 )
                 NoticeBulletRow(
-                    icon = R.drawable.ic_file_format,
+                    icon = R.drawable.icon_folder,
                     prefix = "",
                     highlight = "JPG, PNG, HEIC",
                     suffix = "만 등록해 주세요.",
@@ -273,7 +273,7 @@ fun NoticeBulletRow(
             tint = ColorGray600,
             modifier = Modifier
                 .padding(top = 1.dp)
-                .size(18.dp),
+                .size(28.dp),
         )
         Spacer(Modifier.width(10.dp))
         Text(
@@ -673,7 +673,7 @@ fun ReceiptRegisterScreen(
                                 modifier = Modifier.weight(1f),
                             )
                             UploadActionCard(
-                                icon = R.drawable.ic_gallery,
+                                icon = R.drawable.icon_picture,
                                 label = R.string.receipt_register_gallery,
                                 onClick = { onPickFromGallery(maxPhotosErrorMessage) },
                                 modifier = Modifier.weight(1f),
