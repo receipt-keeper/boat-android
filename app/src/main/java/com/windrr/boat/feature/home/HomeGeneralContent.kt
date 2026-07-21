@@ -58,6 +58,8 @@ import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandSecondary
 import com.windrr.boat.ui.theme.ColorBrandSenary
 import com.windrr.boat.ui.theme.ColorBrandTertiary
+import com.windrr.boat.ui.theme.ColorCardBgStrong
+import com.windrr.boat.ui.theme.ColorCardBgStrongInner
 import com.windrr.boat.ui.theme.ColorGray100
 import com.windrr.boat.ui.theme.ColorGray400
 import com.windrr.boat.ui.theme.ColorGray50
@@ -612,16 +614,17 @@ private fun ExpiringEmptyBanner(
     val bobo = MascotLayout(width = 88.dp, height = 107.dp, offsetY = 0.dp)
 
     Box(
+        // 높이는 고정하지 않고 콘텐츠에 맞춰 자연스럽게 산정한다.
+        // (고정 높이였을 때 상단 패딩을 줄이면 카드 하단에 빈 여백만 남거나, 반대로
+        //  내부 콘텐츠가 라운드 클립 밖으로 잘려나가는 문제가 있었다)
         modifier = modifier
             .fillMaxWidth()
-            .height(274.dp)
             .clip(Rounded2xl)
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFF3E82F7), Color(0xFF6FA1F8)),
-                )
-            )
-            .padding(start = 12.dp, top = 32.dp, end = 12.dp, bottom = 16.dp),
+            // 💡 [교정] Card/Bg/Strong — 임의 그라디언트 대신 디자인 토큰 단색으로 교체
+            // (기존 그라디언트 값이 Inner 톤(#4F8EFF)과 거의 같아 안팎 구분이 안 됐음)
+            .background(ColorCardBgStrong)
+            // 💡 [교정] 상단 여백이 디자인 가이드 대비 과도하게 넓었던 문제 — 32dp → 16dp
+            .padding(start = 12.dp, top = 16.dp, end = 12.dp, bottom = 16.dp),
     ) {
         // 1) 몸통 — 맨 아래. (Inner Banner에 의해 하단이 덮임)
         MascotImage(R.drawable.img_crying_bobo, bobo, endPadding = 32.dp)
@@ -677,16 +680,16 @@ private fun ExpiringEmptyBanner(
                 )
             }
 
-            Spacer(Modifier.height(28.dp))
 
             // 2) 안내 박스 — 몸통 위, 손 아래
             // 몸통 하단을 덮어버려 "깔끔한 절취선" 효과를 내고, 손(태그)은 이 위로 오버랩 됨
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(112.dp)
+                    .height(147.dp)
                     .clip(RoundedXl)
-                    .background(ColorWhite.copy(alpha = 0.18f))
+                    // 💡 [교정] Card/Bg/Strong/Inner — 외곽 그라디언트와 대비되는 짙은 강조 배경으로 교체
+                    .background(ColorCardBgStrongInner)
                     .padding(horizontal = 14.dp),
                 contentAlignment = Alignment.Center,
             ) {
