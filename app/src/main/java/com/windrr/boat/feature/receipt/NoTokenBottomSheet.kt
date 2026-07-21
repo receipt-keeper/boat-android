@@ -125,6 +125,7 @@ private fun NoTokenPromoContent(
     val colorGray600 = Color(0xFF4B5563)
     val colorGrayBg = Color(0xFFF3F4F6) // 안내 박스 옅은 회색
     val roundedXl = RoundedCornerShape(12.dp)
+    val roundedLg = RoundedCornerShape(8.dp) // CTA 버튼 전용
 
     Column(
         modifier = Modifier
@@ -215,8 +216,8 @@ private fun NoTokenPromoContent(
             onClick = onRecharge,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
-            shape = roundedXl,
+                .height(58.dp),
+            shape = roundedLg,
             colors = ButtonDefaults.buttonColors(
                 containerColor = colorBrandPrimary,
                 contentColor = Color.White,
@@ -225,7 +226,7 @@ private fun NoTokenPromoContent(
             Text(
                 text = "5회 무료로 충전하기",
                 fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
             )
         }
 
@@ -236,15 +237,15 @@ private fun NoTokenPromoContent(
             onClick = onManualInput,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
-            shape = roundedXl,
+                .height(58.dp),
+            shape = roundedLg,
             border = BorderStroke(1.dp, colorBrandPrimary.copy(alpha = 0.3f)),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = colorBrandPrimary),
         ) {
             Text(
                 text = "영수증 직접 입력하기",
                 fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
             )
         }
     }
@@ -256,7 +257,7 @@ private fun NoTokenSimpleContent(onManualInput: () -> Unit) {
     val colorBrandPrimary = Color(0xFF007AFF)
     val colorGray900 = Color(0xFF111827)
     val colorGray500 = Color(0xFF6B7280)
-    val roundedXl = RoundedCornerShape(12.dp)
+    val roundedLg = RoundedCornerShape(8.dp)
 
     Column(
         modifier = Modifier
@@ -299,8 +300,8 @@ private fun NoTokenSimpleContent(onManualInput: () -> Unit) {
             onClick = onManualInput,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
-            shape = roundedXl,
+                .height(58.dp),
+            shape = roundedLg,
             colors = ButtonDefaults.buttonColors(
                 containerColor = colorBrandPrimary,
                 contentColor = Color.White,
@@ -309,7 +310,7 @@ private fun NoTokenSimpleContent(onManualInput: () -> Unit) {
             Text(
                 text = "영수증 직접 입력하기",
                 fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
             )
         }
     }

@@ -34,7 +34,7 @@ import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin20
 import com.windrr.boat.ui.theme.Margin8
-import com.windrr.boat.ui.theme.RoundedXl
+import com.windrr.boat.ui.theme.RoundedLg
 
 /** 영수증 등록 완료 화면 — 체크 아이콘 + 안내 문구 + "홈으로 가기"/"보러가기" 버튼. */
 @Composable
@@ -88,23 +88,23 @@ fun ReceiptRegisterCompleteScreen(
                 onClick = onGoHome,
                 modifier = Modifier
                     .weight(1f)
-                    .height(56.dp),
-                shape = RoundedXl,
+                    .height(58.dp),
+                shape = RoundedLg,
                 border = BorderStroke(1.dp, ColorGray300),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = ColorGray900),
             ) {
                 Text(
                     text = stringResource(R.string.receipt_register_complete_home),
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Medium,
                 )
             }
             Button(
                 onClick = onViewReceipt,
                 modifier = Modifier
                     .weight(1f)
-                    .height(56.dp),
-                shape = RoundedXl,
+                    .height(58.dp),
+                shape = RoundedLg,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = ColorBrandPrimary,
                     contentColor = ColorWhite,
@@ -113,7 +113,7 @@ fun ReceiptRegisterCompleteScreen(
                 Text(
                     text = stringResource(R.string.receipt_register_complete_view),
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Medium,
                 )
             }
         }

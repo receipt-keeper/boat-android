@@ -46,6 +46,7 @@ fun UnsupportedReceiptBottomSheet(
     val colorWhite = Color.White
     val colorGrayBg = Color(0xFFF4F5F7)
     val roundedXl = RoundedCornerShape(12.dp)
+    val roundedLg = RoundedCornerShape(8.dp) // CTA 버튼 전용
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -130,8 +131,8 @@ fun UnsupportedReceiptBottomSheet(
                     onClick = onRetry,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
-                    shape = roundedXl,
+                        .height(58.dp),
+                    shape = roundedLg,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colorBrandPrimary,
                         contentColor = colorWhite,
@@ -140,7 +141,7 @@ fun UnsupportedReceiptBottomSheet(
                     Text(
                         text = "영수증 다시 업로드하기",
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Medium,
                     )
                 }
             }

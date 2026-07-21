@@ -57,7 +57,6 @@ import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Rounded2xl
 import com.windrr.boat.ui.theme.RoundedLg
-import com.windrr.boat.ui.theme.RoundedXl
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -211,8 +210,8 @@ fun UserFeedbackBottomSheet(
                     onClick = onNext,
                     modifier = Modifier
                         .weight(1f)
-                        .height(56.dp),
-                    shape = RoundedXl,
+                        .height(58.dp),
+                    shape = RoundedLg,
                     border = BorderStroke(1.dp, ColorBrandPrimary),
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = ColorWhite,
@@ -222,7 +221,7 @@ fun UserFeedbackBottomSheet(
                     Text(
                         text = stringResource(R.string.feedback_next),
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Medium
                     )
                 }
 
@@ -231,8 +230,8 @@ fun UserFeedbackBottomSheet(
                     onClick = { onSubmit(rating, comment) },
                     modifier = Modifier
                         .weight(1f)
-                        .height(56.dp),
-                    shape = RoundedXl,
+                        .height(58.dp),
+                    shape = RoundedLg,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = ColorBrandPrimary,
                         contentColor = ColorWhite,
@@ -244,7 +243,7 @@ fun UserFeedbackBottomSheet(
                     Text(
                         text = stringResource(R.string.feedback_submit),
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }

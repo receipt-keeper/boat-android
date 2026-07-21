@@ -69,6 +69,7 @@ fun AnalysisFailedBottomSheet(
     val colorWhite = Color.White
     val colorGrayBg = Color(0xFFF4F5F7) // 안내 박스 옅은 회색
     val roundedXl = RoundedCornerShape(12.dp)
+    val roundedLg = RoundedCornerShape(8.dp) // CTA 버튼 전용
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -158,8 +159,8 @@ fun AnalysisFailedBottomSheet(
                     onClick = onRetry,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
-                    shape = roundedXl,
+                        .height(58.dp),
+                    shape = roundedLg,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colorBrandPrimary,
                         contentColor = colorWhite,
@@ -168,7 +169,7 @@ fun AnalysisFailedBottomSheet(
                     Text(
                         text = "영수증 다시 업로드하기",
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Medium,
                     )
                 }
 
@@ -179,8 +180,8 @@ fun AnalysisFailedBottomSheet(
                     onClick = onManualInput,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
-                    shape = roundedXl,
+                        .height(58.dp),
+                    shape = roundedLg,
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = colorBrandPrimary,
                     ),
@@ -189,7 +190,7 @@ fun AnalysisFailedBottomSheet(
                     Text(
                         text = "영수증 직접 입력하기",
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Medium,
                     )
                 }
             }

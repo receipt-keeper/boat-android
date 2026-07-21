@@ -152,8 +152,8 @@ fun AnalysisPromoBottomSheet(
                     onClick = onRegisterClick,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
+                        .height(58.dp),
+                    shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF007AFF), // ColorBrandPrimary
                         contentColor = Color.White,
@@ -162,7 +162,7 @@ fun AnalysisPromoBottomSheet(
                     Text(
                         text = "지금 영수증 등록하기",
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Medium,
                     )
                 }
             }

@@ -861,14 +861,14 @@ private fun ReceiptEditForm(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = Margin20)
-                    .height(56.dp),
-                shape = RoundedXl,
+                    .height(58.dp),
+                shape = RoundedLg,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (isFormComplete) ColorBrandPrimary else ColorGray200,
                     contentColor = if (isFormComplete) ColorWhite else ColorGray500,
                 ),
             ) {
-                Text(stringResource(R.string.edit_submit), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.edit_submit), fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
             Spacer(Modifier.height(Margin24))
         }

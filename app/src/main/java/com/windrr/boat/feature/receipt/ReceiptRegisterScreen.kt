@@ -102,6 +102,7 @@ import com.windrr.boat.ui.theme.Margin24
 import com.windrr.boat.ui.theme.Margin8
 import com.windrr.boat.ui.theme.Rounded2xl
 import com.windrr.boat.ui.theme.RoundedFull
+import com.windrr.boat.ui.theme.RoundedLg
 import com.windrr.boat.ui.theme.RoundedXl
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -618,8 +619,8 @@ fun ReceiptRegisterScreen(
                         enabled = !isAnalyzing && photos.isNotEmpty(),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedXl,
+                            .height(58.dp),
+                        shape = RoundedLg,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = ColorBrandPrimary,
                             contentColor = ColorWhite,
@@ -630,7 +631,7 @@ fun ReceiptRegisterScreen(
                         Text(
                             text = stringResource(R.string.receipt_register_analyze),
                             fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            fontWeight = FontWeight.Medium,
                         )
                     }
                 }
