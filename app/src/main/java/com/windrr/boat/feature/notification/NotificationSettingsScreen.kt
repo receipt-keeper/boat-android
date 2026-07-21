@@ -38,6 +38,7 @@ import com.windrr.boat.ui.component.BoatToastHost
 import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorGray300
+import com.windrr.boat.ui.theme.ColorGray500
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin20
@@ -131,16 +132,19 @@ fun NotificationSettingsScreen(
             ToggleRow(
                 label = stringResource(R.string.notif_settings_marketing),
                 checked = user.marketingConsent,
-                onCheckedChange = { wantOn -> 
+                onCheckedChange = { wantOn ->
                     viewModel.setMarketingConsent(wantOn)
                     // 💡 요청된 문구로 수정
                     toastState.show(if (wantOn) "수신 동의 처리되었습니다." else "수신 동의가 철회되었습니다.")
                 },
+                bottomPadding = 4.dp,
             )
             Text(
                 text = "*수신 거부 및 철회는 언제든 본 페이지에서 변경 가능합니다.",
-                fontSize = 13.sp,
-                color = Color(0xFFA1A1AA), // ColorGray400 계열
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                lineHeight = 15.6.sp,
+                color = ColorGray500,
                 modifier = Modifier.padding(horizontal = Margin20)
             )
         }
@@ -158,11 +162,12 @@ private fun ToggleRow(
     label: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
+    bottomPadding: androidx.compose.ui.unit.Dp = 16.dp,
 ) {
     androidx.compose.foundation.layout.Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Margin20, vertical = 16.dp),
+            .padding(start = Margin20, top = 16.dp, end = Margin20, bottom = bottomPadding),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
