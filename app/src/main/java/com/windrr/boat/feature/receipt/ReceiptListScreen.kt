@@ -651,10 +651,11 @@ private fun MenuSheetRow(text: String, color: Color, onClick: () -> Unit) {
 internal fun ReceiptItemThumbnail(
     category: String?,
     subCategory: String?,
+    sizeDp: Int = 64,
 ) {
     Box(
         modifier = Modifier
-            .size(64.dp)
+            .size(sizeDp.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(ColorGray50),
         contentAlignment = Alignment.Center,
@@ -723,7 +724,7 @@ internal fun WarrantyDayBadge(warrantyDDay: Int?) {
     ) {
         Text(
             text = label,
-            fontSize = 13.sp,
+            fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             color = textColor,
         )

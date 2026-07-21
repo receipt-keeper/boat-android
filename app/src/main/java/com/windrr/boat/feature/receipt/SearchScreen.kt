@@ -224,6 +224,7 @@ private fun SearchResultCard(item: ReceiptItem, onClick: () -> Unit) {
             ReceiptItemThumbnail(
                 category = item.category,
                 subCategory = item.subCategory,
+                sizeDp = 50,
             )
 
             Column(
@@ -247,15 +248,22 @@ private fun SearchResultCard(item: ReceiptItem, onClick: () -> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "AS 만료일",
-                        fontSize = 13.sp,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
                         color = ColorGray400,
                         maxLines = 1,
                         softWrap = false,
                     )
-                    Text(text = "  |  ", fontSize = 13.sp, color = ColorGray200)
+                    Text(
+                        text = "  |  ",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = ColorGray200,
+                    )
                     Text(
                         text = item.expiresOn?.formatDate() ?: "-",
-                        fontSize = 13.sp,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
                         color = ColorGray500,
                         maxLines = 1,
                         softWrap = false,
