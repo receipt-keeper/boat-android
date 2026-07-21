@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -100,7 +99,6 @@ import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
 import com.windrr.boat.ui.theme.Margin24
 import com.windrr.boat.ui.theme.Margin8
-import com.windrr.boat.ui.theme.Rounded2xl
 import com.windrr.boat.ui.theme.RoundedFull
 import com.windrr.boat.ui.theme.RoundedLg
 import com.windrr.boat.ui.theme.RoundedXl
@@ -110,7 +108,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-private val ThumbnailSize = 130.dp
+private val ThumbnailSize = 100.dp
 
 /**
  * [NoticeCard]가 "접힌 상태"일 때의 대략적인 높이(아이콘 20dp + 헤더 1줄 + 상하 패딩 32dp).
@@ -135,10 +133,10 @@ fun AnalysisCountPill(remaining: Int) {
             contentDescription = null,
             modifier = Modifier.size(16.dp),
         )
-        Spacer(Modifier.width(6.dp))
+        Spacer(Modifier.width(4.dp))
         Text(
             text = stringResource(R.string.receipt_register_analysis_count, remaining),
-            fontSize = 13.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
             color = ColorBrandPrimary,
         )
@@ -155,10 +153,11 @@ fun UploadActionCard(
 ) {
     Column(
         modifier = modifier
-            .aspectRatio(1f)
-            .clip(Rounded2xl)
+            .fillMaxWidth()
+            .height(140.dp)
+            .clip(RoundedXl)
             .background(ColorWhite)
-            .border(1.dp, ColorBrandTertiary, Rounded2xl)
+            .border(1.dp, ColorBrandTertiary, RoundedXl)
             .clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -173,7 +172,7 @@ fun UploadActionCard(
         Text(
             text = stringResource(label),
             fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Medium,
             color = ColorBrandPrimary,
         )
     }
@@ -285,9 +284,9 @@ fun NoticeBulletRow(
                 }
                 append(suffix)
             },
-            fontSize = 13.sp,
+            fontSize = 14.sp,
             color = ColorGray700,
-            lineHeight = 19.sp,
+            lineHeight = 20.sp,
         )
     }
 }
