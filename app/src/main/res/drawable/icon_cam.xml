@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (C) 2026 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="42dp"
+    android:height="42dp"
+    android:viewportWidth="42"
+    android:viewportHeight="42">
+  <group>
+    <clip-path
+        android:pathData="M0,0h42v42h-42z"/>
+    <path
+        android:pathData="M26.167,9.963C27.779,9.963 29.21,10.994 29.72,12.523C30.012,13.398 30.831,13.989 31.754,13.989H32C34.099,13.989 35.8,15.69 35.8,17.789V29.237C35.8,31.336 34.099,33.037 32,33.037H12.5C10.401,33.037 8.7,31.336 8.7,29.237V17.789C8.7,15.69 10.401,13.989 12.5,13.989H12.746C13.669,13.989 14.488,13.399 14.78,12.523C15.29,10.995 16.72,9.963 18.332,9.963H26.167ZM18.332,11.563C17.409,11.563 16.59,12.153 16.298,13.028C15.788,14.557 14.358,15.589 12.746,15.589H12.5C11.285,15.589 10.3,16.574 10.3,17.789V29.237C10.3,30.452 11.285,31.438 12.5,31.438H32C33.215,31.438 34.2,30.452 34.2,29.237V17.789C34.2,16.574 33.215,15.589 32,15.589H31.754C30.142,15.589 28.711,14.558 28.201,13.029C27.909,12.154 27.09,11.563 26.167,11.563H18.332ZM22.25,16.2C25.591,16.2 28.3,18.909 28.3,22.25C28.3,25.591 25.591,28.3 22.25,28.3C18.909,28.3 16.2,25.591 16.2,22.25C16.2,18.909 18.909,16.2 22.25,16.2ZM22.25,17.8C19.792,17.8 17.8,19.792 17.8,22.25C17.8,24.708 19.792,26.7 22.25,26.7C24.708,26.7 26.7,24.708 26.7,22.25C26.7,19.792 24.708,17.8 22.25,17.8Z"
+        android:fillColor="#0E70E3"/>
+  </group>
+</vector>

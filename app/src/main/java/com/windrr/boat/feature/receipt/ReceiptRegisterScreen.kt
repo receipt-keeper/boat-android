@@ -165,8 +165,8 @@ fun UploadActionCard(
         Icon(
             painter = painterResource(icon),
             contentDescription = null,
-            tint = ColorBrandPrimary,
-            modifier = Modifier.size(28.dp),
+            tint = Color.Unspecified,
+            modifier = Modifier.size(42.dp),
         )
         Spacer(Modifier.height(12.dp))
         Text(
@@ -667,13 +667,13 @@ fun ReceiptRegisterScreen(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             UploadActionCard(
-                                icon = R.drawable.ic_camera,
+                                icon = R.drawable.icon_cam,
                                 label = R.string.receipt_register_camera,
                                 onClick = { onTakePhoto(maxPhotosErrorMessage) },
                                 modifier = Modifier.weight(1f),
                             )
                             UploadActionCard(
-                                icon = R.drawable.icon_picture,
+                                icon = R.drawable.icon_slot,
                                 label = R.string.receipt_register_gallery,
                                 onClick = { onPickFromGallery(maxPhotosErrorMessage) },
                                 modifier = Modifier.weight(1f),
