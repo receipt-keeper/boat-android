@@ -703,9 +703,9 @@ fun ReceiptRegisterScreen(
                                 )
                                 Text(
                                     text = "${photos.size}/${GalleryState.MAX_PHOTOS}",
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = ColorBrandPrimary,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = ColorGray600,
                                 )
                             }
                             Spacer(Modifier.height(Margin12))
