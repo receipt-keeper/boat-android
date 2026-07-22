@@ -44,6 +44,7 @@ import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import com.windrr.boat.R
 import com.windrr.boat.ui.theme.ColorBrandPrimary
+import com.windrr.boat.ui.theme.ColorBrandSecondary
 import com.windrr.boat.ui.theme.ColorBrandSenary
 import com.windrr.boat.ui.theme.ColorGray700
 import com.windrr.boat.ui.theme.ColorGray900
@@ -103,15 +104,18 @@ fun BoatFloatingBottomBar(
             modifier = Modifier
                 .weight(1f)
                 .height(BarHeight)
+                // Effect: shadow_md3 (디자인 시스템) — X0/Y3/blur15 + X0/Y1/blur7, #000000 10%.
+                // Compose shadow()는 elevation 기반 근사치라 X/Y/blur를 레이어별로 그대로 재현할 수는
+                // 없어 opacity(10%)만 정확히 맞추고, elevation은 두 레이어의 체감 블러에 맞춰 조정했다.
                 .shadow(
-                    elevation = 16.dp,
+                    elevation = 12.dp,
                     shape = BarShape,
-                    ambientColor = Color.Black.copy(alpha = 0.12f),
-                    spotColor = Color.Black.copy(alpha = 0.18f),
+                    ambientColor = Color.Black.copy(alpha = 0.10f),
+                    spotColor = Color.Black.copy(alpha = 0.10f),
                 )
                 .clip(BarShape)
                 .hazeEffect(state = hazeState, style = glassStyle)
-                .border(1.dp, ColorWhite.copy(alpha = 0.7f), BarShape)
+                .border(1.dp, ColorWhite, BarShape)
                 .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween, // 디자인: 양쪽 정렬 space-between
@@ -156,8 +160,8 @@ private fun FloatingTabItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // 디자인: 선택=브랜드 블루, 미선택=진한 아이콘(Gray900) + 다크그레이 라벨(Gray700)
-    val iconTint = if (selected) ColorBrandPrimary else ColorGray900
+    // 디자인: 선택=아이콘 Secondary/라벨 Primary, 미선택=진한 아이콘(Gray900) + 다크그레이 라벨(Gray700)
+    val iconTint = if (selected) ColorBrandSecondary else ColorGray900
     val labelColor = if (selected) ColorBrandPrimary else ColorGray700
     val noRipple = remember { MutableInteractionSource() }
 
@@ -208,15 +212,16 @@ private fun AddFloatingButton(
     Box(
         modifier = Modifier
             .size(FabSize)
+            // Effect: shadow_md3 — 탭 바와 동일한 그림자 스펙으로 통일
             .shadow(
-                elevation = 16.dp,
+                elevation = 12.dp,
                 shape = CircleShape,
-                ambientColor = Color.Black.copy(alpha = 0.12f),
-                spotColor = Color.Black.copy(alpha = 0.18f),
+                ambientColor = Color.Black.copy(alpha = 0.10f),
+                spotColor = Color.Black.copy(alpha = 0.10f),
             )
             .clip(CircleShape)
             .hazeEffect(state = hazeState, style = style)
-            .border(1.dp, ColorWhite.copy(alpha = 0.7f), CircleShape)
+            .border(1.dp, ColorWhite, CircleShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {

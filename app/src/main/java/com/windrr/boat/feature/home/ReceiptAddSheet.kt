@@ -57,7 +57,7 @@ private val MenuEndOffset = 20.dp
 /**
  * 영수증 등록 FAB 메뉴 오버레이.
  * scrim(탭 시 닫힘) 위에, 카드의 오른쪽 변이 FAB 중심에 오도록 FAB 위쪽으로 띄운다.
- * 카드: 214dp × (76dp × 2) — "사진으로 찍기 / 갤러리에서 불러오기"
+ * 카드: 214dp × (76dp × 2) — "카메라로 촬영하기 / 갤러리에서 불러오기"
  */
 @Composable
 fun ReceiptAddSheet(

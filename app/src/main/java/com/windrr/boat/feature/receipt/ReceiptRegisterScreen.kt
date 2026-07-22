@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -136,8 +137,8 @@ fun AnalysisCountPill(remaining: Int) {
         Spacer(Modifier.width(4.dp))
         Text(
             text = stringResource(R.string.receipt_register_analysis_count, remaining),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
             color = ColorBrandPrimary,
         )
     }
@@ -154,7 +155,7 @@ fun UploadActionCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .height(140.dp)
+            .height(137.dp)
             .clip(RoundedXl)
             .background(ColorWhite)
             .border(1.dp, ColorBrandTertiary, RoundedXl)
@@ -168,7 +169,6 @@ fun UploadActionCard(
             tint = Color.Unspecified,
             modifier = Modifier.size(42.dp),
         )
-        Spacer(Modifier.height(12.dp))
         Text(
             text = stringResource(label),
             fontSize = 15.sp,
@@ -208,12 +208,20 @@ fun NoticeCard(
                 .clickable(onClick = { expanded = !expanded }),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                painter = painterResource(R.drawable.toast_info),
-                contentDescription = null,
-                tint = Color.Unspecified,
-                modifier = Modifier.size(20.dp),
-            )
+            // 연한 배경 원(32dp) + 아이콘(18dp) — BoatToastItem과 동일한 아이콘 배지 패턴
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .background(Color(0x1A0088FF), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.toast_info),
+                    contentDescription = null,
+                    tint = ColorBrandPrimary,
+                    modifier = Modifier.size(13.5.dp),
+                )
+            }
             Spacer(Modifier.width(10.dp))
             Text(
                 text = stringResource(R.string.receipt_register_notice_title),
@@ -223,12 +231,12 @@ fun NoticeCard(
                 modifier = Modifier.weight(1f),
             )
             Icon(
-                painter = painterResource(R.drawable.ic_chevron_right),
+                painter = painterResource(R.drawable.chevron_down),
                 contentDescription = null,
                 tint = ColorGray400,
                 modifier = Modifier
-                    .size(20.dp)
-                    .rotate(if (expanded) 270f else 90f),
+                    .size(width = 15.dp, height = 7.5.dp)
+                    .rotate(if (expanded) 180f else 0f),
             )
         }
 
@@ -236,19 +244,19 @@ fun NoticeCard(
             Spacer(Modifier.height(Margin16))
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 NoticeBulletRow(
-                    icon = R.drawable.icon_images_upload,
+                    icon = R.drawable.icon_images,
                     prefix = "영수증은 ",
                     highlight = "제품 1개당 최대 5장까지",
                     suffix = " 업로드할 수 있습니다.",
                 )
                 NoticeBulletRow(
-                    icon = R.drawable.icon_download,
+                    icon = R.drawable.icon_upload,
                     prefix = "영수증은 ",
                     highlight = "1장씩 개별 촬영하여",
                     suffix = " 업로드해 주세요.",
                 )
                 NoticeBulletRow(
-                    icon = R.drawable.icon_folder,
+                    icon = R.drawable.icon_list,
                     prefix = "",
                     highlight = "JPG, PNG, HEIC",
                     suffix = "만 등록해 주세요.",
@@ -266,13 +274,12 @@ fun NoticeBulletRow(
     highlight: String,
     suffix: String,
 ) {
-    Row(verticalAlignment = Alignment.Top) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
             painter = painterResource(icon),
             contentDescription = null,
             tint = ColorGray600,
             modifier = Modifier
-                .padding(top = 1.dp)
                 .size(28.dp),
         )
         Spacer(Modifier.width(10.dp))
@@ -366,13 +373,13 @@ fun ReceiptRegisterScreen(
         scope.launch {
             isCheckingPromotion = true
             promotionRepository.getOcrRechargePromotion().fold(
-                onSuccess = { 
-                    canRecharge = it.stateType == PromotionState.REDEEMABLE 
+                onSuccess = {
+                    canRecharge = it.stateType == PromotionState.REDEEMABLE
                     isCheckingPromotion = false
                     showNoTokenSheet = true
                 },
-                onFailure = { 
-                    canRecharge = false 
+                onFailure = {
+                    canRecharge = false
                     isCheckingPromotion = false
                     showNoTokenSheet = true
                 },
@@ -449,7 +456,7 @@ fun ReceiptRegisterScreen(
                                 }
                                 onUsageChanged()
                                 toastState.show(rechargedMessage)
-                                
+
                                 // 💡 충전 성공 시 바로 분석 시작
                                 analyzeReceipt()
                             },
@@ -717,9 +724,11 @@ fun ReceiptRegisterScreen(
                                 val orderedPhotos = photos.reversed()
                                 items(orderedPhotos) { uri ->
                                     val indexInOriginal = photos.indexOf(uri)
-                                    val isThisFileFailed = isAnalysisFailed && 
-                                            (failedFileIndices.isEmpty() || failedFileIndices.contains(indexInOriginal))
-                                    
+                                    val isThisFileFailed = isAnalysisFailed &&
+                                            (failedFileIndices.isEmpty() || failedFileIndices.contains(
+                                                indexInOriginal
+                                            ))
+
                                     ReceiptAttachmentThumbnail(
                                         model = uri,
                                         showError = isThisFileFailed,

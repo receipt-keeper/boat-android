@@ -196,7 +196,7 @@
 
     <!-- 영수증 등록 (FAB 메뉴) -->
     <string name="receipt_add">영수증 등록</string>
-    <string name="receipt_add_camera">사진으로 찍기</string>
+    <string name="receipt_add_camera">카메라로 촬영하기</string>
     <string name="receipt_add_gallery">갤러리에서 불러오기</string>
 
     <!-- Common -->
