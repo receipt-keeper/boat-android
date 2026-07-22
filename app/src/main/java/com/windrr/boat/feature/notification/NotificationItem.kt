@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -30,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.windrr.boat.R
 import com.windrr.boat.core.ocr.DeviceImage
 import com.windrr.boat.ui.theme.ColorGray100
 import com.windrr.boat.ui.theme.ColorGray500
@@ -122,7 +121,7 @@ fun NotificationItem(
                         modifier = Modifier.size(24.dp),
                     ) {
                         Icon(
-                            imageVector = Icons.Default.MoreVert,
+                            painter = painterResource(R.drawable.icon_more),
                             contentDescription = null,
                             tint = ColorGray500.copy(alpha = alpha),
                         )
