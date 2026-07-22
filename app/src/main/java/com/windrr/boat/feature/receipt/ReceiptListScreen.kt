@@ -26,8 +26,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -56,11 +54,11 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -93,6 +91,7 @@ import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin12
 import com.windrr.boat.ui.theme.Margin20
 import com.windrr.boat.ui.theme.Margin8
+import com.windrr.boat.ui.theme.PretendardFontFamily
 import com.windrr.boat.ui.theme.Rounded2xl
 import com.windrr.boat.ui.theme.RoundedFull
 import com.windrr.boat.ui.theme.RoundedLg
@@ -220,7 +219,8 @@ fun ReceiptListScreen(
                 // 카테고리 필터 칩 (가로 스크롤)
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(horizontal = Margin20, vertical = 12.dp),
+                    // 칩 라인 하단 여백은 아래 72dp 간격 Spacer가 전담하므로 bottom은 0으로 둔다.
+                    contentPadding = PaddingValues(start = Margin20, end = Margin20, top = 12.dp, bottom = 0.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     items(ReceiptFilter.entries) { filter ->
@@ -231,6 +231,9 @@ fun ReceiptListScreen(
                         )
                     }
                 }
+
+                // 디자인 가이드: 칩 라인과 "전체 | N ..." 라인 사이 간격 72dp
+                Spacer(Modifier.height(24.dp))
 
                 // 카운트 + 정렬
                 CountSortRow(
@@ -266,8 +269,18 @@ fun ReceiptListScreen(
                         state.receipts.isEmpty() -> {
                             Text(
                                 text = stringResource(R.string.receipt_empty),
-                                fontSize = 16.sp,
+                                style = TextStyle(
+                                    fontFamily = PretendardFontFamily,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 18.sp,
+                                    lineHeight = 25.2.sp, // 18sp의 140%
+                                    letterSpacing = 0.sp,
+                                ),
                                 color = ColorGray500,
+                                // 디자인 가이드: 박스 정중앙이 아니라 상단 쪽에 위치 (64dp는 너무 붙어서 160dp로 확대)
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .padding(top = 160.dp),
                             )
                         }
 
@@ -484,7 +497,7 @@ private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onEdit: () -> Un
                         WarrantyDayBadge(warrantyDDay = item.warrantyDDay)
 
                         Icon(
-                            imageVector = Icons.Default.MoreVert,
+                            painter = painterResource(R.drawable.icon_more),
                             contentDescription = stringResource(R.string.common_more),
                             tint = ColorGray400,
                             modifier = Modifier
@@ -776,7 +789,7 @@ private fun ReceiptInnerTabRow(
                 text = {
                     Text(
                         text = stringResource(tab.titleRes),
-                        fontSize = 15.sp,
+                        fontSize = 18.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                     )
                 },
@@ -796,20 +809,21 @@ private fun CountSortRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Margin20, vertical = 4.dp),
+            // 위쪽 여백은 칩 라인 뒤의 72dp Spacer가 전담하므로 top은 0으로 둔다.
+            .padding(start = Margin20, end = Margin20, top = 0.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = stringResource(R.string.receipt_filter_all),
-                fontSize = 14.sp,
+                fontSize = 16.sp,
                 color = ColorGray600
             )
-            Text(text = "  |  ", fontSize = 14.sp, color = ColorGray300)
+            Text(text = "  |  ", fontSize = 16.sp, color = ColorGray300)
             Text(
                 text = "$count",
-                fontSize = 14.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = ColorBrandPrimary
             )
@@ -826,13 +840,12 @@ private fun CountSortRow(
                     color = ColorGray600
                 )
                 Icon(
-                    painter = painterResource(R.drawable.ic_chevron_right),
+                    painter = painterResource(R.drawable.chevron_down),
                     contentDescription = null,
                     tint = ColorGray600,
                     modifier = Modifier
-                        .padding(start = 4.dp)
-                        .size(14.dp)
-                        .rotate(90f),
+                        .padding(start = 12.dp)
+                        .size(width = 10.dp, height = 6.dp),
                 )
             }
 
