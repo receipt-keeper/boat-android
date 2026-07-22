@@ -136,7 +136,7 @@ private fun NoTokenPromoContent(
         AsyncImage(
             model = R.drawable.shiny_white, // 반짝이는 AI 아이콘 리소스
             contentDescription = null,
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier.size(32.dp),
         )
 
         Spacer(Modifier.height(16.dp))
@@ -180,7 +180,7 @@ private fun NoTokenPromoContent(
                 fontWeight = FontWeight.Bold,
                 color = colorGray900,
             )
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(6.dp))
             Row(verticalAlignment = Alignment.Top) {
                 Text(
                     text = "•",
@@ -269,7 +269,7 @@ private fun NoTokenSimpleContent(onManualInput: () -> Unit) {
         AsyncImage(
             model = R.drawable.shiny_white,
             contentDescription = null,
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier.size(32.dp),
         )
 
         Spacer(Modifier.height(16.dp))
