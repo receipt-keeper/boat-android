@@ -478,7 +478,10 @@ internal fun ReceiptCard(
         border = BorderStroke(1.dp, ColorGray100),
         shadowElevation = 0.dp,
     ) {
-        Column {
+        Column(
+            modifier = Modifier.fillMaxHeight(),
+            verticalArrangement = Arrangement.Center,
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
