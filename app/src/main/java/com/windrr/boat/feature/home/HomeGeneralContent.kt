@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -512,6 +513,7 @@ private fun RecentReceiptItem(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 82.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         color = Color(0xFFF2F6FC), // 디자인 가이드 카드 배경색 (옅은 쿨블루) — 흰 배경 위에서 카드 경계가 드러남
