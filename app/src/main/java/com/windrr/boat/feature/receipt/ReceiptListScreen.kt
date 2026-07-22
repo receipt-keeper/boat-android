@@ -452,10 +452,21 @@ private fun ReceiptListSkeleton() {
     }
 }
 
+/**
+ * 영수증 아이템 카드 — 목록 탭과 검색 결과에서 공용으로 쓰는 컴포넌트.
+ * [onEdit]/[onDelete]가 주어지지 않으면(검색 결과) 케밥 메뉴 자체를 노출하지 않는다.
+ * 메모 박스는 두 화면 모두 데이터가 있으면 항상 표시된다.
+ */
 @Composable
-private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
+internal fun ReceiptCard(
+    item: ReceiptItem,
+    onClick: () -> Unit,
+    onEdit: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
+) {
     var showMenuSheet by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    val showKebab = onEdit != null && onDelete != null
 
     Surface(
         modifier = Modifier
@@ -498,15 +509,17 @@ private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onEdit: () -> Un
                         Spacer(Modifier.width(8.dp))
                         WarrantyDayBadge(warrantyDDay = item.warrantyDDay)
 
-                        Icon(
-                            painter = painterResource(R.drawable.icon_more),
-                            contentDescription = stringResource(R.string.common_more),
-                            tint = ColorGray400,
-                            modifier = Modifier
-                                .padding(start = 4.dp)
-                                .size(24.dp)
-                                .clickable { showMenuSheet = true },
-                        )
+                        if (showKebab) {
+                            Icon(
+                                painter = painterResource(R.drawable.icon_more),
+                                contentDescription = stringResource(R.string.common_more),
+                                tint = ColorGray400,
+                                modifier = Modifier
+                                    .padding(start = 4.dp)
+                                    .size(24.dp)
+                                    .clickable { showMenuSheet = true },
+                            )
+                        }
                     }
 
                     // 💡 교정 2: "AS 만료일 | 2026. 07. 16" 형식으로 타이포그래피 정교화 (Body2 Medium)
@@ -561,13 +574,13 @@ private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onEdit: () -> Un
         }
     }
 
-    // ── 케밥 메뉴 (수정하기 / 삭제하기 / 닫기) ──
-    if (showMenuSheet) {
+    // ── 케밥 메뉴 (수정하기 / 삭제하기 / 닫기) — showKebab일 때만 존재 가능 ──
+    if (showMenuSheet && showKebab) {
         ReceiptListMenuSheet(
             onDismiss = { showMenuSheet = false },
             onEdit = {
                 showMenuSheet = false
-                onEdit()
+                onEdit?.invoke()
             },
             onDelete = {
                 showMenuSheet = false
@@ -586,7 +599,7 @@ private fun ReceiptCard(item: ReceiptItem, onClick: () -> Unit, onEdit: () -> Un
             dismissText = stringResource(R.string.common_cancel),
             onConfirm = {
                 showDeleteConfirm = false
-                onDelete()
+                onDelete?.invoke()
             },
             onDismiss = { showDeleteConfirm = false },
         )
