@@ -72,6 +72,7 @@ import com.windrr.boat.ui.theme.Margin12
 import com.windrr.boat.ui.theme.Margin20
 import com.windrr.boat.ui.theme.Rounded2xl
 import com.windrr.boat.ui.theme.RoundedFull
+import com.windrr.boat.ui.theme.RoundedLg
 import com.windrr.boat.ui.theme.RoundedXl
 
 /**
@@ -523,7 +524,7 @@ private fun RecentReceiptItem(
             Box(
                 modifier = Modifier
                     .size(56.dp)
-                    .background(Color.White, RoundedCornerShape(12.dp)),
+                    .background(Color.White, RoundedLg),
                 contentAlignment = Alignment.Center
             ) {
                 // 내부 썸네일 크기를 56dp 박스에 맞게 약간 축소
@@ -722,7 +723,7 @@ private fun Thumbnail(
     Box(
         modifier = Modifier
             .size(sizeDp.dp)
-            .clip(RoundedXl)
+            .clip(RoundedLg)
             .background(bg),
         contentAlignment = Alignment.Center,
     ) {

@@ -677,7 +677,7 @@ internal fun ReceiptItemThumbnail(
     Box(
         modifier = Modifier
             .size(sizeDp.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedLg)
             .background(ColorGray50),
         contentAlignment = Alignment.Center,
     ) {

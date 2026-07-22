@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -36,6 +35,7 @@ import com.windrr.boat.ui.theme.ColorGray600
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Rounded2xl
+import com.windrr.boat.ui.theme.RoundedLg
 
 /**
  * 알림 목록 아이템 (재사용 컴포넌트) — 디자인 가이드 스펙.
@@ -87,7 +87,7 @@ fun NotificationItem(
             Box(
                 modifier = Modifier
                     .size(56.dp)
-                    .clip(RoundedCornerShape(14.dp))
+                    .clip(RoundedLg)
                     .background(ColorGray100.copy(alpha = alpha)),
                 contentAlignment = Alignment.Center,
             ) {

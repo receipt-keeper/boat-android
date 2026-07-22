@@ -983,8 +983,8 @@ private fun EditSubCategoryItem(label: String, iconRes: Int, selected: Boolean, 
                 // 같은 clip 경계에 잘려서 테두리가 흐릿/미완성으로 보인다(특히 직선 변에서
                 // 도드라짐). background(color, shape)로 직접 모양을 지정하면 별도 clip 없이도
                 // 배경이 둥글게 그려지고, border()도 잘리지 않고 온전히 그려진다.
-                .background(if (selected) ColorBrandQuinary else ColorGray100, RoundedXl)
-                .then(if (selected) Modifier.border(1.5.dp, ColorBrandPrimary, RoundedXl) else Modifier),
+                .background(if (selected) ColorBrandQuinary else ColorGray100, RoundedLg)
+                .then(if (selected) Modifier.border(1.5.dp, ColorBrandPrimary, RoundedLg) else Modifier),
             contentAlignment = Alignment.Center,
         ) {
             Image(painter = painterResource(iconRes), contentDescription = null, modifier = Modifier.size(44.dp))
