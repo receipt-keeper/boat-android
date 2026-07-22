@@ -423,7 +423,7 @@ private fun ReceiptEditForm(
     val isChanged = remember(
         selectedCategory, selectedSubCategory, productName, purchaseDate,
         selectedWarranty, customWarrantyValue, customWarrantyUnit,
-        keepReceipt, brand, price, serial, newPhotos, remoteFileIds.size
+        keepReceipt, brand, price, serial, memo, newPhotos, remoteFileIds.size
     ) {
         val categoryChanged = selectedCategory.displayName != receipt.category
         val subCategoryChanged = selectedSubCategory != receipt.subCategory
@@ -434,11 +434,12 @@ private fun ReceiptEditForm(
         val brandChanged = (brand.ifBlank { null }) != receipt.brandName
         val priceChanged = (price.toIntOrNull()) != receipt.totalAmount
         val serialChanged = (serial.ifBlank { null }) != receipt.serialNumber
+        val memoChanged = (memo.trim().ifBlank { null }) != receipt.memo
         val photosChanged = newPhotos.isNotEmpty() || remoteFileIds.toList() != originalFileIds
 
         categoryChanged || subCategoryChanged || nameChanged || dateChanged ||
                 warrantyChanged || keepReceiptChanged || brandChanged ||
-                priceChanged || serialChanged || photosChanged
+                priceChanged || serialChanged || memoChanged || photosChanged
     }
 
     LaunchedEffect(isChanged) { onChanged(isChanged) }
