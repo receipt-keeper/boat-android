@@ -33,6 +33,7 @@ class UserDataStore(private val context: Context) {
         private val KEY_FREE_ANALYSIS_TOKENS = intPreferencesKey("free_analysis_tokens_remaining")
         private val KEY_LAST_NOTIF_VIEWED_AT = stringPreferencesKey("last_notif_viewed_at")
         private val KEY_NEXT_FEEDBACK_DISPLAY_AT = longPreferencesKey("next_feedback_display_at")
+        private val KEY_NEXT_NOTIF_GATE_DISPLAY_AT = longPreferencesKey("next_notif_gate_display_at")
     }
 
     /** 저장된 사용자 정보를 Flow로 관찰 (값이 없으면 기본값) */
@@ -94,6 +95,15 @@ class UserDataStore(private val context: Context) {
     /** 피드백 시트 노출 연기 설정 (현재 시점 + 30일 등) */
     suspend fun updateNextFeedbackDisplayAt(timestamp: Long) {
         context.userDataStore.edit { it[KEY_NEXT_FEEDBACK_DISPLAY_AT] = timestamp }
+    }
+
+    /** 알림 권한 다이얼로그가 다시 노출될 수 있는 최소 시점 (타임스탬프) */
+    val nextNotifGateDisplayAt: Flow<Long> = context.userDataStore.data
+        .map { it[KEY_NEXT_NOTIF_GATE_DISPLAY_AT] ?: 0L }
+
+    /** 알림 권한 다이얼로그 "나중에" 클릭 시 노출 연기 설정 (현재 시점 + 30일) */
+    suspend fun updateNextNotifGateDisplayAt(timestamp: Long) {
+        context.userDataStore.edit { it[KEY_NEXT_NOTIF_GATE_DISPLAY_AT] = timestamp }
     }
 
     /** 로그아웃/탈퇴 시 사용자 정보 전체 삭제 */

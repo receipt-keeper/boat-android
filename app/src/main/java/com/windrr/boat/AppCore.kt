@@ -10,9 +10,12 @@ import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.util.DebugLogger
 import android.os.Build
 import com.google.android.gms.ads.MobileAds
+import com.windrr.boat.core.AppLaunchState
 import com.windrr.boat.core.crash.CrashReporter
 import com.windrr.boat.core.notification.NotificationHelper
 import com.windrr.boat.data.remote.ApiClient
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 class AppCore : Application(), SingletonImageLoader.Factory {
 
@@ -28,6 +31,12 @@ class AppCore : Application(), SingletonImageLoader.Factory {
         // applicationContext를 ApiClient에 전달
         // TokenDataStore는 ApiClient 내부에서 lazy 생성
         ApiClient.init(this)
+
+        // 알림 권한 다이얼로그의 "재실행 시에만 노출" 판단 기준 — 이번 프로세스 시작 시점에
+        // 이미 로그인 토큰이 있었는지를 1회만 동기 조회해 기록한다(이후 값 변경 없음).
+        AppLaunchState.wasLoggedInAtProcessStart = runBlocking {
+            ApiClient.tokenDataStore.accessToken.first() != null
+        }
 
         // Crashlytics 크래시 수집 활성화.
         // 현재는 검증을 위해 모든 빌드에서 수집.

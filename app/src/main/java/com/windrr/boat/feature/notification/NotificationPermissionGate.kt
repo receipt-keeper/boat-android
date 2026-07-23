@@ -10,39 +10,79 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.compose.LifecycleResumeEffect
+import com.windrr.boat.core.AppLaunchState
+import com.windrr.boat.data.remote.ApiClient
+import com.windrr.boat.data.repository.UserRepositoryImpl
 import com.windrr.boat.ui.component.BoatDialog
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import java.util.Calendar
+
+private const val SNOOZE_DAYS = 30
 
 /**
- * 앱 진입/복귀(ON_RESUME)마다 알림 활성화 상태를 확인해, 꺼져 있으면 권한 요청 또는 설정 유도.
+ * "가입/로그인을 완료한 뒤 앱을 완전히 껐다가 재실행했을 때"만 알림 권한 다이얼로그를 띄운다.
  *
- * - Android 13+에서 POST_NOTIFICATIONS 권한이 없으면: 런타임 권한 요청(처음 몇 번은 시스템 다이얼로그).
- * - 권한은 있으나 사용자가 시스템 설정에서 알림을 끈 경우(또는 영구 거부): 앱 알림 설정으로 유도하는 다이얼로그.
+ * - 앱을 처음 켜자마자(또는 이번 프로세스 안에서 방금 로그인/회원가입을 마친 직후)는 노출하지 않는다
+ *   → [AppLaunchState.wasLoggedInAtProcessStart]가 true인, 즉 "이미 로그인된 채로 시작된" 콜드 스타트에서만 평가.
+ * - 평가는 콜드 스타트당 1회뿐(앱 진입/복귀마다 재확인하던 기존 동작 제거).
+ * - "나중에"를 누르면 30일간 다시 노출하지 않되, 알림 권한 자체는 건드리지 않는다.
+ * - 다이얼로그에서 알림 권한을 허용하면 서비스의 만료 예정 알림(notificationEnabled/pushEnabled) 설정도 true로 동기화한다.
  *
  * 화면 자체는 렌더링하지 않고 효과 + (필요 시) 다이얼로그만 띄운다. 로그인 후 화면(HomeActivity)에 배치한다.
  */
 @Composable
 fun NotificationPermissionGate() {
+    if (!AppLaunchState.wasLoggedInAtProcessStart) return
+
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val userDataStore = remember { ApiClient.userDataStore }
+    val userRepository = remember {
+        UserRepositoryImpl(
+            ApiClient.userDataStore,
+            ApiClient.userApiService,
+            ApiClient.notificationApiService,
+            ApiClient.creditsApiService,
+        )
+    }
+
     var showRationaleDialog by remember { mutableStateOf(false) }
     var showSettingsDialog by remember { mutableStateOf(false) }
     var showAlarmRationaleDialog by remember { mutableStateOf(false) }
 
+    fun snoozeForDays() {
+        scope.launch {
+            val next = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, SNOOZE_DAYS) }.timeInMillis
+            userDataStore.updateNextNotifGateDisplayAt(next)
+        }
+    }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (!granted) showSettingsDialog = true
+        if (granted) {
+            // 다이얼로그에서 알림 권한을 허용한 경우 → 만료 예정 알림 설정도 함께 true로 동기화
+            scope.launch { userRepository.updateMe(notificationEnabled = true) }
+        } else {
+            showSettingsDialog = true
+        }
     }
 
-    // 앱이 포그라운드로 올라올 때마다 재확인 (설정에서 껐다가 돌아오는 케이스 포함)
-    LifecycleResumeEffect(Unit) {
+    // 콜드 스타트 1회만 평가 — 이전처럼 앱 진입/복귀(ON_RESUME)마다 재확인하지 않는다.
+    LaunchedEffect(Unit) {
+        val nextDisplayAt = userDataStore.nextNotifGateDisplayAt.first()
+        if (System.currentTimeMillis() < nextDisplayAt) return@LaunchedEffect
+
         // 1. 기본적인 알림 권한 체크 (POST_NOTIFICATIONS)
         val areNotificationsEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
         if (!areNotificationsEnabled) {
@@ -50,13 +90,13 @@ fun NotificationPermissionGate() {
                 ContextCompat.checkSelfPermission(
                     context, Manifest.permission.POST_NOTIFICATIONS,
                 ) != PackageManager.PERMISSION_GRANTED
-            
+
             if (needsRuntimeRequest) {
                 showRationaleDialog = true
             } else {
                 showSettingsDialog = true
             }
-        } 
+        }
         // 2. 알람 및 리마인더 권한 체크 (SCHEDULE_EXACT_ALARM, Android 12+)
         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -64,8 +104,6 @@ fun NotificationPermissionGate() {
                 showAlarmRationaleDialog = true
             }
         }
-        
-        onPauseOrDispose { }
     }
 
     // 1. Android 13+ 런타임 권한 요청 전 명분(Rationale) 안내
@@ -81,7 +119,10 @@ fun NotificationPermissionGate() {
                 }
             },
             dismissText = "나중에",
-            onDismiss = { showRationaleDialog = false },
+            onDismiss = {
+                showRationaleDialog = false
+                snoozeForDays()
+            },
         )
     }
 
@@ -96,7 +137,10 @@ fun NotificationPermissionGate() {
                 context.openAppNotificationSettings()
             },
             dismissText = "나중에",
-            onDismiss = { showSettingsDialog = false },
+            onDismiss = {
+                showSettingsDialog = false
+                snoozeForDays()
+            },
         )
     }
 
@@ -111,7 +155,10 @@ fun NotificationPermissionGate() {
                 context.openExactAlarmSettings()
             },
             dismissText = "나중에",
-            onDismiss = { showAlarmRationaleDialog = false },
+            onDismiss = {
+                showAlarmRationaleDialog = false
+                snoozeForDays()
+            },
         )
     }
 }
