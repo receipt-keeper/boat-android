@@ -490,7 +490,7 @@ fun ReceiptManualInputScreen(
                     LazyRow(
                         state = subCategoryListState,
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(0.dp),
                     ) {
                         items(orderedSubCategories) { sub ->
                             SubCategoryItem(
@@ -871,9 +871,9 @@ private fun CollapsibleCard(
                 painter = painterResource(R.drawable.ic_chevron_right),
                 contentDescription = null,
                 tint = ColorGray400,
-                // 펼침=위(^, 270°), 접힘=아래(v, 90°)
+                // 펼침=위(^, 270°), 접힘=아래(v, 90°) — 카테고리 드롭다운(CategoryDropdown)과 동일 사이즈
                 modifier = Modifier
-                    .size(20.dp)
+                    .size(18.dp)
                     .rotate(if (expanded) 270f else 90f),
             )
         }
