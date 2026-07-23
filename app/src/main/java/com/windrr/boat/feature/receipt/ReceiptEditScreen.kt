@@ -72,6 +72,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -491,6 +492,7 @@ private fun ReceiptEditForm(
                     text = stringResource(R.string.manual_category),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
+                    lineHeight = 24.sp,
                     color = ColorGray900,
                 )
                 Spacer(Modifier.height(Margin12))
@@ -557,7 +559,9 @@ private fun ReceiptEditForm(
                         }
                         Text(
                             text = purchaseDate.ifBlank { stringResource(R.string.manual_purchase_date_hint) },
-                            fontSize = 15.sp,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            lineHeight = 24.sp,
                             color = if (purchaseDate.isBlank()) ColorGray400 else ColorGray900,
                         )
                     }
@@ -592,7 +596,8 @@ private fun ReceiptEditForm(
                             OutlinedTextField(
                                 value = customWarrantyValue,
                                 onValueChange = { v -> customWarrantyValue = v.filter { it.isDigit() }.take(4) },
-                                placeholder = { Text("0", color = ColorGray400, fontSize = 15.sp) },
+                                textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, lineHeight = 24.sp, color = ColorGray900),
+                                placeholder = { Text("0", color = ColorGray400, fontSize = 16.sp) },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 singleLine = true,
                                 modifier = Modifier.weight(1f).height(52.dp),
@@ -610,7 +615,9 @@ private fun ReceiptEditForm(
                     else -> EditFieldBox(onClick = {}) {
                         Text(
                             text = stringResource(EDIT_WARRANTY_OPTION_RES[selectedWarranty!!]),
-                            fontSize = 15.sp,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            lineHeight = 24.sp,
                             color = ColorGray900,
                         )
                     }
@@ -691,6 +698,7 @@ private fun ReceiptEditForm(
                             text = stringResource(R.string.manual_keep_receipt_title),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
+                            lineHeight = 24.sp,
                             color = ColorGray900,
                         )
                         // 💡 체크박스의 기본 최소 터치 영역(48dp)을 제거하여 디자인 가이드의 간격 준수
@@ -724,6 +732,7 @@ private fun ReceiptEditForm(
                 text = stringResource(R.string.manual_warranty_section),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
+                lineHeight = 24.sp,
                 color = ColorGray900,
                 modifier = Modifier.padding(horizontal = Margin20),
             )
@@ -758,7 +767,8 @@ private fun ReceiptEditForm(
                 OutlinedTextField(
                     value = serial,
                     onValueChange = { serial = it.take(SERIAL_MAX) },
-                    placeholder = { Text(stringResource(R.string.manual_serial_hint), color = ColorGray400, fontSize = 15.sp) },
+                    textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, lineHeight = 24.sp, color = ColorGray900),
+                    placeholder = { Text(stringResource(R.string.manual_serial_hint), color = ColorGray400, fontSize = 16.sp) },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     singleLine = true,
                     shape = RoundedLg,
@@ -790,12 +800,14 @@ private fun ReceiptEditForm(
                         text = stringResource(R.string.receipt_detail_original),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
+                        lineHeight = 24.sp,
                         color = ColorGray900,
                     )
                     Text(
                         text = " *",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
+                        lineHeight = 24.sp,
                         color = ColorSystemError
                     )
                 }
@@ -1087,6 +1099,8 @@ private fun editFormFieldColors() = OutlinedTextFieldDefaults.colors(
     unfocusedContainerColor = ColorWhite,
     errorContainerColor = ColorWhite,
     cursorColor = ColorBrandPrimary,
+    focusedTextColor = ColorGray900,
+    unfocusedTextColor = ColorGray900,
 )
 
 @Composable

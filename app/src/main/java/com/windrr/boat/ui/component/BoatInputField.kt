@@ -70,8 +70,8 @@ fun BoatInputField(
             enabled = enabled,
             singleLine = true,
             isError = isError,
-            textStyle = TextStyle(fontSize = 15.sp, color = ColorGray900),
-            placeholder = { Text(text = placeholder, color = ColorGray400, fontSize = 15.sp) },
+            textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, lineHeight = 24.sp, color = ColorGray900),
+            placeholder = { Text(text = placeholder, color = ColorGray400, fontSize = 16.sp) },
             shape = RoundedLg, // 8dp
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             visualTransformation = visualTransformation,

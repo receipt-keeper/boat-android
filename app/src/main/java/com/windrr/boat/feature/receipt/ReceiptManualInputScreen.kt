@@ -79,6 +79,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -461,6 +462,7 @@ fun ReceiptManualInputScreen(
                         text = stringResource(R.string.manual_category),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
+                        lineHeight = 24.sp,
                         color = ColorGray900,
                     )
                     Spacer(Modifier.height(Margin12))
@@ -537,7 +539,9 @@ fun ReceiptManualInputScreen(
                             }
                             Text(
                                 text = purchaseDate.ifBlank { stringResource(R.string.manual_purchase_date_hint) },
-                                fontSize = 15.sp,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium,
+                                lineHeight = 24.sp,
                                 color = if (purchaseDate.isBlank()) ColorGray400 else ColorGray900,
                             )
                         }
@@ -572,7 +576,8 @@ fun ReceiptManualInputScreen(
                                 OutlinedTextField(
                                     value = customWarrantyValue,
                                     onValueChange = { v -> customWarrantyValue = v.filter { it.isDigit() }.take(4) },
-                                    placeholder = { Text("0", color = ColorGray400, fontSize = 15.sp) },
+                                    textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, lineHeight = 24.sp, color = ColorGray900),
+                                    placeholder = { Text("0", color = ColorGray400, fontSize = 16.sp) },
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                     singleLine = true,
                                     modifier = Modifier.weight(1f).height(52.dp),
@@ -590,7 +595,9 @@ fun ReceiptManualInputScreen(
                         else -> FieldBox(onClick = {}) {
                             Text(
                                 text = stringResource(WARRANTY_OPTION_RES[selectedWarranty!!]),
-                                fontSize = 15.sp,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium,
+                                lineHeight = 24.sp,
                                 color = ColorGray900,
                             )
                         }
@@ -660,6 +667,7 @@ fun ReceiptManualInputScreen(
                                 text = stringResource(R.string.manual_keep_receipt_title),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
+                                lineHeight = 24.sp,
                                 color = ColorGray900,
                             )
                             // 💡 체크박스의 기본 최소 터치 영역(48dp)을 제거하여 디자인 가이드의 간격 준수
@@ -724,7 +732,8 @@ fun ReceiptManualInputScreen(
                     OutlinedTextField(
                         value = serial,
                         onValueChange = { serial = it.take(ITEM_NAME_MAX) },
-                        placeholder = { Text(stringResource(R.string.manual_serial_hint), color = ColorGray400, fontSize = 15.sp) },
+                        textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, lineHeight = 24.sp, color = ColorGray900),
+                        placeholder = { Text(stringResource(R.string.manual_serial_hint), color = ColorGray400, fontSize = 16.sp) },
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         singleLine = true,
                         shape = RoundedLg,
@@ -865,7 +874,7 @@ private fun CollapsibleCard(
                 .clickable(onClick = onToggle),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(text = title, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = ColorGray900)
+            Text(text = title, fontSize = 16.sp, fontWeight = FontWeight.Bold, lineHeight = 24.sp, color = ColorGray900)
             Spacer(Modifier.weight(1f))
             Icon(
                 painter = painterResource(R.drawable.ic_chevron_right),
@@ -1057,9 +1066,9 @@ private fun PurchaseDatePicker(onDismiss: () -> Unit, onConfirm: (String) -> Uni
 @Composable
 private fun SectionTitle(text: String, modifier: Modifier = Modifier, required: Boolean = false) {
     Row(modifier = modifier) {
-        Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = ColorGray900)
+        Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.Bold, lineHeight = 24.sp, color = ColorGray900)
         if (required) {
-            Text(" *", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = ColorSystemError)
+            Text(" *", fontSize = 16.sp, fontWeight = FontWeight.Bold, lineHeight = 24.sp, color = ColorSystemError)
         }
     }
 }
@@ -1094,6 +1103,8 @@ private fun formFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedContainerColor = ColorWhite,
     unfocusedContainerColor = ColorWhite,
     cursorColor = ColorBrandPrimary,
+    focusedTextColor = ColorGray900,
+    unfocusedTextColor = ColorGray900,
 )
 
 @Composable

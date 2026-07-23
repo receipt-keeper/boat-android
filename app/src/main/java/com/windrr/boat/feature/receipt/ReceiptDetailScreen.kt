@@ -74,8 +74,8 @@ import com.windrr.boat.ui.component.shimmer
 import com.windrr.boat.ui.component.toContentUrl
 import com.windrr.boat.ui.component.rememberBoatToastState
 import com.windrr.boat.ui.theme.ColorBrandPrimary
-import com.windrr.boat.ui.theme.ColorBrandQuinary
-import com.windrr.boat.ui.theme.ColorBrandSenary
+import com.windrr.boat.ui.theme.ColorBrandSecondary
+import com.windrr.boat.ui.theme.ColorBrandTertiary
 import com.windrr.boat.ui.theme.ColorGray100
 import com.windrr.boat.ui.theme.ColorGray200
 import com.windrr.boat.ui.theme.ColorGray300
@@ -90,6 +90,7 @@ import com.windrr.boat.ui.theme.Margin12
 import com.windrr.boat.ui.theme.Margin16
 import com.windrr.boat.ui.theme.Margin20
 import com.windrr.boat.ui.theme.Margin24
+import com.windrr.boat.ui.theme.Margin40
 import com.windrr.boat.ui.theme.Margin8
 import com.windrr.boat.ui.theme.Rounded2xl
 import com.windrr.boat.ui.theme.RoundedLg
@@ -457,17 +458,16 @@ private fun ReceiptDetailContent(
                 .fillMaxWidth()
                 .padding(horizontal = Margin20)
                 .padding(top = Margin8)
-                .aspectRatio(16f / 9f)
-                .clip(Rounded2xl)
+                .aspectRatio(350f / 173f)
+                .clip(RoundedXl)
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFFE5F0FF), // Top: 옅은 블루
-                            Color(0xFFF6FAFF)  // Bottom: 하얀 계열
+                            Color(0xFFE0F2FF), // Top
+                            Color(0x00D4E7F4)  // Bottom: 투명(0%)으로 페이드아웃
                         )
                     )
-                )
-                .border(1.dp, ColorBrandQuinary, Rounded2xl),
+                ),
             contentAlignment = Alignment.Center,
         ) {
             Image(
@@ -530,8 +530,9 @@ private fun ReceiptDetailContent(
 
             Text(
                 text = stringResource(R.string.manual_keep_receipt_title),
-                fontSize = 18.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
+                lineHeight = 24.sp,
                 color = ColorGray900,
             )
 
@@ -542,9 +543,10 @@ private fun ReceiptDetailContent(
                     if (receipt.requiresPhysicalReceipt) R.string.receipt_detail_physical_kept
                     else R.string.receipt_detail_physical_not_kept
                 ),
-                fontSize = 15.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                color = ColorBrandPrimary,
+                lineHeight = 24.sp,
+                color = ColorBrandSecondary,
             )
 
             // 💡 수정됨: 20.dp -> 12.dp로 줄여서 스크린샷처럼 구분선을 텍스트에 더 가깝게 붙였습니다.
@@ -563,8 +565,9 @@ private fun ReceiptDetailContent(
         Column(modifier = Modifier.padding(horizontal = Margin20, vertical = Margin20)) {
             Text(
                 text = stringResource(R.string.manual_warranty_section),
-                fontSize = 18.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
+                lineHeight = 24.sp,
                 color = ColorGray900,
             )
             Spacer(Modifier.height(Margin16))
@@ -586,9 +589,10 @@ private fun ReceiptDetailContent(
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = receipt.serialNumber?.takeIf { it.isNotBlank() } ?: "-",
-                    fontSize = 17.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = ColorGray900,
+                    lineHeight = 24.sp,
                 )
             }
         }
@@ -598,8 +602,9 @@ private fun ReceiptDetailContent(
         Column(modifier = Modifier.padding(vertical = Margin20)) {
             Text(
                 text = stringResource(R.string.receipt_detail_original),
-                fontSize = 18.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
+                lineHeight = 24.sp,
                 color = ColorGray900,
                 modifier = Modifier.padding(horizontal = Margin20),
             )
@@ -628,15 +633,17 @@ private fun ReceiptDetailContent(
                 }
             }
 
-            Spacer(Modifier.height(Margin20))
+            Spacer(Modifier.height(Margin40))
             // ── 하단 CTA — 연한 파랑 링크 스타일 ──
             val supportUrl = receipt.supportUrl
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = Margin20)
+                    .height(60.dp)
                     .clip(RoundedXl)
-                    .background(ColorBrandSenary)
+                    .background(ColorGray50)
+                    .border(1.dp, ColorBrandTertiary, RoundedXl)
                     .clickable(enabled = !supportUrl.isNullOrBlank()) {
                         if (!supportUrl.isNullOrBlank()) {
                             runCatching {
@@ -649,13 +656,15 @@ private fun ReceiptDetailContent(
                             }
                         }
                     }
-                    .padding(horizontal = Margin16, vertical = 16.dp),
+                    .padding(top = 18.dp, end = 16.dp, bottom = 18.dp, start = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = stringResource(R.string.receipt_detail_support_cta),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    lineHeight = 24.sp,
                     color = ColorBrandPrimary,
                     modifier = Modifier.weight(1f),
                 )
@@ -684,9 +693,10 @@ private fun DetailField(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = value,
-                fontSize = 17.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 color = ColorGray900,
+                lineHeight = 24.sp,
                 modifier = Modifier.weight(1f),
             )
             if (trailing != null) {
