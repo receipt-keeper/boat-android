@@ -433,7 +433,7 @@ fun ReceiptManualInputScreen(
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(horizontal = Margin20),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     itemsIndexed(photos, key = { _, uri -> uri.toString() }) { index, uri ->
                         ReceiptAttachmentThumbnail(

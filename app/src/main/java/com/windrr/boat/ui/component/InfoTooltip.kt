@@ -20,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +40,7 @@ import com.windrr.boat.ui.theme.ColorBrandQuinary
 import com.windrr.boat.ui.theme.ColorGray700
 import com.windrr.boat.ui.theme.Margin12
 import com.windrr.boat.ui.theme.RoundedLg
+import kotlin.math.roundToInt
 
 /** 툴팁 말풍선 배경/포인터 색상 (#E6EBF4) */
 private val TooltipBackground = ColorBrandQuinary
@@ -50,10 +53,22 @@ private val TriangleHeight = 7.dp
 fun InfoTooltipIcon(tooltipText: String) {
     var showTooltip by remember { mutableStateOf(false) }
     val gapPx = with(LocalDensity.current) { 6.dp.roundToPx() }
+    // Popup이 자체적으로 넘겨주는 anchorBounds에 의존하지 않고, 아이콘 박스의 실제 화면 좌표를
+    // 직접 측정해 둔다 — 화살표가 항상 이 아이콘의 실측 중심을 정확히 가리키도록 하기 위함.
+    var anchorRect by remember { mutableStateOf<IntRect?>(null) }
 
     Box(
         modifier = Modifier
             .size(18.dp)
+            .onGloballyPositioned { coordinates ->
+                val bounds = coordinates.boundsInWindow()
+                anchorRect = IntRect(
+                    left = bounds.left.roundToInt(),
+                    top = bounds.top.roundToInt(),
+                    right = bounds.right.roundToInt(),
+                    bottom = bounds.bottom.roundToInt(),
+                )
+            }
             .clickable(onClick = { showTooltip = true }),
         contentAlignment = Alignment.Center,
     ) {
@@ -64,12 +79,13 @@ fun InfoTooltipIcon(tooltipText: String) {
             modifier = Modifier.size(17.dp),
         )
 
-        if (showTooltip) {
+        val anchor = anchorRect
+        if (showTooltip && anchor != null) {
             // 말풍선이 화면 밖으로 나가 clamp 되더라도 삼각형 포인터는 항상 앵커(?) 정중앙을 가리켜야 한다.
             // → position provider가 계산한 "말풍선 좌측 끝 기준 앵커 중앙 x"를 상태로 받아 삼각형을 그 위치에 그린다.
             var pointerXInBubble by remember { mutableStateOf<Int?>(null) }
-            val positionProvider = remember(gapPx) {
-                TooltipPositionProvider(gapPx) { pointerX -> pointerXInBubble = pointerX }
+            val positionProvider = remember(anchor, gapPx) {
+                TooltipPositionProvider(anchor, gapPx) { pointerX -> pointerXInBubble = pointerX }
             }
             Popup(
                 popupPositionProvider = positionProvider,
@@ -132,8 +148,12 @@ private fun TooltipBubble(text: String, pointerXPx: Int?) {
  * 앵커(정보 아이콘) 바로 위, 가로로는 앵커 중앙에 맞춰 말풍선을 배치한다.
  * 화면 밖으로 나가면 좌우로 clamp 하고, 그때의 "말풍선 좌측 기준 앵커 중앙 x"를 [onPointerX]로 전달해
  * 삼각형 포인터가 앵커를 정확히 가리키도록 한다.
+ *
+ * [anchor]는 Popup이 넘겨주는 anchorBounds 대신 [onGloballyPositioned]로 직접 측정한 아이콘의
+ * 실제 화면 좌표를 사용한다 — 프레임워크 anchorBounds에 의존하지 않고 정확한 값만 신뢰하기 위함.
  */
 private class TooltipPositionProvider(
+    private val anchor: IntRect,
     private val gapPx: Int,
     private val onPointerX: (Int) -> Unit,
 ) : PopupPositionProvider {
@@ -143,7 +163,7 @@ private class TooltipPositionProvider(
         layoutDirection: LayoutDirection,
         popupContentSize: IntSize,
     ): IntOffset {
-        val anchorCenterX = (anchorBounds.left + anchorBounds.right) / 2
+        val anchorCenterX = (anchor.left + anchor.right) / 2
         val rawX = anchorCenterX - popupContentSize.width / 2
         val clampedX = rawX.coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0))
 
@@ -153,7 +173,7 @@ private class TooltipPositionProvider(
             .coerceIn(edge, (popupContentSize.width - edge).coerceAtLeast(edge))
         onPointerX(pointerX)
 
-        val y = anchorBounds.top - popupContentSize.height - gapPx
+        val y = anchor.top - popupContentSize.height - gapPx
         return IntOffset(clampedX, y)
     }
 }
