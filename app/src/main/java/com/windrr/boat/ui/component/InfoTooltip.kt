@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
@@ -96,11 +97,12 @@ private fun TooltipBubble(text: String, pointerXPx: Int?) {
             Text(
                 text = text,
                 modifier = Modifier
-                    .widthIn(max = 240.dp)
+                    .width(160.dp)
                     .padding(horizontal = Margin12, vertical = 10.dp),
-                fontSize = 12.sp,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Medium,
                 color = ColorGray700,
-                lineHeight = 17.sp,
+                lineHeight = 13.sp,
                 textAlign = TextAlign.Center,
             )
         }
