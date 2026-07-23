@@ -112,7 +112,7 @@ private fun HeaderActionIcon(
             contentDescription = stringResource(description),
             tint = tint,
             modifier = Modifier
-                .size(24.dp)
+                .size(18.dp)
                 .clickable(interactionSource = noRipple, indication = null, onClick = onClick),
         )
         if (showBadge) {
