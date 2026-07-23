@@ -870,8 +870,8 @@ private fun CollapsibleCard(
             Icon(
                 painter = painterResource(R.drawable.ic_chevron_right),
                 contentDescription = null,
-                tint = ColorGray400,
-                // 펼침=위(^, 270°), 접힘=아래(v, 90°) — 카테고리 드롭다운(CategoryDropdown)과 동일 사이즈
+                tint = ColorGray900,
+                // 펼침=위(^, 270°), 접힘=아래(v, 90°) — 카테고리 드롭다운(CategoryDropdown)과 동일 사이즈/색상
                 modifier = Modifier
                     .size(18.dp)
                     .rotate(if (expanded) 270f else 90f),
@@ -914,7 +914,7 @@ private fun CategoryDropdown(
             Icon(
                 painter = painterResource(R.drawable.ic_chevron_right),
                 contentDescription = null,
-                tint = ColorGray600,
+                tint = ColorGray900,
                 modifier = Modifier
                     .size(18.dp)
                     .rotate(if (expanded) 270f else 90f),
