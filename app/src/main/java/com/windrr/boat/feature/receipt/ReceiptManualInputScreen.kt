@@ -122,7 +122,6 @@ import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandQuinary
 import com.windrr.boat.ui.theme.ColorBrandSenary
 import com.windrr.boat.ui.theme.ColorBrandTertiary
-import com.windrr.boat.ui.theme.ColorGray100
 import com.windrr.boat.ui.theme.ColorGray200
 import com.windrr.boat.ui.theme.ColorGray300
 import com.windrr.boat.ui.theme.ColorGray400
@@ -444,7 +443,7 @@ fun ReceiptManualInputScreen(
                                 showImageViewer = true
                             },
                             onRemove = { galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri)) },
-                            modifier = Modifier.size(100.dp),
+                            modifier = Modifier.size(144.dp),
                         )
                     }
                     if (remainingSlots > 0) {
@@ -491,7 +490,7 @@ fun ReceiptManualInputScreen(
                     LazyRow(
                         state = subCategoryListState,
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
                         items(orderedSubCategories) { sub ->
                             SubCategoryItem(
@@ -970,7 +969,7 @@ private fun SubCategoryItem(
                 // 같은 clip 경계에 잘려서 테두리가 흐릿/미완성으로 보인다(특히 직선 변에서
                 // 도드라짐). background(color, shape)로 직접 모양을 지정하면 별도 clip 없이도
                 // 배경이 둥글게 그려지고, border()도 잘리지 않고 온전히 그려진다.
-                .background(if (selected) ColorBrandQuinary else ColorGray100, RoundedLg)
+                .background(if (selected) ColorBrandQuinary else ColorGray50, RoundedLg)
                 .then(if (selected) Modifier.border(1.5.dp, ColorBrandPrimary, RoundedLg) else Modifier),
             contentAlignment = Alignment.Center,
         ) {
@@ -983,7 +982,7 @@ private fun SubCategoryItem(
         Spacer(Modifier.height(6.dp))
         Text(
             text = label,
-            fontSize = 11.sp,
+            fontSize = 13.sp,
             color = if (selected) ColorBrandPrimary else ColorGray600,
             maxLines = 1,
             textAlign = TextAlign.Center,
@@ -996,7 +995,7 @@ private fun SubCategoryItem(
 private fun AddImageTile(onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .size(100.dp)
+            .size(144.dp)
             // clip()을 먼저 적용하면 border()의 바깥쪽 절반이 잘려 테두리가 흐릿해 보인다.
             // background(color, shape)로 직접 모양을 지정하면 별도 clip 없이도 잘리지 않는다.
             .background(ColorWhite, RoundedXl)
@@ -1009,12 +1008,12 @@ private fun AddImageTile(onClick: () -> Unit) {
                 painter = painterResource(id = R.drawable.ic_plus),
                 contentDescription = null,
                 tint = ColorBrandPrimary,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(32.dp)
             )
             Spacer(Modifier.height(2.dp))
             Text(
                 text = stringResource(R.string.manual_image_add),
-                fontSize = 12.sp,
+                fontSize = 16.sp,
                 color = ColorBrandPrimary
             )
         }
