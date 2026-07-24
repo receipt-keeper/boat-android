@@ -59,6 +59,7 @@ import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandSecondary
 import com.windrr.boat.ui.theme.ColorBrandSenary
 import com.windrr.boat.ui.theme.ColorBrandTertiary
+import com.windrr.boat.ui.theme.ColorCardBgMedium
 import com.windrr.boat.ui.theme.ColorCardBgStrong
 import com.windrr.boat.ui.theme.ColorCardBgStrongInner
 import com.windrr.boat.ui.theme.ColorGray100
@@ -449,9 +450,9 @@ private fun ExpiringMoreCard(
     Column(
         modifier = modifier
             .then(heightModifier)
-            .width(96.dp)
-            .clip(Rounded2xl)
-            .background(ColorWhite.copy(alpha = 0.18f))
+            .width(61.dp)
+            .clip(RoundedXl)
+            .background(ColorCardBgMedium)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -459,26 +460,23 @@ private fun ExpiringMoreCard(
     ) {
         Text(
             text = stringResource(R.string.home_expiring_more_count, remainingCount),
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            lineHeight = 21.sp,
+            letterSpacing = 0.sp,
             color = ColorWhite,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(4.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = stringResource(R.string.home_more),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = ColorWhite,
-            )
-            Icon(
-                painter = painterResource(R.drawable.ic_chevron_right),
-                contentDescription = null,
-                tint = ColorWhite,
-                modifier = Modifier.size(14.dp),
-            )
-        }
+        Text(
+            text = stringResource(R.string.home_more),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            lineHeight = 21.sp,
+            letterSpacing = 0.sp,
+            color = ColorWhite,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 

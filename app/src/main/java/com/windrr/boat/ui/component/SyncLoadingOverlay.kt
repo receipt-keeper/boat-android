@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,7 +22,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.windrr.boat.R
-import com.windrr.boat.ui.theme.ColorGray600
+import com.windrr.boat.ui.theme.ColorWhite
 
 @Composable
 fun SyncLoadingOverlay(
@@ -34,18 +32,14 @@ fun SyncLoadingOverlay(
         LottieCompositionSpec.RawRes(R.raw.scan_loading_zero)
     )
 
+    // 흰 카드로 한 번 더 감싸지 않고, 딤 처리된 배경 위에 애니메이션+문구만 직접 노출한다.
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.45f)),
         contentAlignment = Alignment.Center,
     ) {
-        Column(
-            modifier = Modifier
-                .background(Color.White, RoundedCornerShape(24.dp))
-                .padding(horizontal = 40.dp, vertical = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             LottieAnimation(
                 composition = composition,
                 iterations = LottieConstants.IterateForever,
@@ -56,7 +50,7 @@ fun SyncLoadingOverlay(
                 text = message,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
-                color = ColorGray600,
+                color = ColorWhite,
             )
         }
     }

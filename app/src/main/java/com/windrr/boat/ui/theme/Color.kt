@@ -34,6 +34,7 @@ val ColorSystemDim     = Color(0x80212121) // 모달 딤 배경 (#212121 @ 50%)
 // ── Card ──────────────────────────────────────────────────────────────────────
 val ColorCardBgStrong      = Color(0xFF357AF6) // Card/Bg/Strong — 컬러 히어로 카드 배경
 val ColorCardBgStrongInner = Color(0xFF4F8EFF) // Card/Bg/Strong/Inner — 그 위에 얹는 강조 내부 배너 배경
+val ColorCardBgMedium      = Color(0xFF69A8FF) // Card/Bg/Medium — "N건 더보기" 카드 배경
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 val ColorNavigationTabBg = Color(0x4DCCE0FF) // Navigation/Tab/Bg — 하단 탭 선택 하이라이트 배경 (#CCE0FF @30%)
