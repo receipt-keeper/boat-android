@@ -1,9 +1,8 @@
 package com.windrr.boat.feature.receipt
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -31,8 +29,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -217,73 +215,12 @@ fun InfoBulletText(text: String, color: Color) {
     }
 }
 
-/** 영수증 아이콘 + 에러 뱃지 (비율 최적화) — UnsupportedReceiptBottomSheet도 재사용. */
+/** 영수증 오류 아이콘 — UnsupportedReceiptBottomSheet도 재사용. */
 @Composable
 fun ReceiptErrorIcon() {
-    Box(
-        modifier = Modifier.size(80.dp),
-        contentAlignment = Alignment.BottomEnd,
-    ) {
-        // 영수증 본체
-        Box(
-            modifier = Modifier
-                .padding(bottom = 8.dp, end = 8.dp)
-                .size(64.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(Color(0xFF5AC8FA), Color(0xFF0088FF)),
-                    )
-                )
-                .padding(horizontal = 12.dp, vertical = 14.dp),
-            contentAlignment = Alignment.TopStart,
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Box(
-                    Modifier
-                        .fillMaxWidth(0.5f)
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(Color.White)
-                )
-                Box(
-                    Modifier
-                        .fillMaxWidth(0.9f)
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(Color.White.copy(alpha = 0.8f))
-                )
-                Box(
-                    Modifier
-                        .fillMaxWidth(0.9f)
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(Color.White.copy(alpha = 0.8f))
-                )
-                Box(
-                    Modifier
-                        .fillMaxWidth(0.6f)
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(Color.White.copy(alpha = 0.8f))
-                )
-            }
-        }
-
-        // 오류 뱃지 (X)
-        Box(
-            modifier = Modifier
-                .size(28.dp)
-                .border(2.dp, Color.White, CircleShape)
-                .background(Color(0xFFFF3B30), CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Close,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(14.dp),
-            )
-        }
-    }
+    Image(
+        painter = painterResource(R.drawable.img_receipt_error),
+        contentDescription = null,
+        modifier = Modifier.size(52.dp),
+    )
 }

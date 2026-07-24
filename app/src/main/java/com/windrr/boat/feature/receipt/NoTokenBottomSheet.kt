@@ -43,8 +43,8 @@ import com.windrr.boat.R
 import com.windrr.boat.ui.theme.ColorBrandPrimary
 import com.windrr.boat.ui.theme.ColorBrandTertiary
 import com.windrr.boat.ui.theme.ColorGray50
-import com.windrr.boat.ui.theme.ColorGray500
 import com.windrr.boat.ui.theme.ColorGray600
+import com.windrr.boat.ui.theme.ColorGray700
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin8
@@ -136,7 +136,7 @@ private fun NoTokenPromoContent(
         AsyncImage(
             model = R.drawable.shiny_white, // 반짝이는 AI 아이콘 리소스
             contentDescription = null,
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(52.dp),
         )
 
         Spacer(Modifier.height(16.dp))
@@ -256,7 +256,6 @@ private fun NoTokenPromoContent(
 private fun NoTokenSimpleContent(onManualInput: () -> Unit) {
     val colorBrandPrimary = Color(0xFF007AFF)
     val colorGray900 = Color(0xFF111827)
-    val colorGray500 = Color(0xFF6B7280)
     val roundedLg = RoundedCornerShape(8.dp)
 
     Column(
@@ -269,7 +268,7 @@ private fun NoTokenSimpleContent(onManualInput: () -> Unit) {
         AsyncImage(
             model = R.drawable.shiny_white,
             contentDescription = null,
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(52.dp),
         )
 
         Spacer(Modifier.height(16.dp))
@@ -284,13 +283,14 @@ private fun NoTokenSimpleContent(onManualInput: () -> Unit) {
         )
         Spacer(Modifier.height(12.dp))
 
-        // 서브타이틀 (그레이 & 레귤러 & 중앙 정렬)
+        // 서브타이틀 (Figma "Body2 Medium": 14sp/Medium/Gray700/가운데)
         Text(
             text = "영수증을 직접 입력하면 계속\n보증 기간을 관리할 수 있어요.",
-            fontSize = 15.sp,
-            color = colorGray500,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = ColorGray700,
             textAlign = TextAlign.Center,
-            lineHeight = 22.sp,
+            lineHeight = 21.sp,
         )
 
         Spacer(Modifier.height(32.dp))

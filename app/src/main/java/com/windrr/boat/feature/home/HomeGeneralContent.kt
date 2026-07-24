@@ -191,7 +191,8 @@ private fun ExpiringWarrantySection(
     val listState = rememberLazyListState()
     // offsetY로 캐릭터 세트 상하 위치 조정. 손 태그가 카드의 "보증종료" 텍스트를 가리지 않도록
     // 캐릭터는 위로, 카드는 아래로(헤더-카드 간격 확대) 벌린다.
-    val bobo = MascotLayout(width = 90.dp, height = 127.dp, offsetY = 8.dp)
+    // (텍스트와의 겹침 방지를 위해 우측으로, 카드와는 더 겹치도록 아래로 살짝 조정)
+    val bobo = MascotLayout(width = 116.dp, height = 129.dp, offsetY = 16.dp)
     // 카드 너비 — 다음 카드가 파란 카드 우측에 살짝 걸쳐 보이도록(peek) 산정.
     // 화면폭 - 좌우 화면 마진(40) - 캐러셀 좌측 여백(20) - 우측 peek 여백(28)
     val cardWidth = LocalConfiguration.current.screenWidthDp.dp - 88.dp
@@ -206,6 +207,9 @@ private fun ExpiringWarrantySection(
     Box(
         modifier = modifier
             .fillMaxWidth()
+            // Figma 스펙: 카드 H 274dp — 단, 실제 콘텐츠(브랜드/구매일 등)가 더 필요하면
+            // 잘리지 않도록 고정값이 아닌 최소 높이로 적용한다.
+            .heightIn(min = 274.dp)
             .clip(Rounded2xl)
             .background(
                 Brush.verticalGradient(
@@ -214,7 +218,7 @@ private fun ExpiringWarrantySection(
             ),
     ) {
         // 1) 몸통 — 맨 아래. 카드와 겹치는 부분은 카드에 가려진다. (endPadding을 키워 캐릭터를 안쪽으로)
-        MascotImage(R.drawable.img_happy_bobo, bobo, endPadding = 60.dp)
+        MascotImage(R.drawable.img_happy_bobo, bobo, endPadding = 45.dp)
 
         Column(modifier = Modifier
             .fillMaxWidth()
@@ -222,7 +226,8 @@ private fun ExpiringWarrantySection(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp),
+                    // Figma 스펙: 배너 좌우 패딩 12dp — 헤더/카드 공통.
+                    .padding(start = 12.dp, end = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // 캐릭터 세트는 안쪽으로 들여놓고(chevron과 겹치지 않게), 타이틀은 캐릭터 아래로 넘어가지 않도록 우측 여백 확보
@@ -267,7 +272,8 @@ private fun ExpiringWarrantySection(
             // 2) 카드 캐러셀 — 몸통 위, 손 아래(z-order로 몸통의 하단부를 가린다)
             LazyRow(
                 state = listState,
-                contentPadding = PaddingValues(horizontal = Margin20),
+                // Figma 스펙: 배너 좌우 패딩 12dp — 헤더/카드 공통.
+                contentPadding = PaddingValues(horizontal = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 itemsIndexed(expiring, key = { _, item -> item.receiptId }) { _, item ->
@@ -303,7 +309,7 @@ private fun ExpiringWarrantySection(
         }
 
         // 3) 손 + 보증 태그 — 맨 위. 몸통과 완전히 동일한 크기·위치라야 이어져 보인다.
-        MascotImage(R.drawable.img_happy_bobo_hand, bobo, endPadding = 60.dp)
+        MascotImage(R.drawable.img_happy_bobo_hand, bobo, endPadding = 45.dp)
     }
 }
 
@@ -406,11 +412,12 @@ private fun ExpiringWarrantyCard(
         Spacer(Modifier.height(14.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
+            // Figma 스펙: 84dp, 배경 효과 없음
             Thumbnail(
                 category = item.category,
                 subCategory = item.subCategory,
-                sizeDp = 56,
-                bg = ColorBrandSenary,
+                sizeDp = 84,
+                bg = Color.Transparent,
             )
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -424,7 +431,7 @@ private fun ExpiringWarrantyCard(
                 )
                 Spacer(Modifier.height(8.dp))
                 LabelValueRow(stringResource(R.string.home_label_brand), item.brand)
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(0.dp)) // 브랜드-구매일은 하위 요소끼리라 더 가깝게
                 LabelValueRow(stringResource(R.string.home_label_purchase), item.purchaseDate)
             }
         }
@@ -611,29 +618,23 @@ private fun ExpiringEmptyBanner(
     onMoreClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // 💡 [교정 1] 마스코트의 총 높이를 늘려(124.dp) 배너 영역까지 뻗어나갈 수 있는 잉여 공간 확보
-    val bobo = MascotLayout(width = 88.dp, height = 107.dp, offsetY = 0.dp)
+    // 만료 예정 N건 배너와 동일한 캐릭터 크기·위치 사용
+    val bobo = MascotLayout(width = 116.dp, height = 129.dp, offsetY = 16.dp)
 
     Box(
-        // 높이는 고정하지 않고 콘텐츠에 맞춰 자연스럽게 산정한다.
-        // (고정 높이였을 때 상단 패딩을 줄이면 카드 하단에 빈 여백만 남거나, 반대로
-        //  내부 콘텐츠가 라운드 클립 밖으로 잘려나가는 문제가 있었다)
+        // Figma 스펙: 카드 H 274dp — 콘텐츠가 더 필요해도 잘리지 않도록 최소 높이로 적용한다.
         modifier = modifier
             .fillMaxWidth()
+            .heightIn(min = 274.dp)
             .clip(Rounded2xl)
-            // 💡 [교정] Card/Bg/Strong — 임의 그라디언트 대신 디자인 토큰 단색으로 교체
-            // (기존 그라디언트 값이 Inner 톤(#4F8EFF)과 거의 같아 안팎 구분이 안 됐음)
             .background(ColorCardBgStrong)
-            // 💡 [교정] 상단 여백이 디자인 가이드 대비 과도하게 넓었던 문제 — 32dp → 16dp
-            .padding(start = 12.dp, top = 16.dp, end = 12.dp, bottom = 16.dp),
+            // Figma 스펙: 좌우 패딩 12dp, 상단 패딩 32dp, 하단 패딩 16dp
+            .padding(start = 12.dp, top = 32.dp, end = 12.dp, bottom = 16.dp),
     ) {
         // 1) 몸통 — 맨 아래. (Inner Banner에 의해 하단이 덮임)
-        MascotImage(R.drawable.img_crying_bobo, bobo, endPadding = 32.dp)
+        MascotImage(R.drawable.img_crying_bobo, bobo, endPadding = 45.dp)
 
         Column(modifier = Modifier.fillMaxWidth()) {
-
-            // 💡 [교정 2] 상단 텍스트 영역의 높이를 84dp로 축소
-            // 이로 인해 하단의 안내 박스가 위로 당겨지며, 마스코트(124dp)와 약 40dp 겹침(Overlap) 발생
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -681,13 +682,14 @@ private fun ExpiringEmptyBanner(
                 )
             }
 
+            Spacer(Modifier.height(28.dp)) // Figma 스펙: 헤더-안내박스 마진 28dp (임박건 배너와 동일)
 
             // 2) 안내 박스 — 몸통 위, 손 아래
             // 몸통 하단을 덮어버려 "깔끔한 절취선" 효과를 내고, 손(태그)은 이 위로 오버랩 됨
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(147.dp)
+                    .height(112.dp)
                     .clip(RoundedXl)
                     // 💡 [교정] Card/Bg/Strong/Inner — 외곽 그라디언트와 대비되는 짙은 강조 배경으로 교체
                     .background(ColorCardBgStrongInner)
@@ -706,7 +708,7 @@ private fun ExpiringEmptyBanner(
         }
 
         // 3) 손 + 보증 만료 태그 — 맨 위. (안내 박스 위로 오버랩 됨)
-        MascotImage(R.drawable.img_crying_bobo_hand, bobo, endPadding = 32.dp)
+        MascotImage(R.drawable.img_crying_bobo_hand, bobo, endPadding = 45.dp)
     }
 }
 

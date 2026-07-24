@@ -1,7 +1,6 @@
 package com.windrr.boat.feature.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -119,17 +118,22 @@ fun BoatFloatingBottomBar(
                     .fillMaxWidth()
                     .height(BarHeight)
                     // Effect: shadow_md3 (디자인 시스템) — X0/Y3/blur15 + X0/Y1/blur7, #000000 10%.
-                    // Compose shadow()는 elevation 기반 근사치라 X/Y/blur를 레이어별로 그대로 재현할 수는
-                    // 없어 opacity(10%)만 정확히 맞추고, elevation은 두 레이어의 체감 블러에 맞춰 조정했다.
+                    // Compose shadow()는 elevation 기반 근사치라 각 레이어를 별도 shadow()로 쌓아
+                    // 2겹 효과를 낸다. opacity는 스펙(10%)보다 눈에 띄게 진하게 조정했다.
                     .shadow(
-                        elevation = 12.dp,
+                        elevation = 15.dp,
                         shape = BarShape,
-                        ambientColor = Color.Black.copy(alpha = 0.10f),
-                        spotColor = Color.Black.copy(alpha = 0.10f),
+                        ambientColor = Color.Black.copy(alpha = 0.32f),
+                        spotColor = Color.Black.copy(alpha = 0.32f),
+                    )
+                    .shadow(
+                        elevation = 7.dp,
+                        shape = BarShape,
+                        ambientColor = Color.Black.copy(alpha = 0.28f),
+                        spotColor = Color.Black.copy(alpha = 0.28f),
                     )
                     .clip(BarShape)
                     .hazeEffect(state = hazeState, style = glassStyle)
-                    .border(1.dp, ColorWhite, BarShape)
                     .padding(horizontal = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween, // 디자인: 양쪽 정렬 space-between
@@ -258,16 +262,21 @@ private fun AddFloatingButton(
     Box(
         modifier = Modifier
             .size(FabSize)
-            // Effect: shadow_md3 — 탭 바와 동일한 그림자 스펙으로 통일
+            // Effect: shadow_md3 — 탭 바와 동일한 2겹 그림자 스펙으로 통일
             .shadow(
-                elevation = 12.dp,
+                elevation = 15.dp,
                 shape = CircleShape,
-                ambientColor = Color.Black.copy(alpha = 0.10f),
-                spotColor = Color.Black.copy(alpha = 0.10f),
+                ambientColor = Color.Black.copy(alpha = 0.32f),
+                spotColor = Color.Black.copy(alpha = 0.32f),
+            )
+            .shadow(
+                elevation = 7.dp,
+                shape = CircleShape,
+                ambientColor = Color.Black.copy(alpha = 0.28f),
+                spotColor = Color.Black.copy(alpha = 0.28f),
             )
             .clip(CircleShape)
             .hazeEffect(state = hazeState, style = style)
-            .border(1.dp, ColorWhite, CircleShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {

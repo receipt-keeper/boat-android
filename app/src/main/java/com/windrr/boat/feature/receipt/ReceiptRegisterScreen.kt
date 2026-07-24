@@ -93,6 +93,7 @@ import com.windrr.boat.ui.theme.ColorGray200
 import com.windrr.boat.ui.theme.ColorGray400
 import com.windrr.boat.ui.theme.ColorGray600
 import com.windrr.boat.ui.theme.ColorGray700
+import com.windrr.boat.ui.theme.ColorGray800
 import com.windrr.boat.ui.theme.ColorGray900
 import com.windrr.boat.ui.theme.ColorWhite
 import com.windrr.boat.ui.theme.Margin12
@@ -709,10 +710,16 @@ fun ReceiptRegisterScreen(
                                     modifier = Modifier.weight(1f),
                                 )
                                 Text(
-                                    text = "${photos.size}/${GalleryState.MAX_PHOTOS}",
+                                    text = buildAnnotatedString {
+                                        withStyle(SpanStyle(color = ColorBrandPrimary)) {
+                                            append("${photos.size}")
+                                        }
+                                        withStyle(SpanStyle(color = ColorGray800)) {
+                                            append("/${GalleryState.MAX_PHOTOS}")
+                                        }
+                                    },
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = ColorGray600,
                                 )
                             }
                             Spacer(Modifier.height(Margin12))
