@@ -618,8 +618,10 @@ private fun ExpiringEmptyBanner(
     onMoreClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // 만료 예정 N건 배너와 동일한 캐릭터 크기·위치 사용
-    val bobo = MascotLayout(width = 116.dp, height = 129.dp, offsetY = 16.dp)
+    // 만료 예정 N건 배너와 동일한 캐릭터 크기 사용. 단, 이 배너는 헤더가 고정 높이가
+    // 아니라 짧아진 만큼 안내 박스가 위로 당겨져 캐릭터를 더 가리게 되므로, 그만큼
+    // 캐릭터를 위로 올려 디자인 가이드와 동일한 노출 비율을 맞춘다.
+    val bobo = MascotLayout(width = 116.dp, height = 129.dp, offsetY = (-20).dp)
 
     Box(
         // Figma 스펙: 카드 H 274dp — 콘텐츠가 더 필요해도 잘리지 않도록 최소 높이로 적용한다.
@@ -632,13 +634,14 @@ private fun ExpiringEmptyBanner(
             .padding(start = 12.dp, top = 32.dp, end = 12.dp, bottom = 16.dp),
     ) {
         // 1) 몸통 — 맨 아래. (Inner Banner에 의해 하단이 덮임)
-        MascotImage(R.drawable.img_crying_bobo, bobo, endPadding = 45.dp)
+        MascotImage(R.drawable.img_crying_bobo, bobo, endPadding = 30.dp)
 
         Column(modifier = Modifier.fillMaxWidth()) {
+            // 임박건 배너와 동일하게 고정 높이 없이 콘텐츠에 맞춰 자연스럽게 산정
+            // (상단32 + 헤더 + 마진28 + 박스147 + 하단16 = 274가 되도록 헤더는 자연 높이여야 한다).
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(84.dp)
             ) {
                 // 좌측 텍스트 (수직 중앙 정렬)
                 Column(
@@ -689,7 +692,7 @@ private fun ExpiringEmptyBanner(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(112.dp)
+                    .height(147.dp) // Figma 스펙: 안내 박스 고정 147dp
                     .clip(RoundedXl)
                     // 💡 [교정] Card/Bg/Strong/Inner — 외곽 그라디언트와 대비되는 짙은 강조 배경으로 교체
                     .background(ColorCardBgStrongInner)
@@ -708,7 +711,7 @@ private fun ExpiringEmptyBanner(
         }
 
         // 3) 손 + 보증 만료 태그 — 맨 위. (안내 박스 위로 오버랩 됨)
-        MascotImage(R.drawable.img_crying_bobo_hand, bobo, endPadding = 45.dp)
+        MascotImage(R.drawable.img_crying_bobo_hand, bobo, endPadding = 30.dp)
     }
 }
 
