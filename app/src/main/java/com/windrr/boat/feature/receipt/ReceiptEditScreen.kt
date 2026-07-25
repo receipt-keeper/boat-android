@@ -653,8 +653,17 @@ private fun ReceiptEditForm(
                     OutlinedTextField(
                         value = memo,
                         onValueChange = { memo = it.take(MEMO_MAX) },
-                        placeholder = { Text(stringResource(R.string.manual_memo_hint), color = ColorGray400, fontSize = 15.sp) },
-                        modifier = Modifier.fillMaxWidth().height(120.dp),
+                        // Body2 Medium — Pretendard 500 / 14 / 행간 150%(21) / #757575
+                        placeholder = {
+                            Text(
+                                text = stringResource(R.string.manual_memo_hint),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                lineHeight = 21.sp,
+                                color = ColorGray600,
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth().height(154.dp),
                         shape = RoundedLg,
                         isError = memoAtMax,
                         colors = editFormFieldColors(),
@@ -711,7 +720,7 @@ private fun ReceiptEditForm(
                                     uncheckedColor = ColorGray300,
                                     checkmarkColor = ColorWhite
                                 ),
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
@@ -836,7 +845,7 @@ private fun ReceiptEditForm(
                                 galleryViewModel.handleIntent(GalleryIntent.ClearError)
                                 galleryViewModel.handleIntent(GalleryIntent.RemovePhoto(uri))
                             },
-                            modifier = Modifier.size(100.dp),
+                            modifier = Modifier.size(144.dp),
                         )
                     }
                     itemsIndexed(remoteFileIds.toList(), key = { _, id -> "remote_$id" }) { index, fileId ->
@@ -848,7 +857,7 @@ private fun ReceiptEditForm(
                                 showImageViewer = true
                             },
                             onRemove = { remoteFileIds.remove(fileId) },
-                            modifier = Modifier.size(100.dp),
+                            modifier = Modifier.size(144.dp),
                         )
                     }
                 }
@@ -1017,7 +1026,7 @@ private fun EditSubCategoryItem(label: String, iconRes: Int, selected: Boolean, 
 private fun EditAddImageTile(onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .size(100.dp)
+            .size(144.dp)
             // clip()을 먼저 적용하면 border()의 바깥쪽 절반이 잘려 테두리가 흐릿해 보인다.
             // background(color, shape)로 직접 모양을 지정하면 별도 clip 없이도 잘리지 않는다.
             .background(ColorWhite, RoundedXl)

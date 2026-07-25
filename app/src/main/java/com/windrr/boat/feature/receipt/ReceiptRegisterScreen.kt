@@ -110,7 +110,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-private val ThumbnailSize = 100.dp
+private val ThumbnailSize = 130.dp
 
 /**
  * [NoticeCard]가 "접힌 상태"일 때의 대략적인 높이(아이콘 20dp + 헤더 1줄 + 상하 패딩 32dp).

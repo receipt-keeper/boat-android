@@ -1,17 +1,16 @@
 package com.windrr.boat.ui.component
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,13 +18,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.windrr.boat.R
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.remote.model.ReceiptFile
 import com.windrr.boat.ui.theme.ColorWhite
+import com.windrr.boat.ui.theme.PretendardFontFamily
 import com.windrr.boat.ui.theme.RoundedXl
 
 /**
@@ -72,22 +77,31 @@ fun ReceiptAttachmentThumbnail(
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.5.dp),
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(26.dp)
-                            .border(1.5.dp, Color(0xFFFF3B30), CircleShape),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(text = "!", color = Color(0xFFFF3B30), fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(Modifier.height(0.dp))
+                    Image(
+                        painter = painterResource(R.drawable.error),
+                        contentDescription = null,
+                        modifier = Modifier.size(28.dp),
+                    )
                     Text(
                         text = "다시 업로드해 주세요",
-                        color = Color(0xFFFF3B30),
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFFFE395B),
+                        // caption3 Bold — Pretendard 700 / 10sp / 행간 130%(13sp) / 자간 0
+                        style = TextStyle(
+                            fontFamily = PretendardFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 10.sp,
+                            lineHeight = 13.sp,
+                            letterSpacing = 0.sp,
+                            // 폰트 기본 상하 패딩 제거 + 행간을 텍스트 중앙에 배치해,
+                            // 아이콘+텍스트 묶음이 실제 시각적 중앙에 오도록 한다(위쪽 쏠림 방지).
+                            platformStyle = PlatformTextStyle(includeFontPadding = false),
+                            lineHeightStyle = LineHeightStyle(
+                                alignment = LineHeightStyle.Alignment.Center,
+                                trim = LineHeightStyle.Trim.Both,
+                            ),
+                        ),
                     )
                 }
             }
@@ -110,7 +124,14 @@ fun ReceiptAttachmentThumbnail(
                         .background(Color.Black.copy(alpha = 0.4f)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(text = "✕", color = ColorWhite, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    // 텍스트 글리프("✕")는 베이스라인 때문에 원 안에서 살짝 치우쳐 보여
+                    // 벡터 아이콘으로 교체해 정확히 중앙 정렬한다.
+                    Icon(
+                        painter = painterResource(R.drawable.icon_close),
+                        contentDescription = null,
+                        tint = ColorWhite,
+                        modifier = Modifier.size(14.dp),
+                    )
                 }
             }
         }

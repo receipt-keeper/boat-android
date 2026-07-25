@@ -632,8 +632,17 @@ fun ReceiptManualInputScreen(
                         OutlinedTextField(
                             value = memo,
                             onValueChange = { if (it.length <= 100) memo = it },
-                            placeholder = { Text(stringResource(R.string.manual_memo_hint), color = ColorGray400, fontSize = 15.sp) },
-                            modifier = Modifier.fillMaxWidth().height(120.dp),
+                            // Body2 Medium — Pretendard 500 / 14 / 행간 150%(21) / #757575
+                            placeholder = {
+                                Text(
+                                    text = stringResource(R.string.manual_memo_hint),
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    lineHeight = 21.sp,
+                                    color = ColorGray600,
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth().height(154.dp),
                             shape = RoundedLg,
                             colors = formFieldColors(),
                         )
@@ -680,7 +689,7 @@ fun ReceiptManualInputScreen(
                                         uncheckedColor = ColorGray300,
                                         checkmarkColor = ColorWhite
                                     ),
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
