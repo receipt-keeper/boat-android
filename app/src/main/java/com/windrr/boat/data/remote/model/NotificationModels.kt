@@ -30,6 +30,8 @@ data class NotificationDto(
     val notificationId: String,
     val messageType: String? = null,
     val kind: String? = null,
+    /** 알림 분류 코드(warranty / product_management / benefit 등) — 카드 상단 라벨 표시에 사용 */
+    val category: String? = null,
     val title: String? = null,
     val message: String? = null,
     val resourceType: String? = null,

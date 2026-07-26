@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,7 +41,7 @@ import com.windrr.boat.ui.theme.RoundedLg
 /**
  * 알림 목록 아이템 (재사용 컴포넌트) — 디자인 가이드 스펙.
  *
- * 카테고리(보증/혜택 등)와 무관하게 상단 라벨은 항상 "보트랩" 고정 → 날짜 →
+ * 상단 라벨은 서버 category 코드에 맞는 분류명(보증/제품 관리/혜택) → 날짜 →
  * 타이틀(제품명) → 메시지 순 세로 배치. 썸네일은 항상 상단 라인에 맞춰 정렬한다.
  */
 @Composable
@@ -101,11 +102,14 @@ fun NotificationItem(
 
             Spacer(Modifier.width(14.dp))
 
-            // 카테고리 라벨(보증/혜택 등)과 무관하게 상단 라벨은 항상 "보트랩" 고정.
+            // 상단 라벨 — 서버 category 코드에 맞는 분류명(보증/제품 관리/혜택).
+            // 코드가 없거나 아직 매핑되지 않았으면 앱 이름으로 폴백한다.
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "보트랩",
+                        text = notification.categoryLabelRes()
+                            ?.let { stringResource(it) }
+                            ?: stringResource(R.string.app_name),
                         fontSize = 14.sp,
                         color = ColorGray600.copy(alpha = alpha),
                         modifier = Modifier.weight(1f),

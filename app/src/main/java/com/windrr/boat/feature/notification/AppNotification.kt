@@ -1,5 +1,7 @@
 package com.windrr.boat.feature.notification
 
+import androidx.annotation.StringRes
+import com.windrr.boat.R
 import com.windrr.boat.data.remote.model.NotificationDto
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -21,6 +23,7 @@ import java.util.TimeZone
  * @property resourceId   참조 리소스 ID
  * @property kind         알림 종류 이름표 — 특정 종류만 특별 라우팅할 때 사용
  * @property messageType  메시지 유형 — marketing 등 라우팅 결정에 사용
+ * @property category     서버 분류 코드(warranty 등) — 카드 상단 라벨 표시용
  */
 data class AppNotification(
     val id: String,
@@ -32,8 +35,21 @@ data class AppNotification(
     val resourceId: String? = null,
     val kind: String? = null,
     val messageType: String? = null,
+    val category: String? = null,
     val isRead: Boolean = false,
-)
+) {
+    /**
+     * 카드 상단 분류 라벨 문자열 리소스. 서버가 category를 안 주거나
+     * 아직 매핑하지 않은 코드면 null → 호출부에서 앱 이름("보트랩")으로 폴백한다.
+     */
+    @StringRes
+    fun categoryLabelRes(): Int? = when (category?.lowercase()) {
+        "warranty" -> R.string.notif_category_warranty
+        "product_management" -> R.string.notif_category_product_management
+        "benefit" -> R.string.notif_category_benefit
+        else -> null
+    }
+}
 
 /** "2026-06-15T12:00:00" → "2026.06.15" */
 private fun String?.toDisplayDate(): String {
@@ -91,5 +107,6 @@ fun NotificationDto.toAppNotification(): AppNotification = AppNotification(
     resourceId = resourceId,
     kind = kind,
     messageType = messageType,
+    category = category,
     isRead = !readAt.isNullOrBlank(),
 )

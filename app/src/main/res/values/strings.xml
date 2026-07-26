@@ -209,6 +209,10 @@
 
     <!-- 알림 목록 화면 -->
     <string name="notif_list_title">알림</string>
+    <!-- 알림 카드 상단 분류 라벨 — 서버 category 코드에 매핑. 미정의 코드는 앱 이름으로 폴백. -->
+    <string name="notif_category_warranty">보증</string>
+    <string name="notif_category_product_management">제품 관리</string>
+    <string name="notif_category_benefit">혜택</string>
     <string name="notif_list_empty">알림이 없습니다.</string>
     <string name="notif_tab_all">전체</string>
     <string name="notif_tab_unread">안읽음</string>

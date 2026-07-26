@@ -246,7 +246,7 @@ fun ReceiptEditScreen(
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = ColorGray50),
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = ColorWhite),
                 )
             },
         ) { innerPadding ->
