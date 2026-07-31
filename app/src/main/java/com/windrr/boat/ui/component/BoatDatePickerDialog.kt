@@ -353,18 +353,23 @@ private object DateSlashVisualTransformation : VisualTransformation {
                 append(c)
             }
         }
+        // 연달아 빠르게 삭제(백스페이스)하면 재조합이 미처 따라잡기 전에 이미 짧아진
+        // digits 기준으로는 더 이상 유효하지 않은 오프셋이 들어올 수 있다. else 분기에만
+        // coerceAtMost가 있고 앞 두 분기엔 없어서, 그 값이 digits.length를 넘는 채로
+        // 그대로 반환되면 Compose가 이를 그 길이의 문자열에 인덱싱하다가
+        // StringIndexOutOfBoundsException으로 크래시했다. 모든 분기에 동일하게 clamp한다.
         val mapping = object : OffsetMapping {
             override fun originalToTransformed(offset: Int): Int = when {
                 offset <= 3 -> offset
                 offset <= 5 -> offset + 1
-                else -> (offset + 2).coerceAtMost(formatted.length)
-            }
+                else -> offset + 2
+            }.coerceIn(0, formatted.length)
 
             override fun transformedToOriginal(offset: Int): Int = when {
                 offset <= 4 -> offset
                 offset <= 7 -> offset - 1
-                else -> (offset - 2).coerceAtMost(digits.length)
-            }.coerceAtLeast(0)
+                else -> offset - 2
+            }.coerceIn(0, digits.length)
         }
         return TransformedText(AnnotatedString(formatted), mapping)
     }
