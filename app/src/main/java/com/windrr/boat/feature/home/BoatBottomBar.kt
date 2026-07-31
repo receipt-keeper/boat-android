@@ -123,8 +123,16 @@ fun BoatFloatingBottomBar(
                     // 시스템이 계산한 그림자 알파에 "곱해지는 배율"이다(기본값 = 불투명 검정).
                     // 프레임워크가 ambient≈3.9% / spot≈19%를 먼저 적용하므로, 여기에 0.3을 곱하면
                     // 실효 1~6%까지 떨어져 그림자가 거의 안 보이고 탭 경계가 흐려진다.
-                    // 기본(불투명) 그림자 색을 그대로 쓰고 elevation으로만 세기를 조절한다.
-                    .shadow(elevation = 12.dp, shape = BarShape)
+                    // ambient(사방 균등)는 최대치로 둬서 윗변·좌우 그림자를 살리고,
+                    // spot(위에서 비추는 방향광이라 아래로 쏠린다)만 낮춰 하단이 과하게
+                    // 짙어지지 않게 한다. elevation을 조금 올리면 ambient가 더 넓게 퍼져
+                    // 둘레가 고르게 보인다.
+                    .shadow(
+                        elevation = 14.dp,
+                        shape = BarShape,
+                        ambientColor = Color.Black,
+                        spotColor = Color.Black.copy(alpha = 0.55f),
+                    )
                     .clip(BarShape)
                     .hazeEffect(state = hazeState, style = glassStyle)
                     .padding(horizontal = 12.dp),
@@ -256,7 +264,12 @@ private fun AddFloatingButton(
         modifier = Modifier
             .size(FabSize)
             // Effect: shadow_md3 — 탭 바와 동일한 그림자 스펙으로 통일
-            .shadow(elevation = 12.dp, shape = CircleShape)
+            .shadow(
+                elevation = 14.dp,
+                shape = CircleShape,
+                ambientColor = Color.Black,
+                spotColor = Color.Black.copy(alpha = 0.55f),
+            )
             .clip(CircleShape)
             .hazeEffect(state = hazeState, style = style)
             .clickable(onClick = onClick),
