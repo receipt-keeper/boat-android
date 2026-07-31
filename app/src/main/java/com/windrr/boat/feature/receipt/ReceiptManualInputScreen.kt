@@ -171,7 +171,7 @@ private val SUBCATEGORIES: Map<DeviceCategory, List<String>> = mapOf(
     DeviceCategory.LAUNDRY to listOf("세탁기", "건조기", "청소기", "로봇청소기", ETC),
     DeviceCategory.LIVING to listOf("에어컨", "선풍기", "공기청정기", "가습기", ETC),
     DeviceCategory.IT to listOf(
-        "노트북", "핸드폰", "무선이어폰", "스마트워치", "데스크탑/TV",
+        "노트북", "핸드폰", "무선이어폰", "스마트워치", "PC/TV",
         "카메라", "스피커", "게임기", "헤드셋", ETC,
     ),
     DeviceCategory.OTHER to listOf(ETC),
@@ -317,7 +317,9 @@ fun ReceiptManualInputScreen(
         calculateExpiryDate(purchaseDate, warrantyMonths)
     else null
 
-    val isFormComplete = productName.isNotBlank() && purchaseDate.isNotBlank() && warrantyMonths != null
+    val priceOverLimit = price.isPriceOverLimit()
+    val isFormComplete = productName.isNotBlank() && purchaseDate.isNotBlank() && warrantyMonths != null &&
+        !priceOverLimit
     val productNameAtMax = productName.length >= ITEM_NAME_MAX
     val canSubmit = isFormComplete && photos.isNotEmpty()
 
@@ -733,13 +735,13 @@ fun ReceiptManualInputScreen(
                     Spacer(Modifier.height(Margin16))
                     BoatInputField(
                         value = price,
-                        onValueChange = { price = it.filter { c -> c.isDigit() }.take(9) },
+                        onValueChange = { price = it.filter { c -> c.isDigit() }.take(PRICE_DIGITS) },
                         label = stringResource(R.string.manual_price),
                         placeholder = stringResource(R.string.manual_price_hint),
                         keyboardType = KeyboardType.Number,
                         visualTransformation = PriceVisualTransformation(),
-                        isError = price.length >= 9,
-                        errorText = "최대 999,999,999원까지 입력 가능합니다.",
+                        isError = priceOverLimit,
+                        errorText = stringResource(R.string.manual_price_max),
                     )
                     Spacer(Modifier.height(Margin16))
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -772,6 +774,7 @@ fun ReceiptManualInputScreen(
                 }
 
                 Spacer(Modifier.height(Margin24))
+                val priceMaxMessage = stringResource(R.string.manual_price_max)
                 Button(
                     onClick = {
                         // 비활성 버튼 탭 시 화면 최상단부터 순서대로 누락 항목을 확인해 안내한다.
@@ -780,6 +783,7 @@ fun ReceiptManualInputScreen(
                             productName.isBlank() -> toastState.showError("제품명을 입력해주세요.")
                             purchaseDate.isBlank() -> toastState.showError("구매일을 선택해주세요.")
                             warrantyMonths == null -> toastState.showError("무상 AS 만료기간을 선택해주세요.")
+                            priceOverLimit -> toastState.showError(priceMaxMessage)
                             else -> submit()
                         }
                     },
@@ -1060,18 +1064,28 @@ private fun PurchaseDatePicker(onDismiss: () -> Unit, onConfirm: (String) -> Uni
             }
         }
     )
+    // 직접 입력이 형식 오류/허용 범위 밖이면 selectedDateMillis가 null이 되므로,
+    // 그 상태에서는 확인(CTA)을 비활성화한다. (에러 노출 정책)
+    val canConfirm = dpState.selectedDateMillis != null
     DatePickerDialog(
         onDismissRequest = onDismiss,
         colors = boatDatePickerColors(),
         confirmButton = {
-            TextButton(onClick = {
-                val millis = dpState.selectedDateMillis
-                if (millis != null) {
-                    val sdf = SimpleDateFormat("yyyy.MM.dd", Locale.KOREA)
-                        .apply { timeZone = TimeZone.getTimeZone("UTC") }
-                    onConfirm(sdf.format(Date(millis)))
-                } else onDismiss()
-            }) { Text(stringResource(R.string.common_confirm), color = ColorBrandPrimary) }
+            TextButton(
+                enabled = canConfirm,
+                onClick = {
+                    dpState.selectedDateMillis?.let { millis ->
+                        val sdf = SimpleDateFormat("yyyy.MM.dd", Locale.KOREA)
+                            .apply { timeZone = TimeZone.getTimeZone("UTC") }
+                        onConfirm(sdf.format(Date(millis)))
+                    }
+                },
+            ) {
+                Text(
+                    stringResource(R.string.common_confirm),
+                    color = if (canConfirm) ColorBrandPrimary else ColorGray400,
+                )
+            }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {

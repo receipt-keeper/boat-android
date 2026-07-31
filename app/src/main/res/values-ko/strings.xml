@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+      날짜 선택 다이얼로그(Material3 DatePicker) 직접 입력 시 노출되는 인라인 에러 문구.
+
+      Material3 라이브러리가 values-ko로 한국어 문구("데이터 허용 안 됨: …" 등)를 함께 배포하기
+      때문에, 앱의 values/strings.xml만 덮어쓰면 한국어 단말에서는 라이브러리 값이 그대로 노출된다.
+      동일 qualifier(values-ko)에서 앱 리소스가 라이브러리보다 우선하므로 여기에도 선언한다.
+
+      values/strings.xml의 값과 항상 함께 수정할 것.
+    -->
+    <string name="m3c_date_input_invalid_for_pattern">YYYY/MM/DD 형식으로 입력해 주세요.</string>
+    <string name="m3c_date_input_invalid_not_allowed">입력 가능한 날짜를 확인해 주세요.</string>
+    <string name="m3c_date_input_invalid_year_range">입력 가능한 날짜를 확인해 주세요.</string>
+
+</resources>

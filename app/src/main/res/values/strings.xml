@@ -100,6 +100,7 @@
     <string name="manual_brand_hint">브랜드명을 입력하세요.</string>
     <string name="manual_price">구매 가격</string>
     <string name="manual_price_hint">구매 가격을 입력하세요.</string>
+    <string name="manual_price_max">최대 999,999,999원까지 입력 가능합니다.</string>
     <string name="manual_serial">시리얼 넘버</string>
     <string name="manual_serial_hint">시리얼 넘버를 입력하세요.</string>
     <string name="manual_serial_help">제품에 따라 일련번호는 \'시리얼 번호\', \'제조번호\' 등 다양한 이름으로 표기될 수 있습니다.</string>
@@ -279,5 +280,15 @@
     <string name="terms_marketing">(선택) 홍보 및 마케팅 이용에 동의</string>
     <string name="terms_view">보기</string>
     <string name="terms_complete">선택 완료</string>
+
+    <!--
+      날짜 선택 다이얼로그(Material3 DatePicker) 직접 입력 시 노출되는 인라인 에러 문구.
+      Material3가 내부에서 쓰는 문자열이라 파라미터로 교체할 수 없어, 같은 이름의 리소스로 덮어쓴다.
+      라이브러리가 values-ko도 함께 제공하므로 values-ko/strings.xml에도 동일하게 선언해야 한다.
+      (원본 문구에 있던 %1$s/%2$s 포맷 인자는 쓰지 않는다 — 남는 인자는 무시되므로 안전하다.)
+    -->
+    <string name="m3c_date_input_invalid_for_pattern">YYYY/MM/DD 형식으로 입력해 주세요.</string>
+    <string name="m3c_date_input_invalid_not_allowed">입력 가능한 날짜를 확인해 주세요.</string>
+    <string name="m3c_date_input_invalid_year_range">입력 가능한 날짜를 확인해 주세요.</string>
 
 </resources>

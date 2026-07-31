@@ -36,6 +36,9 @@ object DeviceImage {
         "공기청정기" to R.drawable.img_air_purifier,
         "가습기" to R.drawable.img_humidifier,
         // IT 제품
+        "pc/tv" to R.drawable.img_monitor,
+        // "데스크탑/TV"는 예전 표기(→ "PC/TV"로 변경). 이 값으로 이미 저장된 기존
+        // 영수증도 계속 같은 아이콘으로 매칭되도록 별칭으로 남겨둔다.
         "데스크탑/tv" to R.drawable.img_monitor,
         "데스크탑" to R.drawable.img_monitor,
         "tv" to R.drawable.img_monitor,
