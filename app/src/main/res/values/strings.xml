@@ -87,6 +87,10 @@
     <string name="manual_purchase_date_hint">구매일을 입력하세요.</string>
     <string name="manual_warranty">무상 AS 만료기간</string>
     <string name="manual_warranty_hint">AS 만료기간을 입력해 주세요.</string>
+    <!-- 직접입력 미입력/0 (인라인 + 제출 토스트 공용) -->
+    <string name="manual_warranty_required">무상 AS 만료기간을 입력해 주세요.</string>
+    <!-- 직접입력 허용 범위(개월 1~99 / 년 1~10) 초과 -->
+    <string name="manual_warranty_range_error">구매일 기준 최대 10년까지 입력할 수 있어요.</string>
     <string name="manual_warranty_6m">6개월</string>
     <string name="manual_warranty_1y">1년</string>
     <string name="manual_warranty_2y">2년</string>
@@ -154,7 +158,7 @@
     <string name="edit_max_length">최대 %1$d자까지 입력할 수 있습니다.</string>
     <string name="edit_submitted_toast">수정이 완료되었습니다.</string>
     <string name="edit_photo_required_hint">사진을 1장 이상 첨부해 주세요.</string>
-    <string name="edit_submit_failed">영수증 수정에 실패했어요.\n잠시 후 다시 시도해 주세요.</string>
+    <string name="edit_submit_failed">입력 내용을 확인해 주세요.</string>
     <string name="loading_edit_submit_message">영수증을 수정하는 중이에요.</string>
     <string name="receipt_delete_confirm_title">이 영수증을 삭제할까요?</string>
     <string name="receipt_delete_confirm_message">관련 정보도 함께 사라지며, 삭제된 데이터는 복구되지 않아요</string>

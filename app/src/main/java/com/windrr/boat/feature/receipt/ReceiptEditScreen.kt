@@ -181,6 +181,33 @@ internal const val PRICE_DIGITS = 9
 /** 입력된 가격 문자열이 상한을 넘었는지 — 입력/수정 두 화면이 공유한다. */
 internal fun String.isPriceOverLimit(): Boolean = (toLongOrNull() ?: 0L) >= PRICE_MAX
 
+/** 무상 AS 만료기간 직접입력 최대 자릿수 (개월 99 / 년 10 모두 2자리) */
+internal const val WARRANTY_DIGITS = 2
+/** 직접입력 허용 범위 — 개월 1~99 */
+internal val WARRANTY_MONTH_RANGE = 1..99
+/** 직접입력 허용 범위 — 년 1~10 */
+internal val WARRANTY_YEAR_RANGE = 1..10
+
+/** 무상 AS 만료기간 직접입력 검증 결과 — 입력/수정 두 화면이 공유한다. */
+internal enum class WarrantyInputError { REQUIRED, OUT_OF_RANGE }
+
+/** 검증 결과에 대응하는 안내 문구 리소스 */
+internal fun WarrantyInputError.messageRes(): Int = when (this) {
+    WarrantyInputError.REQUIRED -> R.string.manual_warranty_required
+    WarrantyInputError.OUT_OF_RANGE -> R.string.manual_warranty_range_error
+}
+
+/**
+ * 직접입력값을 검증한다. 미입력/0이면 REQUIRED, 허용 범위 밖이면 OUT_OF_RANGE, 정상이면 null.
+ * 범위는 단위(개월/년)에 따라 달라진다.
+ */
+internal fun validateCustomWarranty(value: String, isYear: Boolean): WarrantyInputError? {
+    val n = value.toIntOrNull() ?: return WarrantyInputError.REQUIRED
+    if (n <= 0) return WarrantyInputError.REQUIRED
+    val range = if (isYear) WARRANTY_YEAR_RANGE else WARRANTY_MONTH_RANGE
+    return if (n in range) null else WarrantyInputError.OUT_OF_RANGE
+}
+
 private fun String.editNormalizeDate(): String = replace("-", ".")
 
 private fun editCalculateExpiryDate(purchaseDateDisplay: String, months: Int): String? = runCatching {
@@ -418,9 +445,15 @@ private fun ReceiptEditForm(
     var price by remember { mutableStateOf(receipt.totalAmount?.toString().orEmpty()) }
     var serial by remember { mutableStateOf(receipt.serialNumber.orEmpty().take(SERIAL_MAX)) }
 
+    // 직접입력 검증 (개월 1~99 / 년 1~10). 범위 밖이면 유효한 값으로 보지 않아 제출이 막힌다.
+    val customWarrantyError: WarrantyInputError? =
+        if (selectedWarranty == 4) {
+            validateCustomWarranty(customWarrantyValue, customWarrantyUnit == EditWarrantyUnit.YEAR)
+        } else null
+
     val warrantyMonths: Int? = when (selectedWarranty) {
         0 -> 6; 1 -> 12; 2 -> 24; 3 -> 36
-        4 -> customWarrantyValue.toIntOrNull()?.takeIf { it > 0 }
+        4 -> if (customWarrantyError != null) null else customWarrantyValue.toIntOrNull()
             ?.let { if (customWarrantyUnit == EditWarrantyUnit.YEAR) it * 12 else it }
         else -> null
     }
@@ -605,7 +638,9 @@ private fun ReceiptEditForm(
                         ) {
                             OutlinedTextField(
                                 value = customWarrantyValue,
-                                onValueChange = { v -> customWarrantyValue = v.filter { it.isDigit() }.take(4) },
+                                onValueChange = { v ->
+                                    customWarrantyValue = v.filter { it.isDigit() }.take(WARRANTY_DIGITS)
+                                },
                                 textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, lineHeight = 24.sp, color = ColorGray900),
                                 placeholder = { Text("0", color = ColorGray400, fontSize = 16.sp) },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -620,6 +655,15 @@ private fun ReceiptEditForm(
                             EditWarrantyUnitChip("년", customWarrantyUnit == EditWarrantyUnit.YEAR) {
                                 customWarrantyUnit = EditWarrantyUnit.YEAR
                             }
+                        }
+                        if (customWarrantyError != null) {
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                text = stringResource(customWarrantyError.messageRes()),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = ColorSystemError,
+                            )
                         }
                     }
                     else -> EditFieldBox(onClick = {}) {
@@ -877,13 +921,14 @@ private fun ReceiptEditForm(
             val isFormComplete = productName.isNotBlank() && purchaseDate.isNotBlank() && warrantyMonths != null &&
                 !priceOverLimit && isChanged
             val priceMaxMessage = stringResource(R.string.manual_price_max)
+            val warrantyRequiredMessage = stringResource(R.string.manual_warranty_required)
             Button(
                 onClick = {
                     // 비활성 버튼 탭 시 화면 최상단부터 순서대로 누락/미변경 항목을 확인해 안내한다.
                     when {
                         productName.isBlank() -> toastState.showError("제품명을 입력해주세요.")
                         purchaseDate.isBlank() -> toastState.showError("구매일을 선택해주세요.")
-                        warrantyMonths == null -> toastState.showError("무상 AS 만료기간을 선택해주세요.")
+                        warrantyMonths == null -> toastState.showError(warrantyRequiredMessage)
                         totalPhotoCount == 0 -> toastState.showError("영수증 이미지를 1장 이상 등록해 주세요.")
                         priceOverLimit -> toastState.showError(priceMaxMessage)
                         !isChanged -> toastState.showError("변경된 내용이 없습니다.")

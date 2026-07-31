@@ -300,12 +300,17 @@ fun ReceiptManualInputScreen(
     var warrantyInfoExpanded by remember { mutableStateOf(true) }
 
     // ── 파생 상태 ─────────────────────────────────────────
+    // 직접입력 검증 (개월 1~99 / 년 1~10). 범위 밖이면 유효한 값으로 보지 않아 제출이 막힌다.
+    val customWarrantyError: WarrantyInputError? =
+        if (selectedWarranty == 4) validateCustomWarranty(customWarrantyValue, customWarrantyUnit == WarrantyUnit.YEAR)
+        else null
+
     val warrantyMonths: Int? = when (selectedWarranty) {
         0    -> 6
         1    -> 12
         2    -> 24
         3    -> 36
-        4    -> customWarrantyValue.toIntOrNull()?.takeIf { it > 0 }?.let {
+        4    -> if (customWarrantyError != null) null else customWarrantyValue.toIntOrNull()?.let {
                     if (customWarrantyUnit == WarrantyUnit.YEAR) it * 12 else it
                 }
         else -> null
@@ -574,7 +579,9 @@ fun ReceiptManualInputScreen(
                             ) {
                                 OutlinedTextField(
                                     value = customWarrantyValue,
-                                    onValueChange = { v -> customWarrantyValue = v.filter { it.isDigit() }.take(4) },
+                                    onValueChange = { v ->
+                                        customWarrantyValue = v.filter { it.isDigit() }.take(WARRANTY_DIGITS)
+                                    },
                                     textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, lineHeight = 24.sp, color = ColorGray900),
                                     placeholder = { Text("0", color = ColorGray400, fontSize = 16.sp) },
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -589,6 +596,15 @@ fun ReceiptManualInputScreen(
                                 WarrantyUnitChip("년", customWarrantyUnit == WarrantyUnit.YEAR) {
                                     customWarrantyUnit = WarrantyUnit.YEAR
                                 }
+                            }
+                            if (customWarrantyError != null) {
+                                Spacer(Modifier.height(6.dp))
+                                Text(
+                                    text = stringResource(customWarrantyError.messageRes()),
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = ColorSystemError,
+                                )
                             }
                         }
                         else -> FieldBox(onClick = {}) {
@@ -772,6 +788,7 @@ fun ReceiptManualInputScreen(
 
                 Spacer(Modifier.height(Margin24))
                 val priceMaxMessage = stringResource(R.string.manual_price_max)
+                val warrantyRequiredMessage = stringResource(R.string.manual_warranty_required)
                 Button(
                     onClick = {
                         // 비활성 버튼 탭 시 화면 최상단부터 순서대로 누락 항목을 확인해 안내한다.
@@ -779,7 +796,7 @@ fun ReceiptManualInputScreen(
                             photos.isEmpty() -> toastState.showError("영수증 이미지를 1장 이상 등록해 주세요.")
                             productName.isBlank() -> toastState.showError("제품명을 입력해주세요.")
                             purchaseDate.isBlank() -> toastState.showError("구매일을 선택해주세요.")
-                            warrantyMonths == null -> toastState.showError("무상 AS 만료기간을 선택해주세요.")
+                            warrantyMonths == null -> toastState.showError(warrantyRequiredMessage)
                             priceOverLimit -> toastState.showError(priceMaxMessage)
                             else -> submit()
                         }
