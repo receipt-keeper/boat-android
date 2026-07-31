@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.windrr.boat.MainActivity
 import com.windrr.boat.R
+import com.windrr.boat.data.remote.ApiErrorParser
 import com.windrr.boat.feature.receipt.ReceiptDetailActivity
 import com.windrr.boat.feature.receipt.ReceiptRegisterActivity
 import com.windrr.boat.ui.component.BoatToastHost
@@ -73,7 +74,12 @@ fun NotificationListScreen(
         scope.launch {
             val result = viewModel.delete(item)
             if (result.isFailure) {
-                toastState.showError("알림 삭제에 실패했어요. 잠시 후 다시 시도해 주세요.")
+                // 서버가 준 사유를 그대로 노출하고, 없으면 기본 문구로 대체한다.
+                val error = result.exceptionOrNull()
+                toastState.showError(
+                    error?.let { ApiErrorParser.message(it) }
+                        ?: "알림 삭제에 실패했어요. 잠시 후 다시 시도해 주세요."
+                )
             } else {
                 toastState.show("알림이 삭제되었습니다.")
             }

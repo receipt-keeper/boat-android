@@ -10,9 +10,12 @@ import java.io.IOException
  * API 실패를 사용자 노출용 메시지로 변환하는 공통 파서.
  *
  * 규칙:
- * - 5xx(서버 오류) 또는 네트워크 연결 실패 → "네트워크 연결상태를 확인해주세요"
- * - 그 외(4xx 등) → 에러 응답 본문의 data.message
- * - 메시지 파싱 불가 → 일반 오류 문구
+ * - 상태 코드와 무관하게(400/500 등) 서버가 준 data.message가 유효하면 그대로 노출
+ * - 메시지가 없거나 비어 있을 때만 앱 기본 문구로 대체 (5xx → 네트워크 문구 / 그 외 → 일반 오류 문구)
+ * - 연결 실패(IOException) → 네트워크 문구 / 타임아웃 → 타임아웃 문구
+ *
+ * 단, 특정 code·상태코드로 전용 UI를 띄우는 곳(OCR 실패 시트, 409 중복 수령 등)은
+ * 호출부에서 별도 분기하므로 이 파서를 거치지 않는다.
  */
 object ApiErrorParser {
 
@@ -43,10 +46,12 @@ object ApiErrorParser {
     fun message(response: Response<*>): String =
         resolve(response.code()) { response.errorBody()?.string() }
 
-    private inline fun resolve(code: Int, body: () -> String?): String {
-        if (code >= 500) return NETWORK_MESSAGE
-        return parseMessage(body()) ?: UNKNOWN_MESSAGE
-    }
+    /**
+     * 상태 코드와 무관하게 서버가 준 메시지를 우선 사용한다(400이든 500이든).
+     * 메시지가 없거나 비어 있을 때만 앱 기본 문구로 대체한다.
+     */
+    private inline fun resolve(code: Int, body: () -> String?): String =
+        parseMessage(body()) ?: if (code >= 500) NETWORK_MESSAGE else UNKNOWN_MESSAGE
 
     /** 에러 본문에서 data.message 추출 (errors 리스트가 있으면 첫 번째 항목의 message 우선) */
     private fun parseMessage(raw: String?): String? = runCatching {

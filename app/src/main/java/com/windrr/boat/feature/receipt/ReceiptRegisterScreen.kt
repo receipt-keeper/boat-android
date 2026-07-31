@@ -62,6 +62,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import retrofit2.HttpException
 import coil3.compose.AsyncImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -464,9 +465,14 @@ fun ReceiptRegisterScreen(
                             onFailure = { e ->
                                 isRecharging = false
                                 BoatLog.e("OCR 충전 수령 실패", e)
-                                // 409 등 이미 수령 상태면 충전 버튼을 숨기고 안내
-                                canRecharge = false
-                                toastState.showError(alreadyRedeemedMessage)
+                                // 409(이미 수령)만 전용 안내 + 충전 버튼 숨김.
+                                // 그 외 실패는 서버가 준 사유를 그대로 노출한다(이벤트 종료 등).
+                                if ((e as? HttpException)?.code() == 409) {
+                                    canRecharge = false
+                                    toastState.showError(alreadyRedeemedMessage)
+                                } else {
+                                    toastState.showError(ApiErrorParser.message(e))
+                                }
                             },
                         )
                     } else {
@@ -483,7 +489,7 @@ fun ReceiptRegisterScreen(
                 onFailure = { e ->
                     isRecharging = false
                     BoatLog.e("OCR 충전 프로모션 조회 실패", e)
-                    toastState.showError(rechargeFailedMessage)
+                    toastState.showError(ApiErrorParser.message(e))
                 },
             )
         }
