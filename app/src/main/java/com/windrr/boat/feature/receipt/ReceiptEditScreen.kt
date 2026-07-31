@@ -925,12 +925,13 @@ private fun ReceiptEditForm(
             Button(
                 onClick = {
                     // 비활성 버튼 탭 시 화면 최상단부터 순서대로 누락/미변경 항목을 확인해 안내한다.
-                    // (등록 화면과 동일한 우선순위 — 이미지가 맨 먼저)
+                    // (수정 화면은 원본 영수증/이미지 섹션이 화면 맨 아래에 있으므로 등록 화면과
+                    // 순서가 다르다 — 항목별 위치 그대로 반영)
                     when {
-                        totalPhotoCount == 0 -> toastState.showError("영수증 이미지를 1장 이상 등록해 주세요.")
                         productName.isBlank() -> toastState.showError("제품명을 입력해주세요.")
                         purchaseDate.isBlank() -> toastState.showError("구매일을 선택해주세요.")
                         warrantyMonths == null -> toastState.showError(warrantyRequiredMessage)
+                        totalPhotoCount == 0 -> toastState.showError("영수증 이미지를 1장 이상 등록해 주세요.")
                         priceOverLimit -> toastState.showError(priceMaxMessage)
                         !isChanged -> toastState.showError("변경된 내용이 없습니다.")
                         else -> handleSubmit()
