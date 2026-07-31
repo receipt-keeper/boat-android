@@ -176,6 +176,13 @@ private val SUBCATEGORIES: Map<DeviceCategory, List<String>> = mapOf(
 
 // ── 유틸 ─────────────────────────────────────────────────────────────────────
 
+/** 서버 subCategory 원문을 대분류의 지정 소분류 목록 중 하나로 정규화 매칭 (없으면 null). */
+private fun matchSubCategory(raw: String?, category: DeviceCategory): String? {
+    if (raw.isNullOrBlank()) return null
+    val key = DeviceCategory.normalizeCategory(raw)
+    return SUBCATEGORIES[category].orEmpty().firstOrNull { DeviceCategory.normalizeCategory(it) == key }
+}
+
 private fun String.normalizeDate(): String = replace("-", ".")
 
 private fun calculateExpiryDate(purchaseDateDisplay: String, months: Int): String? = runCatching {
@@ -274,14 +281,20 @@ fun ReceiptManualInputScreen(
         val m = ocrData?.periodMonths
         if (m != null && !PRESET_MONTHS.contains(m)) m.toString() else ""
     }
+    // 대분류·소분류는 항상 필수 — 직접 입력(OCR 결과 없음)이거나 서버 category가
+    // 매칭되지 않으면 "기타"로 타겟팅한다(선택 안 함 상태를 허용하지 않는다).
     val initCategory = remember(ocrData) {
-        DeviceCategory.from(ocrData?.category)
-            ?: DeviceCategory.KITCHEN   // 디자인: 기본 선택 = 첫 카테고리
+        DeviceCategory.from(ocrData?.category) ?: DeviceCategory.OTHER
+    }
+    // OCR이 인식한 소분류 — 매칭되면 소분류 칩 초기 선택 + 맨 앞 고정 기준값으로 쓴다.
+    // 매칭 실패(또는 OCR 자체가 없는 직접 입력)도 "기타"로 타겟팅해 항상 값이 있도록 한다.
+    val initSubCategory = remember(ocrData, initCategory) {
+        matchSubCategory(ocrData?.subCategory, initCategory) ?: ETC
     }
 
     // ── 폼 상태 ──────────────────────────────────────────
     var selectedCategory    by remember { mutableStateOf(initCategory) }
-    var selectedSubCategory by remember { mutableStateOf(ocrData?.subCategory) }
+    var selectedSubCategory by remember { mutableStateOf(initSubCategory) }
     var productName         by remember { mutableStateOf(ocrData?.itemName.orEmpty()) }
     var purchaseDate        by remember { mutableStateOf(ocrData?.paymentDate?.normalizeDate().orEmpty()) }
     var selectedWarranty    by remember { mutableStateOf(initWarrantyIdx) }
@@ -354,7 +367,8 @@ fun ReceiptManualInputScreen(
                         periodMonths = warrantyMonths,
                         expiresOn = expiryDate?.replace(".", "-"),
                         category = selectedCategory.displayName,
-                        subCategory = selectedSubCategory,
+                        // "기타"는 특정 기기명이 없다는 뜻이라 서버에는 null로 보낸다(iOS와 동일 규칙).
+                        subCategory = selectedSubCategory.takeIf { it != ETC },
                         memo = memo.trim().ifBlank { null },
                         requiresPhysicalReceipt = keepReceipt,
                         receiptFileIds = fileIds,
@@ -475,7 +489,9 @@ fun ReceiptManualInputScreen(
                         onSelect = {
                             if (it != selectedCategory) {
                                 selectedCategory = it
-                                selectedSubCategory = null // 카테고리 바뀌면 소분류 초기화
+                                // 대분류를 바꾸면 이전 소분류는 더 이상 유효한 목록에 없을 수 있어
+                                // "기타"로 재설정한다 — 소분류는 항상 값이 있어야 하므로 null로 비우지 않는다.
+                                selectedSubCategory = ETC
                             }
                         },
                     )
@@ -483,7 +499,9 @@ fun ReceiptManualInputScreen(
                     // 소분류(대표 기기명) 아이콘 — 가로 스크롤. OCR로 미리 선택된 항목이 있으면 보이도록 스크롤.
                     val subCategoryListState = rememberLazyListState()
                     // 💡 OCR로 분석되어 최초 설정된 소분류만 맨 왼쪽에 고정하고, 이후 직접 변경 시에는 위치 변화 없음
-                    val initialSubCategory = remember(ocrData) { ocrData?.subCategory }
+                    // OCR 원본 subCategory 그대로가 아니라 매칭/폴백까지 거친 initSubCategory 기준으로
+                    // 고정한다 — 그래야 매칭 실패로 "기타"가 채워진 경우에도 그 항목이 맨 앞에 온다.
+                    val initialSubCategory = remember(ocrData) { initSubCategory }
                     val orderedSubCategories = remember(selectedCategory, initialSubCategory) {
                         SUBCATEGORIES[selectedCategory].orEmpty()
                             .sortedByDescending { it == initialSubCategory }
@@ -503,7 +521,8 @@ fun ReceiptManualInputScreen(
                                 label = sub,
                                 iconRes = DeviceImage.resolve(selectedCategory.displayName, sub),
                                 selected = selectedSubCategory == sub,
-                                onClick = { selectedSubCategory = if (selectedSubCategory == sub) null else sub },
+                                // 소분류는 항상 필수 — 이미 선택된 항목을 다시 탭해도 선택 해제되지 않는다.
+                                onClick = { selectedSubCategory = sub },
                             )
                         }
                     }

@@ -162,6 +162,13 @@ private val EDIT_SUBCATEGORIES: Map<DeviceCategory, List<String>> = mapOf(
     DeviceCategory.OTHER to listOf(EDIT_ETC),
 )
 
+/** 서버 subCategory 원문을 대분류의 지정 소분류 목록 중 하나로 정규화 매칭 (없으면 null). */
+private fun matchEditSubCategory(raw: String?, category: DeviceCategory): String? {
+    if (raw.isNullOrBlank()) return null
+    val key = DeviceCategory.normalizeCategory(raw)
+    return EDIT_SUBCATEGORIES[category].orEmpty().firstOrNull { DeviceCategory.normalizeCategory(it) == key }
+}
+
 private const val PRODUCT_NAME_MAX = 50
 private const val BRAND_MAX = 50
 private const val SERIAL_MAX = 50
@@ -411,11 +418,17 @@ private fun ReceiptEditForm(
     var showAddSheet by rememberSaveable { mutableStateOf(false) }
 
     // ── 카테고리 ──
+    // 대분류·소분류는 항상 필수 — 서버 category가 매칭되지 않으면 "기타"로,
+    // subCategory가 매칭되지 않으면 해당 대분류 하위 "기타"로 타겟팅한다
+    // (선택 안 함 상태를 허용하지 않는다).
     val initCategory = remember(receipt) {
-        DeviceCategory.from(receipt.category) ?: DeviceCategory.KITCHEN
+        DeviceCategory.from(receipt.category) ?: DeviceCategory.OTHER
+    }
+    val initSubCategory = remember(receipt, initCategory) {
+        matchEditSubCategory(receipt.subCategory, initCategory) ?: EDIT_ETC
     }
     var selectedCategory by remember { mutableStateOf(initCategory) }
-    var selectedSubCategory by remember { mutableStateOf(receipt.subCategory) }
+    var selectedSubCategory by remember { mutableStateOf(initSubCategory) }
 
     // ── 제품 정보 ──
     var productName by remember { mutableStateOf(receipt.itemName.take(PRODUCT_NAME_MAX)) }
@@ -468,8 +481,11 @@ private fun ReceiptEditForm(
         selectedWarranty, customWarrantyValue, customWarrantyUnit,
         keepReceipt, brand, price, serial, memo, newPhotos, remoteFileIds.size
     ) {
-        val categoryChanged = selectedCategory.displayName != receipt.category
-        val subCategoryChanged = selectedSubCategory != receipt.subCategory
+        // initCategory/initSubCategory(=원본을 매칭/폴백 정규화한 기준값)와 비교한다.
+        // receipt.category/subCategory 원본과 직접 비교하면, 매칭 실패로 "기타"를 기본값으로
+        // 채운 것 자체가 "변경됨"으로 오판되어 아무것도 안 바꿔도 저장 버튼이 활성화된다.
+        val categoryChanged = selectedCategory != initCategory
+        val subCategoryChanged = selectedSubCategory != initSubCategory
         val nameChanged = productName != receipt.itemName
         val dateChanged = purchaseDate != (receipt.paymentDate?.editNormalizeDate() ?: "")
         val warrantyChanged = warrantyMonths != receipt.periodMonths
@@ -513,7 +529,8 @@ private fun ReceiptEditForm(
                     periodMonths = warrantyMonths,
                     expiresOn = expiryDate?.replace(".", "-"),
                     category = selectedCategory.displayName,
-                    subCategory = selectedSubCategory,
+                    // "기타"는 특정 기기명이 없다는 뜻이라 서버에는 null로 보낸다(iOS와 동일 규칙).
+                    subCategory = selectedSubCategory.takeIf { it != EDIT_ETC },
                     memo = memo.trim().ifBlank { null },
                     requiresPhysicalReceipt = keepReceipt,
                     receiptFileIds = finalFileIds,
@@ -544,7 +561,9 @@ private fun ReceiptEditForm(
                     onSelect = {
                         if (it != selectedCategory) {
                             selectedCategory = it
-                            selectedSubCategory = null
+                            // 대분류를 바꾸면 이전 소분류는 더 이상 유효한 목록에 없을 수 있어
+                            // "기타"로 재설정한다 — 소분류는 항상 값이 있어야 하므로 null로 비우지 않는다.
+                            selectedSubCategory = EDIT_ETC
                         }
                     },
                 )
@@ -556,7 +575,9 @@ private fun ReceiptEditForm(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     // 💡 진입 시점의 기존 소분류만 맨 왼쪽에 고정하고, 이후 직접 변경 시에는 위치 변화 없음
-                    val initialSubCategory = remember(receipt) { receipt.subCategory }
+                    // 원본 subCategory 그대로가 아니라 매칭/폴백까지 거친 initSubCategory 기준으로
+                    // 고정한다 — 그래야 매칭 실패로 "기타"가 채워진 경우에도 그 항목이 맨 앞에 온다.
+                    val initialSubCategory = remember(receipt) { initSubCategory }
                     val orderedSubCategories = remember(selectedCategory, initialSubCategory) {
                         EDIT_SUBCATEGORIES[selectedCategory].orEmpty()
                             .sortedByDescending { it == initialSubCategory }
@@ -566,7 +587,8 @@ private fun ReceiptEditForm(
                             label = sub,
                             iconRes = DeviceImage.resolve(selectedCategory.displayName, sub),
                             selected = selectedSubCategory == sub,
-                            onClick = { selectedSubCategory = if (selectedSubCategory == sub) null else sub },
+                            // 소분류는 항상 필수 — 이미 선택된 항목을 다시 탭해도 선택 해제되지 않는다.
+                            onClick = { selectedSubCategory = sub },
                         )
                     }
                 }
