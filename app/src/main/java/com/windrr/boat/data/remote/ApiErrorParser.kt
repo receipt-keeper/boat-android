@@ -53,11 +53,18 @@ object ApiErrorParser {
     private inline fun resolve(code: Int, body: () -> String?): String =
         parseMessage(body()) ?: if (code >= 500) NETWORK_MESSAGE else UNKNOWN_MESSAGE
 
-    /** 에러 본문에서 data.message 추출 (errors 리스트가 있으면 첫 번째 항목의 message 우선) */
+    /**
+     * 에러 본문에서 사용자 노출 문구(data.message)를 추출한다.
+     *
+     * 서버 계약(백엔드 확인):
+     * - 400/404/409 등: 비즈니스 오류 문구가 data.message에 담긴다.
+     * - 422: data.message와 **함께** 상세 검증 오류가 data.errors[]에 담긴다.
+     *
+     * 즉 사용자에게 보여줄 문구는 항상 data.message 하나다. errors[]는 부가 정보이므로
+     * 문구 결정에 쓰지 않는다(OCR만 errors[].fileIndex를 별도 경로로 직접 읽어 쓴다).
+     */
     private fun parseMessage(raw: String?): String? = runCatching {
         if (raw.isNullOrBlank()) return null
-        val response = gson.fromJson(raw, ErrorResponse::class.java)
-        val fieldError = response?.data?.errors?.firstOrNull()?.message
-        fieldError ?: response?.data?.message?.takeIf { it.isNotBlank() }
+        gson.fromJson(raw, ErrorResponse::class.java)?.data?.message?.takeIf { it.isNotBlank() }
     }.getOrNull()
 }
