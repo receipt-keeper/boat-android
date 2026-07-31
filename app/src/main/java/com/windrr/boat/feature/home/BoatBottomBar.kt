@@ -1,5 +1,6 @@
 package com.windrr.boat.feature.home
 
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -27,8 +28,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -59,6 +66,55 @@ private val FabSize = 62.dp                            // "+" 원형 버튼 지�
 private val TabHighlightShape = RoundedCornerShape(percent = 50) // 선택 탭 하이라이트도 스타디움
 private val TabIconSize = 28.dp // 선택/미선택 공통 — 항상 28dp
 private val TabHighlightHeight = 50.dp // 폭은 3등분(weight)으로 화면폭에 맞게 가변, 높이만 고정
+
+/**
+ * 디자인 시스템 Effect "shadow_md3"를 스펙 그대로 그리는 드롭 섀도우.
+ * X0/Y3/blur15 + X0/Y1/blur7, #000000 10% — 2겹.
+ *
+ * Modifier.shadow()는 Android elevation 모델(ambient + spot)이라
+ * 방향광(spot) 성분 때문에 아래쪽이 짙어지고, CSS식 offset/blur/opacity
+ * 스펙과 1:1로 대응하지 않는다. 둘레에 고르게 퍼지는 스펙을 정확히
+ * 재현하려면 직접 그려야 한다.
+ *
+ * setShadowLayer는 API 28부터 하드웨어 가속 캔버스에서 도형에 적용되므로,
+ * 그 미만 기기에서는 기존 elevation 그림자로 폴백한다.
+ */
+private fun Modifier.md3SoftShadow(shape: Shape): Modifier =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        this
+            .roundedDropShadow(offsetY = 3.dp, blurRadius = 15.dp, alpha = 0.10f)
+            .roundedDropShadow(offsetY = 1.dp, blurRadius = 7.dp, alpha = 0.10f)
+    } else {
+        this.shadow(elevation = 6.dp, shape = shape)
+    }
+
+/**
+ * 완전 라운드(스타디움/원형) 도형용 드롭 섀도우 1겹.
+ * 코너 반경은 높이의 절반 — 탭 바(스타디움)와 FAB(원형) 모두에 맞는다.
+ */
+private fun Modifier.roundedDropShadow(
+    offsetY: Dp,
+    blurRadius: Dp,
+    alpha: Float,
+): Modifier = drawBehind {
+    val radius = size.height / 2f
+    drawIntoCanvas { canvas ->
+        val paint = android.graphics.Paint().apply {
+            isAntiAlias = true
+            // 도형 자체는 투명하게 두고 그림자 레이어만 남긴다.
+            color = android.graphics.Color.TRANSPARENT
+            setShadowLayer(
+                blurRadius.toPx(),
+                0f,
+                offsetY.toPx(),
+                Color.Black.copy(alpha = alpha).toArgb(),
+            )
+        }
+        canvas.nativeCanvas.drawRoundRect(
+            0f, 0f, size.width, size.height, radius, radius, paint,
+        )
+    }
+}
 
 /** 탭 라벨 텍스트 스타일 — "caption3 Bold" (Pretendard 700, 10px, 행간 130%, 자간 0) */
 private val TabLabelStyle = TextStyle(
@@ -117,22 +173,8 @@ fun BoatFloatingBottomBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(BarHeight)
-                    // Effect: shadow_md3 (디자인 시스템) — 캡슐 둘레에 고르게 퍼지는 소프트 섀도우.
-                    //
-                    // ambientColor/spotColor의 알파는 CSS rgba()처럼 절대 불투명도가 아니라
-                    // 시스템이 계산한 그림자 알파에 "곱해지는 배율"이다(기본값 = 불투명 검정).
-                    // 프레임워크가 ambient≈3.9% / spot≈19%를 먼저 적용하므로, 여기에 0.3을 곱하면
-                    // 실효 1~6%까지 떨어져 그림자가 거의 안 보이고 탭 경계가 흐려진다.
-                    // ambient(사방 균등)는 최대치로 둬서 윗변·좌우 그림자를 살리고,
-                    // spot(위에서 비추는 방향광이라 아래로 쏠린다)만 낮춰 하단이 과하게
-                    // 짙어지지 않게 한다. elevation을 조금 올리면 ambient가 더 넓게 퍼져
-                    // 둘레가 고르게 보인다.
-                    .shadow(
-                        elevation = 14.dp,
-                        shape = BarShape,
-                        ambientColor = Color.Black,
-                        spotColor = Color.Black.copy(alpha = 0.55f),
-                    )
+                    // Effect: shadow_md3 — 디자인 스펙 그대로(둘레 균등, 매우 옅음)
+                    .md3SoftShadow(BarShape)
                     .clip(BarShape)
                     .hazeEffect(state = hazeState, style = glassStyle)
                     .padding(horizontal = 12.dp),
@@ -264,12 +306,7 @@ private fun AddFloatingButton(
         modifier = Modifier
             .size(FabSize)
             // Effect: shadow_md3 — 탭 바와 동일한 그림자 스펙으로 통일
-            .shadow(
-                elevation = 14.dp,
-                shape = CircleShape,
-                ambientColor = Color.Black,
-                spotColor = Color.Black.copy(alpha = 0.55f),
-            )
+            .md3SoftShadow(CircleShape)
             .clip(CircleShape)
             .hazeEffect(state = hazeState, style = style)
             .clickable(onClick = onClick),
