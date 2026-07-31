@@ -623,7 +623,16 @@ private fun ReceiptEditForm(
                         EditWarrantyChip(
                             label = stringResource(res),
                             selected = selectedWarranty == idx,
-                            onClick = { selectedWarranty = idx },
+                            onClick = {
+                                selectedWarranty = idx
+                                // 직접입력 전환 시 빈 값(0) 대신 "1년"을 기본값으로 보여준다.
+                                // 기존 영수증에 이미 저장된 커스텀 기간이 있으면(예: 8개월)
+                                // 초기화 시 채워진 그 값을 그대로 유지하고 덮어쓰지 않는다.
+                                if (idx == 4 && customWarrantyValue.isEmpty()) {
+                                    customWarrantyValue = "1"
+                                    customWarrantyUnit = EditWarrantyUnit.YEAR
+                                }
+                            },
                         )
                     }
                 }

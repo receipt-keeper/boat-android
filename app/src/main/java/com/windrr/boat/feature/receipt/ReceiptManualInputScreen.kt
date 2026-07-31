@@ -564,7 +564,15 @@ fun ReceiptManualInputScreen(
                             WarrantyChip(
                                 label = stringResource(res),
                                 selected = selectedWarranty == idx,
-                                onClick = { selectedWarranty = idx },
+                                onClick = {
+                                    selectedWarranty = idx
+                                    // 직접입력 전환 시 빈 값(0) 대신 "1년"을 기본값으로 보여준다.
+                                    // 이미 값이 있으면(OCR 프리필 등) 덮어쓰지 않는다.
+                                    if (idx == 4 && customWarrantyValue.isEmpty()) {
+                                        customWarrantyValue = "1"
+                                        customWarrantyUnit = WarrantyUnit.YEAR
+                                    }
+                                },
                             )
                         }
                     }
