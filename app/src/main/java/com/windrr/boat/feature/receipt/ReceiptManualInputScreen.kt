@@ -628,10 +628,11 @@ fun ReceiptManualInputScreen(
                     Spacer(Modifier.height(Margin16))
                     FieldLabel(stringResource(R.string.manual_memo), required = false)
                     Spacer(Modifier.height(Margin8))
+                    val memoAtMax = memo.length >= MEMO_MAX
                     Box(modifier = Modifier.fillMaxWidth()) {
                         OutlinedTextField(
                             value = memo,
-                            onValueChange = { if (it.length <= 100) memo = it },
+                            onValueChange = { memo = it.take(MEMO_MAX) },
                             // Body2 Medium — Pretendard 500 / 14 / 행간 150%(21) / #757575
                             placeholder = {
                                 Text(
@@ -644,6 +645,7 @@ fun ReceiptManualInputScreen(
                             },
                             modifier = Modifier.fillMaxWidth().height(154.dp),
                             shape = RoundedLg,
+                            isError = memoAtMax,
                             colors = formFieldColors(),
                         )
                         // 디자인 가이드: "최대 100자" 안내문구는 박스 밖이 아니라 박스 안 우측 하단에 표시.
@@ -654,6 +656,15 @@ fun ReceiptManualInputScreen(
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
                                 .padding(end = 12.dp, bottom = 10.dp),
+                        )
+                    }
+                    if (memoAtMax) {
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = stringResource(R.string.edit_max_length, MEMO_MAX),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = ColorSystemError,
                         )
                     }
                 }

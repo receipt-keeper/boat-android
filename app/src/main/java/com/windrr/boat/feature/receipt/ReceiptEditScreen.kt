@@ -168,9 +168,10 @@ private val EDIT_SUBCATEGORIES: Map<DeviceCategory, List<String>> = mapOf(
 private const val PRODUCT_NAME_MAX = 50
 private const val BRAND_MAX = 50
 private const val SERIAL_MAX = 50
-private const val MEMO_MAX = 100
 
 internal const val ITEM_NAME_MAX = PRODUCT_NAME_MAX
+/** 메모 최대 글자수 — 입력/수정 두 화면이 공유한다. */
+internal const val MEMO_MAX = 100
 
 private fun String.editNormalizeDate(): String = replace("-", ".")
 
