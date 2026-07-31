@@ -331,7 +331,6 @@ fun ReceiptRegisterScreen(
     var showAnalysisFailedSheet by rememberSaveable { mutableStateOf(false) }
     // UNSUPPORTED_RECEIPT(미지원 영수증) BottomSheet 표시 여부
     var showUnsupportedReceiptSheet by rememberSaveable { mutableStateOf(false) }
-    var analysisErrorMessage by remember { mutableStateOf<String?>(null) }
     // OCR 분석 진행 중 여부 (버튼 로딩/중복 호출 방지)
     var isAnalyzing by rememberSaveable { mutableStateOf(false) }
     // OCR 분석 실패 여부 — 실패 시 각 썸네일에 에러 오버레이 표시
@@ -430,7 +429,6 @@ fun ReceiptRegisterScreen(
                     ?.mapNotNull { it.fileIndex }
                     ?.toSet() ?: emptySet()
 
-                analysisErrorMessage = ApiErrorParser.message(e)
                 showAnalysisFailedSheet = true
             }
         }
@@ -810,7 +808,6 @@ fun ReceiptRegisterScreen(
                     showAnalysisFailedSheet = false
                     // 💡 분석 실패 표시(빨간 테두리)는 유지하여 사용자에게 상태를 알림
                 },
-                errorMessage = analysisErrorMessage,
             )
         }
 

@@ -57,7 +57,6 @@ fun AnalysisFailedBottomSheet(
     onDismiss: () -> Unit,
     onManualInput: () -> Unit,
     onRetry: () -> Unit,
-    errorMessage: String? = null,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -108,9 +107,11 @@ fun AnalysisFailedBottomSheet(
 
                 Spacer(Modifier.height(16.dp))
 
-                // 메인 타이틀
+                // 메인 타이틀 — 항상 고정 문구.
+                // 서버 message를 여기에 넣으면 24sp Bold 자리라 문구가 길 때 레이아웃이 밀리고,
+                // 아래 "확인해 주세요" 촬영 가이드와 내용이 중복된다(iOS와 동일하게 고정).
                 Text(
-                    text = errorMessage ?: "영수증 분석에 실패했어요!",
+                    text = "영수증 분석에 실패했어요!",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = colorGray900,
