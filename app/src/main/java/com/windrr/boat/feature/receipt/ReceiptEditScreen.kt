@@ -34,8 +34,6 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,7 +46,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -93,6 +90,7 @@ import com.windrr.boat.data.remote.model.ReceiptItem
 import com.windrr.boat.feature.gallery.GalleryIntent
 import com.windrr.boat.feature.gallery.GalleryState
 import com.windrr.boat.feature.gallery.GalleryViewModel
+import com.windrr.boat.ui.component.BoatDatePickerDialog
 import com.windrr.boat.ui.component.BoatDialog
 import com.windrr.boat.ui.component.BoatInputField
 import com.windrr.boat.ui.component.BoatToastHost
@@ -127,7 +125,6 @@ import com.windrr.boat.ui.theme.Rounded2xl
 import com.windrr.boat.ui.theme.RoundedFull
 import com.windrr.boat.ui.theme.RoundedLg
 import com.windrr.boat.ui.theme.RoundedXl
-import com.windrr.boat.ui.theme.boatDatePickerColors
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -922,7 +919,8 @@ private fun ReceiptEditForm(
     }
 
     if (showDatePicker) {
-        EditPurchaseDatePicker(
+        BoatDatePickerDialog(
+            initialDate = purchaseDate.ifBlank { null },
             onDismiss = { showDatePicker = false },
             onConfirm = { dateText -> purchaseDate = dateText; showDatePicker = false },
         )
@@ -1064,47 +1062,6 @@ private fun EditAddImageTile(onClick: () -> Unit) {
                 color = ColorBrandPrimary
             )
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun EditPurchaseDatePicker(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
-    // 💡 오늘 이후의 날짜는 선택할 수 없도록 제한
-    val dpState = rememberDatePickerState(
-        selectableDates = object : androidx.compose.material3.SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                return utcTimeMillis <= System.currentTimeMillis()
-            }
-        }
-    )
-    // 직접 입력이 형식 오류/허용 범위 밖이면 selectedDateMillis가 null이 되므로,
-    // 그 상태에서는 확인(CTA)을 비활성화한다. (에러 노출 정책)
-    val canConfirm = dpState.selectedDateMillis != null
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        colors = boatDatePickerColors(),
-        confirmButton = {
-            TextButton(
-                enabled = canConfirm,
-                onClick = {
-                    dpState.selectedDateMillis?.let { millis ->
-                        val sdf = SimpleDateFormat("yyyy.MM.dd", Locale.KOREA).apply { timeZone = TimeZone.getTimeZone("UTC") }
-                        onConfirm(sdf.format(Date(millis)))
-                    }
-                },
-            ) {
-                Text(
-                    stringResource(R.string.common_confirm),
-                    color = if (canConfirm) ColorBrandPrimary else ColorGray400,
-                )
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = ColorGray600) }
-        },
-    ) {
-        DatePicker(state = dpState, colors = boatDatePickerColors())
     }
 }
 
