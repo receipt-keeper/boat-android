@@ -117,21 +117,14 @@ fun BoatFloatingBottomBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(BarHeight)
-                    // Effect: shadow_md3 (디자인 시스템) — X0/Y3/blur15 + X0/Y1/blur7, #000000 10%.
-                    // Compose shadow()는 elevation 기반 근사치라 각 레이어를 별도 shadow()로 쌓아
-                    // 2겹 효과를 낸다. opacity는 스펙(10%)보다 눈에 띄게 진하게 조정했다.
-                    .shadow(
-                        elevation = 15.dp,
-                        shape = BarShape,
-                        ambientColor = Color.Black.copy(alpha = 0.32f),
-                        spotColor = Color.Black.copy(alpha = 0.32f),
-                    )
-                    .shadow(
-                        elevation = 7.dp,
-                        shape = BarShape,
-                        ambientColor = Color.Black.copy(alpha = 0.28f),
-                        spotColor = Color.Black.copy(alpha = 0.28f),
-                    )
+                    // Effect: shadow_md3 (디자인 시스템) — 캡슐 둘레에 고르게 퍼지는 소프트 섀도우.
+                    //
+                    // ambientColor/spotColor의 알파는 CSS rgba()처럼 절대 불투명도가 아니라
+                    // 시스템이 계산한 그림자 알파에 "곱해지는 배율"이다(기본값 = 불투명 검정).
+                    // 프레임워크가 ambient≈3.9% / spot≈19%를 먼저 적용하므로, 여기에 0.3을 곱하면
+                    // 실효 1~6%까지 떨어져 그림자가 거의 안 보이고 탭 경계가 흐려진다.
+                    // 기본(불투명) 그림자 색을 그대로 쓰고 elevation으로만 세기를 조절한다.
+                    .shadow(elevation = 12.dp, shape = BarShape)
                     .clip(BarShape)
                     .hazeEffect(state = hazeState, style = glassStyle)
                     .padding(horizontal = 12.dp),
@@ -262,19 +255,8 @@ private fun AddFloatingButton(
     Box(
         modifier = Modifier
             .size(FabSize)
-            // Effect: shadow_md3 — 탭 바와 동일한 2겹 그림자 스펙으로 통일
-            .shadow(
-                elevation = 15.dp,
-                shape = CircleShape,
-                ambientColor = Color.Black.copy(alpha = 0.32f),
-                spotColor = Color.Black.copy(alpha = 0.32f),
-            )
-            .shadow(
-                elevation = 7.dp,
-                shape = CircleShape,
-                ambientColor = Color.Black.copy(alpha = 0.28f),
-                spotColor = Color.Black.copy(alpha = 0.28f),
-            )
+            // Effect: shadow_md3 — 탭 바와 동일한 그림자 스펙으로 통일
+            .shadow(elevation = 12.dp, shape = CircleShape)
             .clip(CircleShape)
             .hazeEffect(state = hazeState, style = style)
             .clickable(onClick = onClick),
