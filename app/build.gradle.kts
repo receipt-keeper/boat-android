@@ -134,6 +134,7 @@ dependencies {
 
     // Google Sign-In & Ads
     implementation(libs.play.services.auth)
+    implementation(libs.play.app.update)
     implementation(libs.play.services.ads)
 
     implementation(libs.androidx.core.ktx)

@@ -23,6 +23,7 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.windrr.boat.MainActivity
 import com.windrr.boat.R
 import com.windrr.boat.core.notification.FcmDeviceManager
+import com.windrr.boat.core.update.InAppUpdateGate
 import com.windrr.boat.feature.notification.NotificationPermissionGate
 import com.windrr.boat.data.remote.ApiClient
 import com.windrr.boat.data.repository.AuthRepositoryImpl
@@ -98,6 +99,8 @@ class HomeActivity : ComponentActivity() {
 
                 // 알림 차단 상태면 앱 진입/복귀마다 권한 요청 또는 설정 유도
                 NotificationPermissionGate()
+                // Play 스토어에 새 버전이 있으면 앱 진입마다 확인 → 백그라운드 다운로드 → 재시작 유도
+                InAppUpdateGate()
 
                 val toastState = rememberBoatToastState()
                 val msgBackExit = stringResource(R.string.home_back_exit)
