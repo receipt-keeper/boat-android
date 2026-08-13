@@ -55,6 +55,11 @@ fun MainScreen(
     onTabSelected: (MainTab) -> Unit = {},
 ) {
     val navController = rememberNavController()
+    // NavController의 자체 뒤로가기 처리(back stack 엔트리가 2개 이상이면 자동 popBackStack)를 끈다.
+    // 켜져 있으면 아래 커스텀 BackHandler보다 먼저 가로채서, 홈 탭에서도 "이전 탭으로 복귀"가 발생한다.
+    LaunchedEffect(Unit) {
+        navController.enableOnBackPressed(false)
+    }
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     // 플로팅 바가 뒤 콘텐츠를 실시간 블러(글래스모피즘)로 샘플링하기 위한 상태
